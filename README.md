@@ -51,11 +51,14 @@ ChambeaYa/
 
 ## Capas del sistema
 
+
 - **domain**: entidades y reglas del negocio.
 - **application**: servicios de aplicación.
 - **infrastructure**: repositorios e ինտégración con persistencia.
 - **presentation**: controladores de la capa de exposición.
 - **frameworks**: componentes técnicos como Flask, SQLAlchemy y migraciones.
+- 
+<img width="3333" height="1812" alt="ChambeaYa - Arquitectura en Capas Flask UML" src="https://github.com/user-attachments/assets/b2e58ab5-8f94-41b9-87b6-2802d680bd64" />
 
 ## Tecnologías
 
