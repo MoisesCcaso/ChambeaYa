@@ -54,7 +54,7 @@ ChambeaYa/
 
 - **domain**: entidades y reglas del negocio.
 - **application**: servicios de aplicación.
-- **infrastructure**: repositorios e ինտégración con persistencia.
+- **infrastructure**: repositorios e integración con persistencia.
 - **presentation**: controladores de la capa de exposición.
 - **frameworks**: componentes técnicos como Flask, SQLAlchemy y migraciones.
 
