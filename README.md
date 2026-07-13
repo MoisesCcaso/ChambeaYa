@@ -32,8 +32,6 @@ ChambeaYa tiene como propósito facilitar la gestión integral de prácticas pre
 
 ## Prototipo (GUI)
 
-> **Agregar aquí las capturas o prototipos de la interfaz gráfica del sistema.**
-
 <img width="653" height="1600" alt="screen" src="https://github.com/user-attachments/assets/4b9551bf-5712-44be-8374-ccdae991e3a6" />
 
 ---
@@ -41,8 +39,6 @@ ChambeaYa tiene como propósito facilitar la gestión integral de prácticas pre
 # Modelo de Dominio
 
 ## Diagrama de Clases
-
-> **Agregar aquí el Diagrama de Clases del Dominio.**
 
 <img width="1754" height="932" alt="ChambeaYa - Domain Model (DDD)" src="https://github.com/user-attachments/assets/6fcab8ba-61e0-482c-aad8-2ad69dfcb3ea" />
 
@@ -64,9 +60,6 @@ El dominio del sistema se encuentra organizado en los siguientes módulos:
 ## Arquitectura del Sistema
 
 El proyecto sigue una arquitectura por capas inspirada en los principios de **Domain-Driven Design (DDD)**, separando claramente la lógica del negocio, los casos de uso, la infraestructura y la presentación.
-
-
-> **Agregar aquí el Diagrama de Arquitectura (Paquetes + Clases).**
 
 <img width="1714" height="932" alt="ChambeaYa - Arquitectura en Capas Flask UML" src="https://github.com/user-attachments/assets/c948c189-1b8a-4f14-9987-f434a5120d74" />
 
