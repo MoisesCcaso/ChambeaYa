@@ -8,5 +8,5 @@ class Evaluacion:
         self.puntaje = None
         self.fecha_evaluacion = None
 
-    def esta_aprobada(self, ):
+    def esta_aprobada(self):
         pass

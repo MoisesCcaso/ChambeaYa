@@ -8,5 +8,5 @@ class Empresa:
         self.ruc = None
         self.verificada = None
 
-    def verificar_ruc(self, ):
+    def verificar_ruc(self):
         pass

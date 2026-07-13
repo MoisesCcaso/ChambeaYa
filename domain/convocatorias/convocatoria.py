@@ -8,8 +8,8 @@ class Convocatoria:
         self.titulo = None
         self.estado = None
 
-    def publicar(self, ):
+    def publicar(self):
         pass
 
-    def cerrar(self, ):
+    def cerrar(self):
         pass
