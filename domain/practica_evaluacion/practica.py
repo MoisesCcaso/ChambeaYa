@@ -8,11 +8,11 @@ class Practica:
         self.practicante_id = None
         self.estado = None
 
-    def subir_entregable(self, ):
+    def subir_entregable(self):
         pass
 
-    def registrar_evaluacion(self, ):
+    def registrar_evaluacion(self):
         pass
 
-    def finalizar(self, ):
+    def finalizar(self):
         pass

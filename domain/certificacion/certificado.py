@@ -8,8 +8,8 @@ class Certificado:
         self.codigo_qr = None
         self.documento = None
 
-    def generar_pdf(self, ):
+    def generar_pdf(self):
         pass
 
-    def verificar_integridad(self, ):
+    def verificar_integridad(self):
         pass

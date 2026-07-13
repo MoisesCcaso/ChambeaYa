@@ -8,13 +8,13 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
 ChambeaYa/
 ├── application/
 │   ├── __init__.py
-│   ├── certificacionApplicationService.py
-│   ├── convocatoriaApplicationService.py
-│   ├── matchingApplicationService.py
-│   ├── perfilApplicationService.py
-│   ├── postulacionApplicationService.py
-│   ├── practicaApplicationService.py
-│   └── usuarioApplicationService.py
+│   ├── certificacion_application_service.py
+│   ├── convocatoria_application_service.py
+│   ├── matching_application_service.py
+│   ├── perfil_application_service.py
+│   ├── postulacion_application_service.py
+│   ├── practica_application_service.py
+│   └── usuario_application_service.py
 ├── domain/
 │   ├── __init__.py
 │   ├── auth/
@@ -31,22 +31,22 @@ ChambeaYa/
 │   └── sqlalchemy_orm/
 ├── infrastructure/
 │   ├── __init__.py
-│   ├── sqlAlchemyCertificadoRepository.py
-│   ├── sqlAlchemyConvocatoriaRepository.py
-│   ├── sqlAlchemyPerfilRepository.py
-│   ├── sqlAlchemyPostulacionRepository.py
-│   ├── sqlAlchemyPracticaRepository.py
-│   ├── sqlAlchemySugerenciaRepository.py
-│   └── sqlAlchemyUsuarioRepository.py
+│   ├── sqlalchemy_certificado_repository.py
+│   ├── sqlalchemy_convocatoria_repository.py
+│   ├── sqlalchemy_perfil_repository.py
+│   ├── sqlalchemy_postulacion_repository.py
+│   ├── sqlalchemy_practica_repository.py
+│   ├── sqlalchemy_sugerencia_repository.py
+│   └── sqlalchemy_usuario_repository.py
 └── presentation/
     ├── __init__.py
-    ├── certificadoController.py
-    ├── convocatoriaController.py
-    ├── matchingController.py
-    ├── perfilController.py
-    ├── postulacionController.py
-    ├── practicaController.py
-    └── usuarioController.py
+    ├── certificado_controller.py
+    ├── convocatoria_controller.py
+    ├── matching_controller.py
+    ├── perfil_controller.py
+    ├── postulacion_controller.py
+    ├── practica_controller.py
+    └── usuario_controller.py
 ```
 
 ## Capas del sistema
@@ -66,4 +66,3 @@ ChambeaYa/
 - Python
 - Flask
 - SQLAlchemy
-

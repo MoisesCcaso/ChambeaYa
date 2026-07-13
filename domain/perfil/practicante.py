@@ -8,8 +8,8 @@ class Practicante:
         self.nombre = None
         self.score_reputacion = None
 
-    def agregar_habilidad(self, ):
+    def agregar_habilidad(self):
         pass
 
-    def calcular_score(self, ):
+    def calcular_score(self):
         pass

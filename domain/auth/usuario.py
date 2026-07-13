@@ -9,8 +9,8 @@ class Usuario:
         self.tipo = None
         self.estado = None
 
-    def registrar(self, ):
+    def registrar(self):
         pass
 
-    def login(self, ):
+    def login(self):
         pass

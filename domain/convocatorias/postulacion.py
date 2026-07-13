@@ -8,11 +8,11 @@ class Postulacion:
         self.practicante_id = None
         self.estado = None
 
-    def aceptar(self, ):
+    def aceptar(self):
         pass
 
-    def rechazar(self, ):
+    def rechazar(self):
         pass
 
-    def seleccionar(self, ):
+    def seleccionar(self):
         pass
