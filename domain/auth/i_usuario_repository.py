@@ -6,13 +6,13 @@ from abc import ABC, abstractmethod
 
 class IUsuarioRepository(ABC):
     @abstractmethod
-    def save(self):
+    def save(self, usuario):
         pass
 
     @abstractmethod
-    def find_by_email(self):
+    def find_by_email(self, email):
         pass
 
     @abstractmethod
-    def find_by_id(self):
+    def find_by_id(self, usuario_id):
         pass

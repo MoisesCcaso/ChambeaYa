@@ -131,3 +131,41 @@ Revertir la última migración:
 ```bash
 flask --app frameworks.flask_mvc.app:create_app db downgrade
 ```
+
+## Endpoints iniciales
+
+Salud de la aplicación:
+
+```bash
+curl http://127.0.0.1:5000/health
+```
+
+Registro de usuario:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/register \
+  -c cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"email":"practicante@example.com","password":"secret123","tipo":"practicante"}'
+```
+
+Inicio de sesión:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/login \
+  -c cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"email":"practicante@example.com","password":"secret123"}'
+```
+
+Usuario autenticado:
+
+```bash
+curl -b cookies.txt http://127.0.0.1:5000/auth/me
+```
+
+Cierre de sesión:
+
+```bash
+curl -X POST -b cookies.txt http://127.0.0.1:5000/auth/logout
+```
