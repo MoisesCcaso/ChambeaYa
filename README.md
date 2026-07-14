@@ -6,6 +6,9 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
 
 ```bash
 ChambeaYa/
+├── config.py
+├── requirements.txt
+├── run.py
 ├── application/
 │   ├── __init__.py
 │   ├── certificacion_application_service.py
@@ -26,9 +29,15 @@ ChambeaYa/
 ├── frameworks/
 │   ├── __init__.py
 │   ├── flask_mvc/
+│   │   ├── app.py
+│   │   ├── routes/
+│   │   ├── static/
+│   │   └── templates/
 │   ├── migrations/
 │   ├── schemas/
 │   └── sqlalchemy_orm/
+│       ├── database.py
+│       └── models/
 ├── infrastructure/
 │   ├── __init__.py
 │   ├── sqlalchemy_certificado_repository.py
@@ -66,3 +75,59 @@ ChambeaYa/
 - Python
 - Flask
 - SQLAlchemy
+- Flask-Migrate
+
+## Ejecución local
+
+Crear y activar entorno virtual:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Instalar dependencias:
+
+```bash
+pip install -r requirements.txt
+```
+
+Configurar variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+Levantar la aplicación:
+
+```bash
+flask --app frameworks.flask_mvc.app:create_app run --debug
+```
+
+Verificar que la app responde:
+
+```bash
+curl http://127.0.0.1:5000/health
+```
+
+## Migraciones
+
+El entorno de migraciones ya está inicializado en `frameworks/migrations`.
+
+Crear una nueva migración después de modificar modelos:
+
+```bash
+flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
+```
+
+Aplicar migraciones:
+
+```bash
+flask --app frameworks.flask_mvc.app:create_app db upgrade
+```
+
+Revertir la última migración:
+
+```bash
+flask --app frameworks.flask_mvc.app:create_app db downgrade
+```
