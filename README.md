@@ -196,3 +196,51 @@ curl -X POST http://127.0.0.1:5000/auth/reset-password \
   -H "Content-Type: application/json" \
   -d '{"token":"TOKEN_DE_RECUPERACION","new_password":"nuevaClave123"}'
 ```
+
+Perfil del practicante autenticado:
+
+```bash
+curl -b cookies.txt http://127.0.0.1:5000/perfil/me
+```
+
+Crear o actualizar perfil de practicante:
+
+```bash
+curl -X PUT http://127.0.0.1:5000/perfil/me \
+  -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"nombres":"Diego","apellidos":"Perez","habilidades":["Python"],"formacion_educativa":["Ingenieria de Sistemas"]}'
+```
+
+Agregar habilidad:
+
+```bash
+curl -X POST http://127.0.0.1:5000/perfil/me/habilidades \
+  -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"habilidad":"Flask"}'
+```
+
+Agregar formación educativa:
+
+```bash
+curl -X POST http://127.0.0.1:5000/perfil/me/formacion \
+  -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"formacion":"UNSA"}'
+```
+
+Registrar y verificar identidad:
+
+```bash
+curl -X POST http://127.0.0.1:5000/perfil/me/identidad \
+  -b cookies.txt \
+  -H "Content-Type: application/json" \
+  -d '{"dni":"12345678","carnet_universitario":"20260001"}'
+```
+
+Consultar score de reputación:
+
+```bash
+curl -b cookies.txt http://127.0.0.1:5000/perfil/me/reputacion
+```
