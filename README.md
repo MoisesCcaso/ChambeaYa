@@ -144,9 +144,18 @@ Registro de usuario:
 
 ```bash
 curl -X POST http://127.0.0.1:5000/auth/register \
-  -c cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"email":"practicante@example.com","password":"secret123","tipo":"practicante"}'
+```
+
+La respuesta incluye `activation_token` para pruebas locales. En producción ese token debe enviarse por correo.
+
+Activación de cuenta:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/activate \
+  -H "Content-Type: application/json" \
+  -d '{"token":"TOKEN_DE_ACTIVACION"}'
 ```
 
 Inicio de sesión:
@@ -168,4 +177,22 @@ Cierre de sesión:
 
 ```bash
 curl -X POST -b cookies.txt http://127.0.0.1:5000/auth/logout
+```
+
+Solicitud de recuperación de contraseña:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/recover-password \
+  -H "Content-Type: application/json" \
+  -d '{"email":"practicante@example.com"}'
+```
+
+La respuesta incluye `password_reset_token` para pruebas locales. En producción ese token debe enviarse por correo.
+
+Restablecimiento de contraseña:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{"token":"TOKEN_DE_RECUPERACION","new_password":"nuevaClave123"}'
 ```

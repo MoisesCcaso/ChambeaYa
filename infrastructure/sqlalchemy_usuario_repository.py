@@ -24,6 +24,10 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
         model.password_hash = usuario.password_hash
         model.tipo = usuario.tipo
         model.estado = usuario.estado
+        model.activation_token = usuario.activation_token
+        model.activation_token_expires_at = usuario.activation_token_expires_at
+        model.password_reset_token = usuario.password_reset_token
+        model.password_reset_expires_at = usuario.password_reset_expires_at
 
         db.session.commit()
         return self._to_domain(model)
@@ -36,6 +40,14 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
         model = db.session.get(UsuarioModel, usuario_id)
         return self._to_domain(model)
 
+    def find_by_activation_token(self, token):
+        model = UsuarioModel.query.filter_by(activation_token=token).first()
+        return self._to_domain(model)
+
+    def find_by_password_reset_token(self, token):
+        model = UsuarioModel.query.filter_by(password_reset_token=token).first()
+        return self._to_domain(model)
+
     def _to_domain(self, model):
         if model is None:
             return None
@@ -46,4 +58,8 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
             password_hash=model.password_hash,
             tipo=model.tipo,
             estado=model.estado,
+            activation_token=model.activation_token,
+            activation_token_expires_at=model.activation_token_expires_at,
+            password_reset_token=model.password_reset_token,
+            password_reset_expires_at=model.password_reset_expires_at,
         )

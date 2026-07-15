@@ -16,3 +16,11 @@ class IUsuarioRepository(ABC):
     @abstractmethod
     def find_by_id(self, usuario_id):
         pass
+
+    @abstractmethod
+    def find_by_activation_token(self, token):
+        pass
+
+    @abstractmethod
+    def find_by_password_reset_token(self, token):
+        pass

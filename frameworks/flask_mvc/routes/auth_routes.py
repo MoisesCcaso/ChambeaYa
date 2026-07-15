@@ -24,7 +24,6 @@ def register():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    session["usuario_id"] = data["id"]
     return jsonify(data), status_code
 
 
@@ -39,6 +38,45 @@ def login():
         return jsonify({"error": str(exc)}), 401
 
     session["usuario_id"] = data["id"]
+    return jsonify(data), status_code
+
+
+@auth_bp.post("/activate")
+def activate():
+    payload = request.get_json(silent=True) or {}
+    controller = build_usuario_controller()
+
+    try:
+        data, status_code = controller.activate_account(payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
+
+
+@auth_bp.post("/recover-password")
+def recover_password():
+    payload = request.get_json(silent=True) or {}
+    controller = build_usuario_controller()
+
+    try:
+        data, status_code = controller.recover_password(payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
+
+
+@auth_bp.post("/reset-password")
+def reset_password():
+    payload = request.get_json(silent=True) or {}
+    controller = build_usuario_controller()
+
+    try:
+        data, status_code = controller.reset_password(payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
     return jsonify(data), status_code
 
 

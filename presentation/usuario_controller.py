@@ -13,7 +13,9 @@ class UsuarioController:
             tipo=payload.get("tipo"),
         )
 
-        return self._serialize_usuario(usuario), 201
+        data = self._serialize_usuario(usuario)
+        data["activation_token"] = usuario.activation_token
+        return data, 201
 
     def login(self, payload):
         self._require_service()
@@ -24,11 +26,36 @@ class UsuarioController:
 
         return self._serialize_usuario(usuario), 200
 
-    def recover_password(self):
-        pass
+    def recover_password(self, payload):
+        self._require_service()
+        usuario = self.usuario_application_service.recover_password(
+            email=payload.get("email"),
+        )
 
-    def activate_account(self):
-        pass
+        if usuario is None:
+            return {"status": "ok"}, 200
+
+        return {
+            "status": "ok",
+            "password_reset_token": usuario.password_reset_token,
+        }, 200
+
+    def activate_account(self, payload):
+        self._require_service()
+        usuario = self.usuario_application_service.activate_account(
+            token=payload.get("token"),
+        )
+
+        return self._serialize_usuario(usuario), 200
+
+    def reset_password(self, payload):
+        self._require_service()
+        usuario = self.usuario_application_service.reset_password(
+            token=payload.get("token"),
+            new_password=payload.get("new_password"),
+        )
+
+        return self._serialize_usuario(usuario), 200
 
     def get_authenticated_user(self, usuario_id):
         self._require_service()

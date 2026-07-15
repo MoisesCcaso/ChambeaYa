@@ -24,9 +24,12 @@ class UsuarioApplicationService:
             email=normalized_email,
             password_hash=password_hash,
             tipo=tipo,
-            estado=Usuario.ESTADO_ACTIVO,
+            estado=Usuario.ESTADO_PENDIENTE,
         )
         usuario.registrar()
+        usuario.asignar_token_activacion(
+            self.autenticacion_dominio_servicio.generar_token(horas_vigencia=48)
+        )
 
         return self.usuario_repository.save(usuario)
 
@@ -39,11 +42,56 @@ class UsuarioApplicationService:
 
         return usuario
 
-    def recover_password(self):
-        pass
+    def recover_password(self, email):
+        self._require_repository()
 
-    def activate_account(self):
-        pass
+        usuario = self.usuario_repository.find_by_email(self._normalize_email(email))
+        if usuario is None:
+            return None
+
+        usuario.asignar_token_recuperacion(
+            self.autenticacion_dominio_servicio.generar_token(horas_vigencia=2)
+        )
+        return self.usuario_repository.save(usuario)
+
+    def activate_account(self, token):
+        self._require_repository()
+
+        if not token:
+            raise ValueError("El token de activación es obligatorio")
+
+        usuario = self.usuario_repository.find_by_activation_token(token)
+        if usuario is None:
+            raise ValueError("Token de activación inválido")
+
+        if not self.autenticacion_dominio_servicio.validar_token(
+            usuario.activation_token,
+            usuario.activation_token_expires_at,
+        ):
+            raise ValueError("Token de activación expirado")
+
+        usuario.activar()
+        return self.usuario_repository.save(usuario)
+
+    def reset_password(self, token, new_password):
+        self._require_repository()
+
+        if not token:
+            raise ValueError("El token de recuperación es obligatorio")
+
+        usuario = self.usuario_repository.find_by_password_reset_token(token)
+        if usuario is None:
+            raise ValueError("Token de recuperación inválido")
+
+        if not self.autenticacion_dominio_servicio.validar_token(
+            usuario.password_reset_token,
+            usuario.password_reset_expires_at,
+        ):
+            raise ValueError("Token de recuperación expirado")
+
+        password_hash = self.autenticacion_dominio_servicio.generar_password_hash(new_password)
+        usuario.actualizar_password(password_hash)
+        return self.usuario_repository.save(usuario)
 
     def find_by_id(self, usuario_id):
         self._require_repository()
