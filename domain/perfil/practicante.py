@@ -2,14 +2,75 @@
 # -*- coding: utf-8 -*-
 
 class Practicante:
-    def __init__(self):
-        self.id = None
-        self.usuario_id = None
-        self.nombre = None
-        self.score_reputacion = None
+    def __init__(
+        self,
+        id=None,
+        usuario_id=None,
+        nombres=None,
+        apellidos=None,
+        dni=None,
+        carnet_universitario=None,
+        habilidades=None,
+        formacion_educativa=None,
+        score_reputacion=0.0,
+        identidad_verificada=False,
+    ):
+        self.id = id
+        self.usuario_id = usuario_id
+        self.nombres = nombres
+        self.apellidos = apellidos
+        self.dni = dni
+        self.carnet_universitario = carnet_universitario
+        self.habilidades = habilidades or []
+        self.formacion_educativa = formacion_educativa or []
+        self.score_reputacion = score_reputacion
+        self.identidad_verificada = identidad_verificada
 
-    def agregar_habilidad(self):
-        pass
+    def actualizar_datos(self, nombres=None, apellidos=None, dni=None, carnet_universitario=None):
+        if nombres is not None:
+            self.nombres = nombres
+        if apellidos is not None:
+            self.apellidos = apellidos
+        if dni is not None:
+            self.dni = dni
+        if carnet_universitario is not None:
+            self.carnet_universitario = carnet_universitario
+
+        return self
+
+    def agregar_habilidad(self, habilidad):
+        habilidad_normalizada = self._normalizar_texto(habilidad)
+        if habilidad_normalizada and habilidad_normalizada not in self.habilidades:
+            self.habilidades.append(habilidad_normalizada)
+
+        return self
+
+    def agregar_formacion(self, formacion):
+        formacion_normalizada = self._normalizar_texto(formacion)
+        if formacion_normalizada and formacion_normalizada not in self.formacion_educativa:
+            self.formacion_educativa.append(formacion_normalizada)
+
+        return self
+
+    def verificar_identidad(self):
+        if not self.dni and not self.carnet_universitario:
+            raise ValueError("Se requiere DNI o carnet universitario")
+
+        self.identidad_verificada = True
+        return self
 
     def calcular_score(self):
-        pass
+        base = 0.0
+        base += min(len(self.habilidades), 10) * 5
+        base += min(len(self.formacion_educativa), 5) * 5
+        if self.identidad_verificada:
+            base += 25
+
+        self.score_reputacion = min(base, 100.0)
+        return self.score_reputacion
+
+    def _normalizar_texto(self, valor):
+        if valor is None:
+            return None
+
+        return str(valor).strip()
