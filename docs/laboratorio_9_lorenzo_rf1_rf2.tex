@@ -1,0 +1,287 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codeframe}{RGB}{220,220,220}
+\definecolor{codekeyword}{RGB}{0,92,175}
+\definecolor{codestring}{RGB}{120,70,0}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekeyword}\bfseries,
+    stringstyle=\color{codestring},
+    showstringspaces=false,
+    breaklines=true,
+    tabsize=4
+}
+
+\lstdefinestyle{textstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    showstringspaces=false,
+    breaklines=true
+}
+
+\title{Laboratorio 9\\Convenciones de Codificación RF.1 y RF.2}
+\author{Lorenzo \\ Proyecto ChambeaYa}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Datos generales}
+
+\textbf{Requisitos bajo responsabilidad:}
+
+\begin{itemize}
+    \item RF.1 - Gestión de Registro y Autenticación.
+    \item RF.2 - Gestión del Perfil del Joven.
+\end{itemize}
+
+\textbf{Lenguaje y herramientas:}
+
+\begin{itemize}
+    \item Python.
+    \item Flask.
+    \item SQLAlchemy.
+    \item VS Code.
+    \item SonarLint como apoyo para revisar bugs, code smells y vulnerabilidades.
+\end{itemize}
+
+\section{Archivos revisados}
+
+\subsection{RF.1 - Registro y autenticación}
+
+\begin{lstlisting}[style=textstyle]
+application/usuario_application_service.py
+domain/auth/autenticacion_dominio_servicio.py
+domain/auth/i_usuario_repository.py
+domain/auth/token_recuperacion.py
+domain/auth/usuario.py
+frameworks/flask_mvc/routes/auth_routes.py
+frameworks/migrations/versions/734d8ba24491_add_user_activation_and_password_reset_.py
+frameworks/sqlalchemy_orm/models/usuario_model.py
+infrastructure/sqlalchemy_usuario_repository.py
+presentation/usuario_controller.py
+\end{lstlisting}
+
+\subsection{RF.2 - Gestión del perfil del joven}
+
+\begin{lstlisting}[style=textstyle]
+application/perfil_application_service.py
+domain/perfil/i_perfil_repository.py
+domain/perfil/practicante.py
+frameworks/flask_mvc/routes/perfil_routes.py
+frameworks/sqlalchemy_orm/models/practicante_model.py
+infrastructure/sqlalchemy_perfil_repository.py
+presentation/perfil_controller.py
+\end{lstlisting}
+
+\section{Convenciones de codificación aplicadas}
+
+\subsection{Práctica 1: nombres en \texttt{snake\_case}}
+
+En Python se recomienda usar \texttt{snake\_case} para nombres de archivos, métodos y variables. Esta convención se aplicó en los módulos de RF.1 y RF.2.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def register_user(self, email, password, tipo):
+    self._require_repository()
+    normalized_email = self._normalize_email(email)
+\end{lstlisting}
+
+\subsection{Práctica 2: clases en \texttt{PascalCase}}
+
+Las clases se nombraron en \texttt{PascalCase}, siguiendo la convención estándar de Python para tipos y clases.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+class UsuarioApplicationService:
+    def __init__(self, usuario_repository=None, autenticacion_dominio_servicio=None):
+        self.usuario_repository = usuario_repository
+\end{lstlisting}
+
+\subsection{Práctica 3: separación de responsabilidades por capas}
+
+La implementación respeta la estructura por capas. Las rutas Flask reciben la petición HTTP, los controllers serializan respuestas, los services aplican casos de uso, el dominio contiene reglas de negocio y los repositorios acceden a la base de datos.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def build_usuario_controller():
+    repository = SqlAlchemyUsuarioRepository()
+    service = UsuarioApplicationService(repository)
+    return UsuarioController(service)
+\end{lstlisting}
+
+\subsection{Práctica 4: validación temprana de entradas}
+
+Los datos obligatorios se validan al inicio del flujo, evitando continuar con información inválida.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def _normalize_email(self, email):
+    if not email:
+        raise ValueError("El email es obligatorio")
+
+    return email.strip().lower()
+\end{lstlisting}
+
+\subsection{Práctica 5: no exponer objetos internos directamente}
+
+Las respuestas se serializan explícitamente para controlar qué datos salen en JSON. Por ejemplo, no se expone el hash de contraseña.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def _serialize_practicante(self, practicante):
+    return {
+        "id": practicante.id,
+        "usuario_id": practicante.usuario_id,
+        "nombres": practicante.nombres,
+        "apellidos": practicante.apellidos,
+        "habilidades": practicante.habilidades,
+    }
+\end{lstlisting}
+
+\section{Corrección de bugs, code smells y vulnerabilidades}
+
+\subsection{Corrección 1: eliminar constructores vacíos}
+
+Se eliminaron constructores que solo contenían \texttt{pass}, ya que no aportaban comportamiento y podían ser reportados como code smell.
+
+\textbf{Antes:}
+
+\begin{lstlisting}[style=pythonstyle]
+class SqlAlchemyUsuarioRepository(IUsuarioRepository):
+    def __init__(self):
+        pass
+\end{lstlisting}
+
+\textbf{Después:}
+
+\begin{lstlisting}[style=pythonstyle]
+class SqlAlchemyUsuarioRepository(IUsuarioRepository):
+    def save(self, usuario):
+        ...
+\end{lstlisting}
+
+\subsection{Corrección 2: reemplazar \texttt{pass} ambiguo}
+
+En métodos fuera del alcance de RF.2 se reemplazó \texttt{pass} por \texttt{NotImplementedError}, dejando explícito que la funcionalidad pertenece a otro requisito.
+
+\textbf{Antes:}
+
+\begin{lstlisting}[style=pythonstyle]
+def update_empresa(self):
+    pass
+\end{lstlisting}
+
+\textbf{Después:}
+
+\begin{lstlisting}[style=pythonstyle]
+def update_empresa(self):
+    raise NotImplementedError("El perfil de empresa no pertenece a RF.2")
+\end{lstlisting}
+
+\subsection{Corrección 3: hashing de contraseñas}
+
+Para evitar vulnerabilidades, las contraseñas no se almacenan en texto plano. Se genera un hash con Werkzeug.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def generar_password_hash(self, password):
+    if not password:
+        raise ValueError("La contraseña es obligatoria")
+
+    return generate_password_hash(password)
+\end{lstlisting}
+
+\subsection{Corrección 4: tokens aleatorios con expiración}
+
+Los tokens de activación y recuperación se generan con valores aleatorios y fecha de expiración.
+
+\textbf{Fragmento de código:}
+
+\begin{lstlisting}[style=pythonstyle]
+def generar_token(self, horas_vigencia=24):
+    expiracion = datetime.now(timezone.utc) + timedelta(hours=horas_vigencia)
+    return TokenRecuperacion(token_urlsafe(32), expiracion)
+\end{lstlisting}
+
+\section{Evidencia de avance}
+
+RF.1 y RF.2 fueron integrados previamente en la rama principal del repositorio:
+
+\begin{lstlisting}[style=textstyle]
+4ae95d1 feat: implement RF.1 user registration and authentication
+51bd587 feat: implement RF.2 joven profile management
+\end{lstlisting}
+
+\section{Actualización sugerida en Trello}
+
+\subsection{RF.1}
+
+\textbf{Checklist: Escenarios de Prueba}
+
+\begin{itemize}
+    \item Registrar usuario con email, contraseña y tipo válido.
+    \item Activar cuenta con token válido.
+    \item Iniciar sesión con credenciales válidas.
+    \item Rechazar login con contraseña incorrecta.
+    \item Recuperar contraseña mediante token.
+\end{itemize}
+
+\textbf{Checklist: Tareas de Implementación}
+
+\begin{itemize}
+    \item Implementar entidad Usuario.
+    \item Implementar servicio de autenticación.
+    \item Implementar rutas REST de autenticación.
+    \item Implementar repositorio SQLAlchemy.
+    \item Validar flujo completo.
+\end{itemize}
+
+\subsection{RF.2}
+
+\textbf{Checklist: Escenarios de Prueba}
+
+\begin{itemize}
+    \item Crear perfil de practicante autenticado.
+    \item Agregar habilidades técnicas.
+    \item Agregar formación educativa.
+    \item Registrar DNI o carnet universitario.
+    \item Consultar score de reputación.
+\end{itemize}
+
+\textbf{Checklist: Tareas de Implementación}
+
+\begin{itemize}
+    \item Implementar entidad Practicante.
+    \item Implementar servicio de perfil.
+    \item Implementar rutas REST de perfil.
+    \item Implementar repositorio SQLAlchemy.
+    \item Validar flujo RF.1 + RF.2.
+\end{itemize}
+
+\end{document}
