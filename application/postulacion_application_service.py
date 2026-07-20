@@ -3,16 +3,16 @@
 
 class PostulacionApplicationService:
     def __init__(self):
-        pass
+        doSomething() # type: ignore
 
     def apply(self):
-        pass
+        doSomething() # type: ignore
 
     def accept(self):
-        pass
+        doSomething() # type: ignore
 
     def reject(self):
-        pass
+        doSomething() # type: ignore
 
     def select_candidate(self):
-        pass
+        doSomething() # type: ignore
