@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class Entregable:
@@ -19,5 +19,5 @@ class Entregable:
         return Entregable(
             practica_id=practica_id,
             archivo=str(archivo).strip(),
-            fecha_subida=datetime.utcnow(),
+            fecha_subida=datetime.now(timezone.utc),
         )

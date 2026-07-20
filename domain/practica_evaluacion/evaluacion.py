@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 PUNTAJE_APROBACION = 60.0
 
@@ -23,7 +23,7 @@ class Evaluacion:
         return Evaluacion(
             practica_id=practica_id,
             puntaje=puntaje,
-            fecha_evaluacion=datetime.utcnow(),
+            fecha_evaluacion= datetime.now(timezone.utc),
         )
 
     def esta_aprobada(self):

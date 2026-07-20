@@ -244,3 +244,22 @@ Consultar score de reputación:
 ```bash
 curl -b cookies.txt http://127.0.0.1:5000/perfil/me/reputacion
 ```
+## Convenciones de Codificación
+
+**Lenguaje:** Python 3, siguiendo [PEP 8](https://peps.python.org/pep-0008/).
+**Herramienta de análisis estático:** SonarLint (extensión VS Code).
+
+### Prácticas aplicadas
+- **Nomenclatura:** `snake_case` para funciones/variables (`subir_entregable`,
+  `obtener_historial_entregables`), `PascalCase` para clases (`Practica`,
+  `Entregable`, `Evaluacion`), `UPPER_CASE` para constantes de dominio
+  (`PUNTAJE_APROBACION`).
+- **Encapsulamiento:** métodos internos prefijados con `_` para distinguirlos
+  de la API pública de cada clase (`_to_practica_domain`, `_serialize_practica`).
+- **Validación explícita:** excepciones específicas (`ValueError`) con mensajes
+  descriptivos en español, en vez de fallos silenciosos.
+- **Type hints y docstrings:** agregados en los métodos de dominio para mejorar
+  legibilidad y mantenimiento.
+- **Separación de responsabilidades (DDD):** las reglas de negocio (ej. "no se
+  puede finalizar una práctica sin entregables") viven en la entidad de dominio
+  `Practica`, no en el controlador ni en el repositorio.

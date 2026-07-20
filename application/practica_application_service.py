@@ -1,5 +1,7 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-}
+from typing import Final
+UNFINDED: Final = "Práctica no encontrada"
 
 from domain.practica_evaluacion.practica_fabrica import PracticaFabrica
 
@@ -29,7 +31,7 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError("Práctica no encontrada")
+            raise ValueError(UNFINDED)
 
         practica.registrar_evaluacion(puntaje)
         return self.practica_repository.save(practica)
@@ -43,7 +45,7 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError("Práctica no encontrada")
+            raise ValueError(UNFINDED)
 
         practica.finalizar()
         return self.practica_repository.save(practica)
@@ -55,7 +57,7 @@ class PracticaApplicationService:
 
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError("Práctica no encontrada")
+            raise ValueError(UNFINDED)
 
         if practica.practicante_id != practicante.id:
             raise ValueError("No autorizado para acceder a esta práctica")
