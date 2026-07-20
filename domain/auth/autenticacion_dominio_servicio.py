@@ -9,9 +9,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class AutenticacionDominioServicio:
-    def __init__(self):
-        pass
-
     def generar_password_hash(self, password):
         if not password:
             raise ValueError("La contraseña es obligatoria")

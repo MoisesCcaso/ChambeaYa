@@ -10,9 +10,6 @@ from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 
 
 class SqlAlchemyPerfilRepository(IPerfilRepository):
-    def __init__(self):
-        pass
-
     def save_practicante(self, practicante):
         model = None
         if practicante.id is not None:
@@ -38,14 +35,14 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
         return self._to_practicante_domain(model)
 
     def save_empresa(self, empresa):
-        pass
+        raise NotImplementedError("El perfil de empresa no pertenece a RF.2")
 
     def find_practicante_by_user_id(self, usuario_id):
         model = PracticanteModel.query.filter_by(usuario_id=usuario_id).first()
         return self._to_practicante_domain(model)
 
     def find_empresa_by_user_id(self, usuario_id):
-        pass
+        raise NotImplementedError("El perfil de empresa no pertenece a RF.2")
 
     def _to_practicante_domain(self, model):
         if model is None:

@@ -62,7 +62,7 @@ class PerfilApplicationService:
         return self.perfil_repository.save_practicante(practicante)
 
     def update_empresa(self):
-        pass
+        raise NotImplementedError("El perfil de empresa no pertenece a RF.2")
 
     def verify_profile(self, usuario_id):
         self._require_repositories()

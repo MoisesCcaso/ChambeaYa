@@ -35,7 +35,7 @@ class PerfilController:
         return self._serialize_practicante(practicante), 200
 
     def update_empresa(self):
-        pass
+        raise NotImplementedError("El perfil de empresa no pertenece a RF.2")
 
     def verify_identity(self, usuario_id, payload):
         self._require_service()
