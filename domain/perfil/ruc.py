@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 class RUC:
-    def __init__(self):
-        self.numero = None
+    def __init__(self, numero=None):
+        self.numero = numero
 
     def es_valido(self):
         """
