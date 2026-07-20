@@ -9,4 +9,9 @@ class Empresa:
         self.verificada = None
 
     def verificar_ruc(self):
-        pass
+        """
+        Delega la validación en el value object RUC (self.ruc)
+        y actualiza self.verificada.
+        """
+        self.verificada = bool(self.ruc) and self.ruc.es_valido()
+        return self.verificada
