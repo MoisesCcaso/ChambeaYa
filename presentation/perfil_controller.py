@@ -35,7 +35,7 @@ class PerfilController:
         return self._serialize_practicante(practicante), 200
 
     def update_empresa(self):
-        pass
+        raise NotImplementedError("Módulo empresa asignado a otro equipo")
 
     def verify_identity(self, usuario_id, payload):
         self._require_service()
