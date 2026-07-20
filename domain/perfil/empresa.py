@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 class Empresa:
-    def __init__(self):
-        self.id = None
-        self.usuario_id = None
-        self.ruc = None
-        self.verificada = None
+    def __init__(self, id=None, usuario_id=None, ruc=None, verificada=False):
+        self.id = id
+        self.usuario_id = usuario_id
+        self.ruc = ruc
+        self.verificada = verificada
 
     def verificar_ruc(self):
         """
