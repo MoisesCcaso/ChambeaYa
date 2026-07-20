@@ -52,6 +52,11 @@ class PerfilController:
             "score_reputacion": self.perfil_application_service.get_reputation_score(usuario_id)
         }, 200
 
+    def get_reputation_report(self, usuario_id):
+        self._require_service()
+        reporte = self.perfil_application_service.get_reputation_report(usuario_id)
+        return reporte, 200
+
     def _require_service(self):
         if self.perfil_application_service is None:
             raise RuntimeError("PerfilController requiere un servicio de aplicación")
