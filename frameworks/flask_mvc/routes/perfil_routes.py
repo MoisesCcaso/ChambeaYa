@@ -6,6 +6,8 @@ from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioReposi
 from presentation.perfil_controller import PerfilController
 
 
+_UNAUTHORIZED = "No autenticado"
+
 perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
 
 
@@ -24,7 +26,7 @@ def get_authenticated_user_id():
 def get_my_profile():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     controller = build_perfil_controller()
     try:
@@ -42,7 +44,7 @@ def get_my_profile():
 def update_my_profile():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     payload = request.get_json(silent=True) or {}
     controller = build_perfil_controller()
@@ -58,7 +60,7 @@ def update_my_profile():
 def add_my_skill():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     payload = request.get_json(silent=True) or {}
     controller = build_perfil_controller()
@@ -74,7 +76,7 @@ def add_my_skill():
 def add_my_education():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     payload = request.get_json(silent=True) or {}
     controller = build_perfil_controller()
@@ -90,7 +92,7 @@ def add_my_education():
 def verify_my_identity():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     payload = request.get_json(silent=True) or {}
     controller = build_perfil_controller()
@@ -106,11 +108,26 @@ def verify_my_identity():
 def get_my_reputation():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": _UNAUTHORIZED}), 401
 
     controller = build_perfil_controller()
     try:
         data, status_code = controller.get_reputation_score(usuario_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
+
+
+@perfil_bp.get("/me/reporte-reputacion")
+def get_my_reputation_report():
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": _UNAUTHORIZED}), 401
+
+    controller = build_perfil_controller()
+    try:
+        data, status_code = controller.get_reputation_report(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 

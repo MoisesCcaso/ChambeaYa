@@ -6,9 +6,10 @@ from domain.perfil.practicante import Practicante
 
 
 class PerfilApplicationService:
-    def __init__(self, perfil_repository=None, usuario_repository=None):
+    def __init__(self, perfil_repository=None, usuario_repository=None, practica_repository=None):
         self.perfil_repository = perfil_repository
         self.usuario_repository = usuario_repository
+        self.practica_repository = practica_repository
 
     def get_practicante_profile(self, usuario_id):
         self._require_repositories()
@@ -62,7 +63,7 @@ class PerfilApplicationService:
         return self.perfil_repository.save_practicante(practicante)
 
     def update_empresa(self):
-        pass
+        raise NotImplementedError("Módulo empresa asignado a otro equipo")
 
     def verify_profile(self, usuario_id):
         self._require_repositories()
@@ -79,6 +80,28 @@ class PerfilApplicationService:
             return 0.0
 
         return practicante.score_reputacion
+
+    def get_reputation_report(self, usuario_id):
+        self._require_repositories()
+        practicante = self._get_or_create_practicante(usuario_id)
+
+        historial = []
+        if self.practica_repository is not None:
+            practicas = self.practica_repository.find_by_practicante_id(practicante.id)
+            if practicas:
+                for p in practicas:
+                    historial.append({
+                        "practica_id": p.id,
+                        "estado": p.estado,
+                    })
+
+        return {
+            "score_reputacion": practicante.score_reputacion,
+            "habilidades": practicante.habilidades,
+            "formacion_educativa": practicante.formacion_educativa,
+            "identidad_verificada": practicante.identidad_verificada,
+            "historial_practicas": historial,
+        }
 
     def _get_or_create_practicante(self, usuario_id):
         self._require_practicante_user(usuario_id)

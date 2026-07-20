@@ -77,6 +77,73 @@ ChambeaYa/
 - SQLAlchemy
 - Flask-Migrate
 
+## Convenciones de Codificación
+
+### Nombres de métodos y variables (snake_case)
+Los métodos, funciones y variables usan `snake_case` con verbos en español que reflejan acciones del dominio.
+
+```python
+# Métodos de dominio
+practicante.agregar_habilidad("Python")
+practicante.verificar_identidad()
+practicante.calcular_score()
+
+# Variables
+usuario_id = session.get("usuario_id")
+habilidades_requeridas = ["Python", "Flask"]
+
+# Constantes de clase
+Usuario.ESTADO_ACTIVO
+Usuario.TIPO_PRACTICANTE
+```
+
+### Nombres de clases (PascalCase)
+Las clases usan `PascalCase`. Las interfaces de repositorio se prefijan con `I` y las implementaciones concretas con `SqlAlchemy`.
+
+```python
+class Usuario:
+class Practicante:
+class PerfilApplicationService:
+class IPerfilRepository:
+class SqlAlchemyPerfilRepository:
+```
+
+### Métodos vacíos o pendientes
+En lugar de `pass`, los métodos pendientes lanzan `NotImplementedError` con un mensaje explicativo.
+
+```python
+def update_empresa(self):
+    raise NotImplementedError("Módulo empresa asignado a otro equipo")
+```
+
+### Constantes para literales repetidos
+Los strings duplicados en rutas se definen como constantes al inicio del módulo.
+
+```python
+_UNAUTHORIZED = "No autenticado"
+
+@perfil_bp.get("/me")
+def get_my_profile():
+    if usuario_id is None:
+        return jsonify({"error": _UNAUTHORIZED}), 401
+```
+
+### Capas y dependencias
+El flujo de dependencias es unidireccional: Routes → Controller → ApplicationService → Domain. Las capas superiores dependen de las inferiores, nunca al revés.
+
+```python
+# frameworks/flask_mvc/routes/perfil_routes.py
+from application.perfil_application_service import PerfilApplicationService
+from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from presentation.perfil_controller import PerfilController
+
+def build_perfil_controller():
+    perfil_repository = SqlAlchemyPerfilRepository()
+    usuario_repository = SqlAlchemyUsuarioRepository()
+    service = PerfilApplicationService(perfil_repository, usuario_repository)
+    return PerfilController(service)
+```
+
 ## Ejecución local
 
 Crear y activar entorno virtual:
