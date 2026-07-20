@@ -115,3 +115,18 @@ def get_my_reputation():
         return jsonify({"error": str(exc)}), 400
 
     return jsonify(data), status_code
+
+
+@perfil_bp.get("/me/reporte-reputacion")
+def get_my_reputation_report():
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+
+    controller = build_perfil_controller()
+    try:
+        data, status_code = controller.get_reputation_report(usuario_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
