@@ -38,3 +38,22 @@ def create_convocatoria():
         return jsonify({"error": str(exc)}), 400
 
     return jsonify(data), status_code
+
+@convocatoria_bp.post("/<int:convocatoria_id>/publicar")
+def publish_convocatoria(convocatoria_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+
+    perfil_repository = SqlAlchemyPerfilRepository()
+    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+
+    controller = build_convocatoria_controller()
+    try:
+        data, status_code = controller.publish(empresa.id, convocatoria_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
