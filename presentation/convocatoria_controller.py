@@ -10,8 +10,10 @@ class ConvocatoriaController:
         convocatoria = self.convocatoria_application_service.create_convocatoria(empresa_id, payload)
         return self._serialize_convocatoria(convocatoria), 201
 
-    def publish(self):
-        pass
+    def publish(self, empresa_id, convocatoria_id):
+        self._require_service()
+        convocatoria = self.convocatoria_application_service.publish(empresa_id, convocatoria_id)
+        return self._serialize_convocatoria(convocatoria), 200
 
     def close(self):
         pass
