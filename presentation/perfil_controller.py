@@ -34,8 +34,10 @@ class PerfilController:
         )
         return self._serialize_practicante(practicante), 200
 
-    def update_empresa(self):
-        pass
+    def update_empresa(self, usuario_id, payload):
+        self._require_service()
+        empresa = self.perfil_application_service.update_empresa(usuario_id, payload)
+        return self._serialize_empresa(empresa), 200
 
     def verify_identity(self, usuario_id, payload):
         self._require_service()
@@ -68,4 +70,12 @@ class PerfilController:
             "formacion_educativa": practicante.formacion_educativa,
             "score_reputacion": practicante.score_reputacion,
             "identidad_verificada": practicante.identidad_verificada,
+        }
+    
+    def _serialize_empresa(self, empresa):
+        return {
+            "id": empresa.id,
+            "usuario_id": empresa.usuario_id,
+            "ruc": empresa.ruc.numero if empresa.ruc else None,
+            "verificada": empresa.verificada,
         }
