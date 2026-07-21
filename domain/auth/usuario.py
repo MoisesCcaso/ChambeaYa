@@ -1,6 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import re
+
+_EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
 class Usuario:
     ESTADO_ACTIVO = "activo"
     ESTADO_PENDIENTE = "pendiente"
@@ -32,6 +37,8 @@ class Usuario:
     def registrar(self):
         if not self.email:
             raise ValueError("El email es obligatorio")
+        if not _EMAIL_REGEX.match(self.email):
+            raise ValueError("El email no tiene un formato válido")
         if not self.password_hash:
             raise ValueError("La contraseña es obligatoria")
         if self.tipo not in {self.TIPO_PRACTICANTE, self.TIPO_EMPRESA}:
