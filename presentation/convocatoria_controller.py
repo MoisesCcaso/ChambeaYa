@@ -2,17 +2,41 @@
 # -*- coding: utf-8 -*-
 
 class ConvocatoriaController:
-    def __init__(self):
-        pass
+    def __init__(self, convocatoria_application_service=None):
+        self.convocatoria_application_service = convocatoria_application_service
+
+    def list_abiertas(self):
+        self._require_service()
+        convocatorias = self.convocatoria_application_service.listar_convocatorias_abiertas()
+        data = [self._serialize_convocatoria(c) for c in convocatorias]
+        return {"convocatorias": data}, 200
 
     def create(self):
-        pass
+        raise NotImplementedError("Creación de convocatoria asignada al módulo empresa")
 
     def publish(self):
-        pass
+        raise NotImplementedError("Publicación de convocatoria asignada al módulo empresa")
 
     def close(self):
-        pass
+        raise NotImplementedError("Cierre de convocatoria asignado al módulo empresa")
 
-    def list(self):
-        pass
+    def _require_service(self):
+        if self.convocatoria_application_service is None:
+            raise RuntimeError("ConvocatoriaController requiere un servicio de aplicación")
+
+    def _serialize_convocatoria(self, convocatoria):
+        return {
+            "id": convocatoria.id,
+            "titulo": convocatoria.titulo,
+            "descripcion": convocatoria.descripcion,
+            "habilidades_requeridas": convocatoria.habilidades_requeridas,
+            "estado": convocatoria.estado,
+            "fecha_publicacion": self._format_fecha(convocatoria.fecha_publicacion),
+            "fecha_cierre": self._format_fecha(convocatoria.fecha_cierre),
+        }
+
+    def _format_fecha(self, fecha):
+        if fecha is None:
+            return None
+
+        return fecha.isoformat()
