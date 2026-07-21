@@ -20,7 +20,9 @@ class CertificacionApplicationService:
         raise NotImplementedError("Emisión de certificado asignada al módulo de certificación")
 
     def verify_certificate(self):
-        raise NotImplementedError("Verificación de certificado asignada al módulo de certificación")
+        raise NotImplementedError(
+            "Verificación de certificado asignada al módulo de certificación"
+        )
 
     def _require_repositories(self):
         if self.certificado_repository is None:

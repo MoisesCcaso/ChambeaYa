@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from presentation._serializers import format_fecha
+
+
 class PostulacionController:
     def __init__(self, postulacion_application_service=None):
         self.postulacion_application_service = postulacion_application_service
@@ -32,11 +35,5 @@ class PostulacionController:
             "convocatoria_id": postulacion.convocatoria_id,
             "practicante_id": postulacion.practicante_id,
             "estado": postulacion.estado,
-            "fecha_postulacion": self._format_fecha(postulacion.fecha_postulacion),
+            "fecha_postulacion": format_fecha(postulacion.fecha_postulacion),
         }
-
-    def _format_fecha(self, fecha):
-        if fecha is None:
-            return None
-
-        return fecha.isoformat()

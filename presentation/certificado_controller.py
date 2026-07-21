@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from presentation._serializers import format_fecha
+
+
 class CertificadoController:
     def __init__(self, certificacion_application_service=None):
         self.certificacion_application_service = certificacion_application_service
@@ -15,7 +18,9 @@ class CertificadoController:
         raise NotImplementedError("Emisión de certificado asignada al módulo de certificación")
 
     def verify(self):
-        raise NotImplementedError("Verificación de certificado asignada al módulo de certificación")
+        raise NotImplementedError(
+            "Verificación de certificado asignada al módulo de certificación"
+        )
 
     def _require_service(self):
         if self.certificacion_application_service is None:
@@ -30,7 +35,7 @@ class CertificadoController:
             "estado": certificado.estado,
             "url_verificacion": self._url_verificacion(certificado.codigo_qr),
             "documento_url": self._documento_url(certificado.documento),
-            "fecha_emision": self._format_fecha(certificado.fecha_emision),
+            "fecha_emision": format_fecha(certificado.fecha_emision),
         }
 
     def _url_verificacion(self, codigo_qr):
@@ -44,9 +49,3 @@ class CertificadoController:
             return None
 
         return getattr(documento, "url", None)
-
-    def _format_fecha(self, fecha):
-        if fecha is None:
-            return None
-
-        return fecha.isoformat()

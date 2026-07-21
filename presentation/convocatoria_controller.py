@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from presentation._serializers import format_fecha
+
+
 class ConvocatoriaController:
     def __init__(self, convocatoria_application_service=None):
         self.convocatoria_application_service = convocatoria_application_service
@@ -31,12 +34,6 @@ class ConvocatoriaController:
             "descripcion": convocatoria.descripcion,
             "habilidades_requeridas": convocatoria.habilidades_requeridas,
             "estado": convocatoria.estado,
-            "fecha_publicacion": self._format_fecha(convocatoria.fecha_publicacion),
-            "fecha_cierre": self._format_fecha(convocatoria.fecha_cierre),
+            "fecha_publicacion": format_fecha(convocatoria.fecha_publicacion),
+            "fecha_cierre": format_fecha(convocatoria.fecha_cierre),
         }
-
-    def _format_fecha(self, fecha):
-        if fecha is None:
-            return None
-
-        return fecha.isoformat()

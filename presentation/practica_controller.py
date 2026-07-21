@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from presentation._serializers import format_fecha
+
+
 class PracticaController:
     def __init__(self, practica_application_service=None):
         self.practica_application_service = practica_application_service
@@ -45,11 +48,5 @@ class PracticaController:
             "id": entregable.id,
             "descripcion": entregable.descripcion,
             "archivo_url": entregable.archivo_url,
-            "fecha_subida": self._format_fecha(entregable.fecha_subida),
+            "fecha_subida": format_fecha(entregable.fecha_subida),
         }
-
-    def _format_fecha(self, fecha):
-        if fecha is None:
-            return None
-
-        return fecha.isoformat()

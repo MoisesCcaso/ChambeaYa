@@ -1,12 +1,11 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, jsonify
 
 from application.certificacion_application_service import CertificacionApplicationService
+from frameworks.flask_mvc.routes._helpers import login_required
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from presentation.certificado_controller import CertificadoController
 
-
-_UNAUTHORIZED = "No autenticado"
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
 
@@ -18,16 +17,9 @@ def build_certificado_controller():
     return CertificadoController(service)
 
 
-def get_authenticated_user_id():
-    return session.get("usuario_id")
-
-
 @certificado_bp.get("")
-def list_certificados():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
-        return jsonify({"error": _UNAUTHORIZED}), 401
-
+@login_required
+def list_certificados(usuario_id):
     controller = build_certificado_controller()
     try:
         data, status_code = controller.list_mis_certificados(usuario_id)
