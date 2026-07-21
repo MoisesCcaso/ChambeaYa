@@ -13,8 +13,16 @@ class ConvocatoriaApplicationService:
         convocatoria = self.convocatoria_fabrica.crear_convocatoria(empresa_id, titulo)
         return self.convocatoria_repository.save(convocatoria)
 
-    def publish(self):
-        pass
+    def publish(self, empresa_id, convocatoria_id):
+        self._require_repository()
+        convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
+        if convocatoria is None:
+            raise ValueError("Convocatoria no encontrada")
+        if convocatoria.empresa_id != empresa_id:
+            raise ValueError("La convocatoria no pertenece a esta empresa")
+
+        convocatoria.publicar()
+        return self.convocatoria_repository.save(convocatoria)
 
     def close(self):
         pass
