@@ -6,7 +6,8 @@ class ConvocatoriaFabrica:
     def __init__(self):
         pass
 
-    def crear_convocatoria(self, empresa_id, titulo):
+    def crear_convocatoria(self, empresa_id, titulo, habilidades_requeridas=None):
+
         if not empresa_id:
             raise ValueError("La empresa es obligatoria")
         if not titulo:
@@ -16,4 +17,6 @@ class ConvocatoriaFabrica:
         convocatoria.empresa_id = empresa_id
         convocatoria.titulo = titulo
         convocatoria.estado = Convocatoria.ESTADO_BORRADOR
+        for habilidad in habilidades_requeridas or []:
+            convocatoria.agregar_habilidad_requerida(habilidad)
         return convocatoria
