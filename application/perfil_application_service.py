@@ -3,7 +3,8 @@
 
 from domain.auth.usuario import Usuario
 from domain.perfil.practicante import Practicante
-
+from domain.perfil.empresa import Empresa
+from domain.perfil.ruc import RUC
 
 class PerfilApplicationService:
     def __init__(self, perfil_repository=None, usuario_repository=None):
@@ -61,8 +62,19 @@ class PerfilApplicationService:
         practicante.calcular_score()
         return self.perfil_repository.save_practicante(practicante)
 
-    def update_empresa(self):
-        pass
+    def update_empresa(self, usuario_id, data):
+        self._require_repositories()
+        self._require_empresa_user(usuario_id)
+        empresa = self.perfil_repository.find_empresa_by_user_id(usuario_id)
+        if empresa is None:
+            empresa = Empresa(usuario_id=usuario_id)
+
+        numero_ruc = data.get("ruc")
+        if numero_ruc is not None:
+            empresa.ruc = RUC(numero=numero_ruc)
+
+        empresa.verificar_ruc()
+        return self.perfil_repository.save_empresa(empresa)
 
     def verify_profile(self, usuario_id):
         self._require_repositories()
@@ -98,7 +110,18 @@ class PerfilApplicationService:
             raise ValueError("La cuenta no está activa")
 
         return usuario
+    
+    def _require_empresa_user(self, usuario_id):
+        usuario = self.usuario_repository.find_by_id(usuario_id)
+        if usuario is None:
+            raise ValueError("Usuario no encontrado")
+        if usuario.tipo != Usuario.TIPO_EMPRESA:
+            raise ValueError("El usuario no es empresa")
+        if usuario.estado != Usuario.ESTADO_ACTIVO:
+            raise ValueError("La cuenta no está activa")
 
+        return usuario
+    
     def _require_repositories(self):
         if self.perfil_repository is None:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de perfil")
