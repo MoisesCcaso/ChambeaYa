@@ -2,17 +2,23 @@
 # -*- coding: utf-8 -*-
 
 class ConvocatoriaApplicationService:
-    def __init__(self):
-        pass
+    def __init__(self, convocatoria_repository=None):
+        self.convocatoria_repository = convocatoria_repository
+
+    def listar_convocatorias_abiertas(self):
+        self._require_repository()
+        convocatorias = self.convocatoria_repository.find_abiertas()
+        return convocatorias or []
 
     def create_convocatoria(self):
-        pass
+        raise NotImplementedError("Creación de convocatoria asignada al módulo empresa")
 
     def publish(self):
-        pass
+        raise NotImplementedError("Publicación de convocatoria asignada al módulo empresa")
 
     def close(self):
-        pass
+        raise NotImplementedError("Cierre de convocatoria asignado al módulo empresa")
 
-    def search(self):
-        pass
+    def _require_repository(self):
+        if self.convocatoria_repository is None:
+            raise RuntimeError("ConvocatoriaApplicationService requiere un repositorio")
