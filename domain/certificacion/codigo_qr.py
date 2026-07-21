@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 class CodigoQR:
-    def __init__(self):
-        self.valor = None
-        self.url_verificacion = None
-        self.hash_integridad = None
+    def __init__(self, valor=None, url_verificacion=None, hash_integridad=None):
+        self.valor = valor
+        self.url_verificacion = url_verificacion
+        self.hash_integridad = hash_integridad
 
     def generar(self):
-        pass
+        raise NotImplementedError("Generación de código QR asignada al módulo de certificación")
 
     def verificar(self):
-        pass
+        raise NotImplementedError("Verificación de código QR asignada al módulo de certificación")
