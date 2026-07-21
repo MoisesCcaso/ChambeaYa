@@ -5,6 +5,9 @@ from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServi
 from domain.auth.usuario import Usuario
 
 
+_PASSWORD_MIN_LENGTH = 8
+
+
 class UsuarioApplicationService:
     def __init__(self, usuario_repository=None, autenticacion_dominio_servicio=None):
         self.usuario_repository = usuario_repository
@@ -19,6 +22,7 @@ class UsuarioApplicationService:
         if self.usuario_repository.find_by_email(normalized_email) is not None:
             raise ValueError("El email ya está registrado")
 
+        self._require_password_strength(password)
         password_hash = self.autenticacion_dominio_servicio.generar_password_hash(password)
         usuario = Usuario(
             email=normalized_email,
@@ -100,6 +104,12 @@ class UsuarioApplicationService:
     def _require_repository(self):
         if self.usuario_repository is None:
             raise RuntimeError("UsuarioApplicationService requiere un repositorio")
+
+    def _require_password_strength(self, password):
+        if not password or len(password) < _PASSWORD_MIN_LENGTH:
+            raise ValueError(
+                f"La contraseña debe tener al menos {_PASSWORD_MIN_LENGTH} caracteres"
+            )
 
     def _normalize_email(self, email):
         if not email:
