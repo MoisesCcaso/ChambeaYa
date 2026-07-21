@@ -60,14 +60,25 @@ class Practicante:
         return self
 
     def calcular_score(self):
-        base = 0.0
-        base += min(len(self.habilidades), 10) * 5
-        base += min(len(self.formacion_educativa), 5) * 5
-        if self.identidad_verificada:
-            base += 25
+        contribuciones = [
+            self._puntos_por_habilidades,
+            self._puntos_por_formacion,
+            self._puntos_por_identidad,
+        ]
+        base = sum(contribucion() for contribucion in contribuciones)
 
         self.score_reputacion = min(base, 100.0)
         return self.score_reputacion
+
+    def _puntos_por_habilidades(self):
+        return min(len(self.habilidades), 10) * 5
+
+    def _puntos_por_formacion(self):
+        return min(len(self.formacion_educativa), 5) * 5
+
+    def _puntos_por_identidad(self):
+        return 25 if self.identidad_verificada else 0
+
 
     def _normalizar_texto(self, valor):
         if valor is None:
