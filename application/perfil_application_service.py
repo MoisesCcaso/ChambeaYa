@@ -85,23 +85,23 @@ class PerfilApplicationService:
         self._require_repositories()
         practicante = self._get_or_create_practicante(usuario_id)
 
-        historial = []
-        if self.practica_repository is not None:
-            practicas = self.practica_repository.find_by_practicante_id(practicante.id)
-            if practicas:
-                for p in practicas:
-                    historial.append({
-                        "practica_id": p.id,
-                        "estado": p.estado,
-                    })
-
         return {
             "score_reputacion": practicante.score_reputacion,
             "habilidades": practicante.habilidades,
             "formacion_educativa": practicante.formacion_educativa,
             "identidad_verificada": practicante.identidad_verificada,
-            "historial_practicas": historial,
+            "historial_practicas": self._construir_historial_practicas(practicante),
         }
+
+    def _construir_historial_practicas(self, practicante):
+        if self.practica_repository is None:
+            return []
+
+        practicas = self.practica_repository.find_by_practicante_id(practicante.id)
+        return [
+            {"practica_id": practica.id, "estado": practica.estado}
+            for practica in practicas or []
+        ]
 
     def _get_or_create_practicante(self, usuario_id):
         self._require_practicante_user(usuario_id)
