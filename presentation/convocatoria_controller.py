@@ -30,4 +30,5 @@ class ConvocatoriaController:
             "empresa_id": convocatoria.empresa_id,
             "titulo": convocatoria.titulo,
             "estado": convocatoria.estado,
+            "habilidades_requeridas": convocatoria.habilidades_requeridas,
         }
