@@ -6,12 +6,15 @@ class Convocatoria:
     ESTADO_PUBLICADA = "publicada"
     ESTADO_CERRADA = "cerrada"
 
-    def __init__(self, id=None, empresa_id=None, titulo=None, estado=None, habilidades_requeridas=None):
+    def __init__(self, id=None, empresa_id=None, titulo=None, descripcion=None, estado=None, 
+                 habilidades_requeridas=None, beneficios=None):
         self.id = id
         self.empresa_id = empresa_id
         self.titulo = titulo
+        self.descripcion = descripcion
         self.estado = estado
         self.habilidades_requeridas = habilidades_requeridas or []
+        self.beneficios = beneficios or []
 
     def publicar(self):
         """Publica la convocatoria si está en estado borrador."""
@@ -27,6 +30,12 @@ class Convocatoria:
         habilidad_normalizada = self._normalizar_texto(habilidad)
         if habilidad_normalizada and habilidad_normalizada not in self.habilidades_requeridas:
             self.habilidades_requeridas.append(habilidad_normalizada)
+        return self
+    
+    def agregar_beneficio(self, beneficio):
+        beneficio_normalizado = self._normalizar_texto(beneficio)
+        if beneficio_normalizado and beneficio_normalizado not in self.beneficios:
+            self.beneficios.append(beneficio_normalizado)
         return self
     
     def _normalizar_texto(self, valor):
