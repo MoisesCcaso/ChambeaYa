@@ -10,9 +10,12 @@ class ConvocatoriaApplicationService:
     def create_convocatoria(self, empresa_id, data):
         self._require_repository()
         titulo = data.get("titulo")
+        descripcion = data.get("descripcion")
         habilidades_requeridas = data.get("habilidades_requeridas")
+        beneficios = data.get("beneficios")
         convocatoria = self.convocatoria_fabrica.crear_convocatoria(
-            empresa_id, titulo, habilidades_requeridas
+            empresa_id, titulo, descripcion=descripcion,
+            habilidades_requeridas=habilidades_requeridas, beneficios=beneficios
         )
         return self.convocatoria_repository.save(convocatoria)
 
