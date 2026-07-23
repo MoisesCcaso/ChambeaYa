@@ -1,12 +1,19 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+from domain.certificacion.certificado import Certificado
+from domain.certificacion.codigo_qr import CodigoQR
+
 
 class CertificacionDominioServicio:
-    def __init__(self):
-        pass
+    def generar_certificado(self, practica_id, practicante_nombres,
+                            practicante_apellidos, evaluacion_puntaje,
+                            base_url="http://localhost:5000"):
+        certificado = Certificado(practica_id=practica_id)
+        certificado.generar_hash()
 
-    def generar_certificado(self):
-        pass
+        qr = CodigoQR()
+        qr.generar(certificado.id, base_url)
+        certificado.codigo_qr = qr
 
-    def verificar_codigo_qr(self):
-        pass
+        return certificado
+
+    def verificar_codigo_qr(self, codigo_qr):
+        return codigo_qr.verificar()
