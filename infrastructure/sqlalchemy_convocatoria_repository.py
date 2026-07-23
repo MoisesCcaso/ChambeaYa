@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import json
+from pyexpat import model
 
+from domain.convocatorias import convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.convocatoria import Convocatoria
 from frameworks.sqlalchemy_orm.database import db
@@ -23,9 +25,10 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
             db.session.add(model)
 
         model.titulo = convocatoria.titulo
+        model.descripcion = convocatoria.descripcion
         model.estado = convocatoria.estado
         model.habilidades_requeridas = self._dump_list(convocatoria.habilidades_requeridas)
-
+        model.beneficios = self._dump_list(convocatoria.beneficios)
         db.session.commit()
         return self._to_convocatoria_domain(model)
 
@@ -47,7 +50,9 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         convocatoria.titulo = model.titulo
         convocatoria.estado = model.estado
         convocatoria.habilidades_requeridas = self._load_list(model.habilidades_requeridas)
-
+        convocatoria.descripcion = model.descripcion
+        convocatoria.beneficios = self._load_list(model.beneficios)
+        
         return convocatoria
     
     def _dump_list(self, values):
