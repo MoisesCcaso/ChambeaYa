@@ -12,3 +12,7 @@ class IConvocatoriaRepository(ABC):
     @abstractmethod
     def find_by_id(self):
         pass
+
+    @abstractmethod
+    def find_all(self):
+        pass
