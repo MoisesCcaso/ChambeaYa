@@ -12,8 +12,8 @@ class Sugerencia:
             self.puntaje_match = 0.0
             return self.puntaje_match
 
-        set_practicante = set(h for h in habilidades_practicante if h)
-        set_requeridas = set(h for h in habilidades_requeridas if h)
+        set_practicante = {h for h in habilidades_practicante if h}
+        set_requeridas = {h for h in habilidades_requeridas if h}
         coincidentes = set_practicante & set_requeridas
 
         self.habilidades_coincidentes = list(coincidentes)

@@ -311,3 +311,17 @@ class ISugerenciaRepository(ABC):
 ---
 
 **Resumen:** Se aplicaron 7 categorías de Clean Code en las implementaciones de UC-22 y UC-12.
+
+---
+
+## Componentes DDD utilizados (UC-12)
+
+- `domain/matching/sugerencia.py` — Entidad Sugerencia con `calcular_compatibilidad()`
+- `domain/matching/resultado_matching.py` — Value Object ResultadoMatching con `es_compatible()`
+- `domain/matching/matching_dominio_servicio.py` — Servicio de dominio con `calcular_match()` y `filtrar_convocatorias()`
+- `domain/matching/i_sugerencia_repository.py` — Interfaz ISugerenciaRepository (`save`, `find_by_practicante_id`)
+- `application/matching_application_service.py` — Servicio de aplicación con `suggest_convocatorias()` y `calculate_for_practicante()`
+- `presentation/matching_controller.py` — Controller con serialización de resultados
+- `frameworks/flask_mvc/routes/matching_routes.py` — Blueprint `GET /matching/sugerencias` y `POST /matching/calcular`
+- `infrastructure/sqlalchemy_matching_repository.py` — Repositorio concreto (mapeo SugerenciaModel ↔ Sugerencia)
+- `frameworks/sqlalchemy_orm/models/sugerencia_model.py` — Modelo ORM tabla `sugerencias`
