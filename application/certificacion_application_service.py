@@ -22,9 +22,9 @@ class CertificacionApplicationService:
 
         certificado = self.certificacion_servicio.generar_certificado(
             practica_id=practica.id,
-            practicante_nombres=practicante.nombres,
-            practicante_apellidos=practicante.apellidos,
-            evaluacion_puntaje=None,
+            _practicante_nombres=practicante.nombres,
+            _practicante_apellidos=practicante.apellidos,
+            _evaluacion_puntaje=None,
             base_url=base_url,
         )
         return self.certificado_repository.save(certificado)

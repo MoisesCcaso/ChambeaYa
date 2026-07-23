@@ -3,8 +3,8 @@ from domain.certificacion.codigo_qr import CodigoQR
 
 
 class CertificacionDominioServicio:
-    def generar_certificado(self, practica_id, practicante_nombres,
-                            practicante_apellidos, evaluacion_puntaje,
+    def generar_certificado(self, practica_id, _practicante_nombres,
+                            _practicante_apellidos, _evaluacion_puntaje,
                             base_url="http://localhost:5000"):
         certificado = Certificado(practica_id=practica_id)
         certificado.generar_hash()

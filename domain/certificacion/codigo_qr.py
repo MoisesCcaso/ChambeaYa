@@ -8,7 +8,7 @@ class CodigoQR:
         self.url_verificacion = url_verificacion
         self.hash_integridad = hash_integridad
 
-    def generar(self, certificado_id, base_url="http://localhost:5000"):
+    def generar(self, _certificado_id, base_url="http://localhost:5000"):
         self.valor = secrets.token_urlsafe(16)
         self.url_verificacion = f"{base_url}/certificados/verificar/{self.valor}"
         self.hash_integridad = hashlib.sha256(self.valor.encode()).hexdigest()
