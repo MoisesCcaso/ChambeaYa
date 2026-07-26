@@ -6,7 +6,7 @@ class ConvocatoriaFabrica:
     def __init__(self):
         pass
 
-    def crear_convocatoria(self, empresa_id, titulo, habilidades_requeridas=None, beneficios=None):
+    def crear_convocatoria(self, empresa_id, titulo, habilidades_requeridas=None, descripcion=None, beneficios=None):
 
         if not empresa_id:
             raise ValueError("La empresa es obligatoria")

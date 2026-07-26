@@ -1,49 +1,60 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, session
 
 from application.certificacion_application_service import CertificacionApplicationService
-from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
+from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
+from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from presentation.certificado_controller import CertificadoController
 
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
+NO_AUTENTICADO_ERROR = "No autenticado"
 
 
 def build_certificado_controller():
-    cert_repo = SqlAlchemyCertificadoRepository()
-    prac_repo = SqlAlchemyPracticaRepository()
-    per_repo = SqlAlchemyPerfilRepository()
-    servicio = CertificacionDominioServicio()
-    app_service = CertificacionApplicationService(cert_repo, prac_repo, per_repo, servicio)
-    return CertificadoController(app_service)
+    certificado_repository = SqlAlchemyCertificadoRepository()
+    practica_repository = SqlAlchemyPracticaRepository()
+    postulacion_repository = SqlAlchemyPostulacionRepository()
+    convocatoria_repository = SqlAlchemyConvocatoriaRepository()
+    perfil_repository = SqlAlchemyPerfilRepository()
+    service = CertificacionApplicationService(
+        certificado_repository, practica_repository,
+        postulacion_repository, convocatoria_repository, perfil_repository
+    )
+    return CertificadoController(service)
 
 
-@certificado_bp.post("/emitir")
-def issue_certificate():
-    usuario_id = session.get("usuario_id")
+def get_authenticated_user_id():
+    return session.get("usuario_id")
 
+
+@certificado_bp.post("/<int:practica_id>/emitir")
+def issue_certificado(practica_id):
+    usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO_ERROR}), 401
 
-    payload = request.get_json(silent=True) or {}
+    perfil_repository = SqlAlchemyPerfilRepository()
+    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+
     controller = build_certificado_controller()
-
     try:
-        data, status_code = controller.issue(payload)
+        data, status_code = controller.issue(empresa.id, practica_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
     return jsonify(data), status_code
 
 
-@certificado_bp.get("/verificar/<codigo>")
-def verify_certificate(codigo):
+@certificado_bp.get("/verificar/<codigo_qr_valor>")
+def verify_certificado(codigo_qr_valor):
     controller = build_certificado_controller()
-
     try:
-        data, status_code = controller.verify(codigo)
+        data, status_code = controller.verify(codigo_qr_valor)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 

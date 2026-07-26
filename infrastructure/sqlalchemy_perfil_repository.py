@@ -61,7 +61,11 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
     def find_practicante_by_user_id(self, usuario_id):
         model = PracticanteModel.query.filter_by(usuario_id=usuario_id).first()
         return self._to_practicante_domain(model)
-
+    
+    def find_practicante_by_id(self, practicante_id):
+        model = db.session.get(PracticanteModel, practicante_id)
+        return self._to_practicante_domain(model)
+    
     def find_empresa_by_user_id(self, usuario_id):
         model = EmpresaModel.query.filter_by(usuario_id=usuario_id).first()
         return self._to_empresa_domain(model)
