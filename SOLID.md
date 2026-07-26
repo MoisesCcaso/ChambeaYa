@@ -215,3 +215,17 @@ def build_notificacion_controller():
 ```
 
 La flecha de dependencia apunta hacia adentro (hacia el dominio) tanto desde la aplicación como desde la infraestructura. Invertir la dependencia permite cambiar de SQLite a PostgreSQL sin tocar el `ApplicationService`.
+
+---
+
+## Componentes DDD utilizados
+
+- **Entity** — `domain/notificaciones/notificacion.py`: `Notificacion` con identidad (id), estado y método `marcar_como_leida()`
+- **Repository Interface (Writer)** — `domain/notificaciones/i_notificacion_writer.py`: Contrato abstracto para operaciones de escritura (`save`, `mark_as_read`, `mark_all_as_read`)
+- **Repository Interface (Reader)** — `domain/notificaciones/i_notificacion_reader.py`: Contrato abstracto para operaciones de lectura (`find_by_usuario_id`, `find_unread_by_usuario_id`, `count_unread`)
+- **Repository Implementation** — `infrastructure/sqlalchemy_notificacion_repository.py`: Implementación concreta con SQLAlchemy + SQLite
+- **Application Service** — `application/notificacion_application_service.py`: Orquestación de casos de uso (crear, listar, marcar leídas, contar no leídas)
+- **Controller** — `presentation/notificacion_controller.py`: Serialización HTTP y manejo de códigos de estado
+- **ORM Model** — `frameworks/sqlalchemy_orm/models/notificacion_model.py`: Mapeo objeto-relacional con `TimestampMixin`
+- **Route/Blueprint** — `frameworks/flask_mvc/routes/notificacion_routes.py`: Definición de endpoints REST con autenticación por sesión
+- **Hook (Integration)** — `postulacion_routes.py`, `practica_routes.py`, `certificado_routes.py`, `matching_routes.py`: Puntos de integración donde se disparan notificaciones desde otros módulos
