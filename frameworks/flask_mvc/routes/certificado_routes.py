@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, session
 
 from application.certificacion_application_service import CertificacionApplicationService
+from application.notificacion_application_service import NotificacionApplicationService
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
+from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
@@ -46,6 +48,25 @@ def issue_certificado(practica_id):
         data, status_code = controller.issue(empresa.id, practica_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+    if status_code == 201:
+        try:
+            practica_repo = SqlAlchemyPracticaRepository()
+            practica = practica_repo.find_by_id(practica_id)
+            if practica and practica.practicante_id:
+                perfil_repo = SqlAlchemyPerfilRepository()
+                practicante = perfil_repo.find_practicante_by_id(practica.practicante_id)
+                if practicante:
+                    repo = SqlAlchemyNotificacionRepository()
+                    notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+                    notif_service.create_notification(
+                        usuario_destino_id=practicante.usuario_id,
+                        tipo="CERTIFICADO_EMITIDO",
+                        mensaje="Tu certificado digital ha sido emitido",
+                        metadata={"practica_id": practica_id},
+                    )
+        except Exception:
+            pass
 
     return jsonify(data), status_code
 

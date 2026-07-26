@@ -1,8 +1,10 @@
 from flask import Blueprint, jsonify, session
 
 from application.matching_application_service import MatchingApplicationService
+from application.notificacion_application_service import NotificacionApplicationService
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
+from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from presentation.matching_controller import MatchingController
@@ -52,5 +54,17 @@ def calculate_match():
         data, status_code = controller.calculate_match(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+    if status_code == 200:
+        try:
+            repo = SqlAlchemyNotificacionRepository()
+            notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+            notif_service.create_notification(
+                usuario_destino_id=usuario_id,
+                tipo="NUEVAS_SUGERENCIAS",
+                mensaje="Nuevas sugerencias de convocatorias disponibles",
+            )
+        except Exception:
+            pass
 
     return jsonify(data), status_code
