@@ -23,9 +23,9 @@ class PracticaController:
         entregables = self.practica_application_service.get_deliverables_history(usuario_id, practica_id)
         return [self._serialize_entregable(e) for e in entregables], 200
 
-    def register_evaluation(self, practica_id, payload):
+    def register_evaluation(self, empresa_id, practica_id, payload):
         self._require_service()
-        practica = self.practica_application_service.evaluate(practica_id, payload.get("puntaje"))
+        practica = self.practica_application_service.evaluate(empresa_id, practica_id, payload.get("puntaje"))
         return self._serialize_practica(practica), 201
 
     def get_evaluations_history(self, usuario_id, practica_id):
