@@ -37,6 +37,10 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         return self._to_convocatoria_domain(model)
 
 
+    def find_all(self):
+        models = ConvocatoriaModel.query.all()
+        return [self._to_convocatoria_domain(model) for model in models]
+
     def search(self):
         pass
 
