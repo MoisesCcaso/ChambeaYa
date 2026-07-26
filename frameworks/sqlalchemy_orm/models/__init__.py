@@ -5,6 +5,7 @@ from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
+from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 
 __all__ = [
     "ConvocatoriaModel",
@@ -14,4 +15,5 @@ __all__ = [
     "PracticaModel",
     "EntregableModel",
     "EvaluacionModel",
+    "PostulacionModel",
 ]
