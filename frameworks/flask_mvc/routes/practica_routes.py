@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request, session
 
+from application.notificacion_application_service import NotificacionApplicationService
 from application.practica_application_service import PracticaApplicationService
+from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
@@ -43,6 +45,22 @@ def register_evaluation(practica_id):
         data, status_code = controller.register_evaluation(empresa.id, practica_id, payload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+    if status_code == 201:
+        try:
+            repo = SqlAlchemyNotificacionRepository()
+            notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+            perfil_repo = SqlAlchemyPerfilRepository()
+            practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
+            if practicante:
+                notif_service.create_notification(
+                    usuario_destino_id=practicante.usuario_id,
+                    tipo="EVALUACION_DISPONIBLE",
+                    mensaje="Tu práctica tiene una nueva evaluación disponible",
+                    metadata={"practica_id": practica_id},
+                )
+        except Exception:
+            pass
 
     return jsonify(data), status_code
 

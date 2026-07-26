@@ -1,9 +1,12 @@
 from flask import Blueprint, jsonify, session
 
+from application.notificacion_application_service import NotificacionApplicationService
 from application.postulacion_application_service import PostulacionApplicationService
+from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from presentation.notificacion_controller import NotificacionController
 from presentation.postulacion_controller import PostulacionController
 
 
@@ -37,5 +40,21 @@ def select_postulacion(postulacion_id):
         data, status_code = controller.select(empresa.id, postulacion_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+
+    if status_code == 200:
+        try:
+            repo = SqlAlchemyNotificacionRepository()
+            notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+            perfil_repo = SqlAlchemyPerfilRepository()
+            practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
+            if practicante:
+                notif_service.create_notification(
+                    usuario_destino_id=practicante.usuario_id,
+                    tipo="POSTULACION_SELECCIONADA",
+                    mensaje="Has sido seleccionado para una convocatoria",
+                    metadata={"postulacion_id": postulacion_id},
+                )
+        except Exception:
+            pass
 
     return jsonify(data), status_code
