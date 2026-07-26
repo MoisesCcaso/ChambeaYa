@@ -53,6 +53,20 @@ def update_my_profile():
 
     return jsonify(data), status_code
 
+@perfil_bp.put("/me/empresa")
+def update_my_company():
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    controller = build_perfil_controller()
+    try:
+        data, status_code = controller.update_empresa(usuario_id, payload)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    return jsonify(data), status_code
 
 @perfil_bp.post("/me/habilidades")
 def add_my_skill():

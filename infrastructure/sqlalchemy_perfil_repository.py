@@ -5,8 +5,11 @@ import json
 
 from domain.perfil.i_perfil_repository import IPerfilRepository
 from domain.perfil.practicante import Practicante
+from domain.perfil.empresa import Empresa
+from domain.perfil.ruc import RUC
 from frameworks.sqlalchemy_orm.database import db
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 
 
 class SqlAlchemyPerfilRepository(IPerfilRepository):
@@ -38,14 +41,34 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
         return self._to_practicante_domain(model)
 
     def save_empresa(self, empresa):
-        pass
+        model = None
+        if empresa.id is not None:
+            model = db.session.get(EmpresaModel, empresa.id)
+
+        if model is None:
+            model = EmpresaModel.query.filter_by(usuario_id=empresa.usuario_id).first()
+
+        if model is None:
+            model = EmpresaModel(usuario_id=empresa.usuario_id)
+            db.session.add(model)
+
+        model.ruc = empresa.ruc.numero if empresa.ruc else None
+        model.verificada = empresa.verificada
+
+        db.session.commit()
+        return self._to_empresa_domain(model)
 
     def find_practicante_by_user_id(self, usuario_id):
         model = PracticanteModel.query.filter_by(usuario_id=usuario_id).first()
         return self._to_practicante_domain(model)
-
+    
+    def find_practicante_by_id(self, practicante_id):
+        model = db.session.get(PracticanteModel, practicante_id)
+        return self._to_practicante_domain(model)
+    
     def find_empresa_by_user_id(self, usuario_id):
-        pass
+        model = EmpresaModel.query.filter_by(usuario_id=usuario_id).first()
+        return self._to_empresa_domain(model)
 
     def _to_practicante_domain(self, model):
         if model is None:
@@ -63,6 +86,17 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
             score_reputacion=model.score_reputacion,
             identidad_verificada=model.identidad_verificada,
         )
+    
+    def _to_empresa_domain(self, model):
+            if model is None:
+                return None
+
+            return Empresa(
+                id=model.id,
+                usuario_id=model.usuario_id,
+                ruc=RUC(numero=model.ruc) if model.ruc else None,
+                verificada=model.verificada,
+            )
 
     def _dump_list(self, values):
         return json.dumps(values or [], ensure_ascii=False)

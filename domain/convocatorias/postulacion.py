@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 
 class Postulacion:
-    def __init__(self):
-        self.id = None
-        self.convocatoria_id = None
-        self.practicante_id = None
-        self.estado = None
+    ESTADO_PENDIENTE = "pendiente"
+    ESTADO_SELECCIONADA = "seleccionada"
+    ESTADO_RECHAZADA = "rechazada"
+
+    def __init__(self, id=None, convocatoria_id=None, practicante_id=None, estado=None):
+       self.id = id
+       self.convocatoria_id = convocatoria_id
+       self.practicante_id = practicante_id
+       self.estado = estado or self.ESTADO_PENDIENTE
 
     def aceptar(self):
         pass
@@ -15,4 +19,8 @@ class Postulacion:
         pass
 
     def seleccionar(self):
-        pass
+        """Selecciona la postulación si está pendiente."""
+        if self.estado != self.ESTADO_PENDIENTE:
+            raise ValueError("Solo una postulación pendiente puede seleccionarse")
+
+        self.estado = self.ESTADO_SELECCIONADA
