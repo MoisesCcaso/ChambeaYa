@@ -7,9 +7,11 @@ from domain.practica_evaluacion.practica_fabrica import PracticaFabrica
 
 
 class PracticaApplicationService:
-    def __init__(self, practica_repository=None, perfil_repository=None):
+    def __init__(self, practica_repository=None, perfil_repository=None, postulacion_repository=None, convocatoria_repository=None):
         self.practica_repository = practica_repository
         self.perfil_repository = perfil_repository
+        self.postulacion_repository = postulacion_repository
+        self.convocatoria_repository = convocatoria_repository
 
     def start_practica(self, postulacion_id, practicante_id):
         self._require_repositories()
@@ -27,11 +29,20 @@ class PracticaApplicationService:
         practica = self._get_practica_autorizada(usuario_id, practica_id)
         return practica.obtener_historial_entregables()
 
-    def evaluate(self, practica_id, puntaje):
+    def evaluate(self, empresa_id, practica_id, puntaje):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
             raise ValueError(UNFINDED)
+        postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
+        if postulacion is None:
+            raise ValueError("Postulación no encontrada")
+
+        convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
+        if convocatoria is None:
+            raise ValueError("Convocatoria no encontrada")
+        if convocatoria.empresa_id != empresa_id:
+            raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
         practica.registrar_evaluacion(puntaje)
         return self.practica_repository.save(practica)
