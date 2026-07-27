@@ -105,7 +105,4 @@ class UsuarioApplicationService:
         if not email:
             raise ValueError("El email es obligatorio")
 
-        normalized = str(email).strip().lower()
-        if "@" not in normalized or normalized.startswith("@") or normalized.endswith("@"):
-            raise ValueError("El email no es válido")
-        return normalized
+        return email.strip().lower()

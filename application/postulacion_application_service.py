@@ -1,120 +1,107 @@
-from domain.convocatorias.convocatoria import Convocatoria
+# application/postulacion_application_service.py
+from typing import List, Dict, Optional
+from datetime import datetime
 from domain.convocatorias.postulacion import Postulacion
-
+from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
+from infrastructure.sqlalchemy_convocatoria_repository import SQLAlchemyConvocatoriaRepository
+from infrastructure.sqlalchemy_perfil_repository import SQLAlchemyPerfilRepository
 
 class PostulacionApplicationService:
-    def __init__(
-        self,
-        postulacion_repository=None,
-        convocatoria_repository=None,
-        perfil_repository=None,
-    ):
-        self.postulacion_repository = postulacion_repository
-        self.convocatoria_repository = convocatoria_repository
-        self.perfil_repository = perfil_repository
+    """Servicio de aplicación para la gestión de postulaciones."""
 
-    def apply(self, usuario_id, convocatoria_id):
-        self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
-        if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
-        if not practicante.nombres or not practicante.apellidos:
-            raise ValueError("Completa tus nombres y apellidos antes de postular")
+    def __init__(self, 
+                 postulacion_repo: IPostulacionRepository,
+                 convocatoria_repo: SQLAlchemyConvocatoriaRepository,
+                 perfil_repo: SQLAlchemyPerfilRepository):
+        self.postulacion_repo = postulacion_repo
+        self.convocatoria_repo = convocatoria_repo
+        self.perfil_repo = perfil_repo
 
-        convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
-        if convocatoria is None:
+    def postularse(self, practicante_id: int, convocatoria_id: int, 
+                mensaje: str = "", archivos: List[str] = None) -> Dict:
+        """
+        ESTILO COOKBOOK: Cada paso es una instrucción clara en la "receta" de postulación.
+        """
+        # Paso 1: Validar que el practicante tenga perfil
+        perfil = self.perfil_repo.obtener_por_usuario_id(practicante_id)
+        if not perfil:
+            raise ValueError("El practicante no tiene un perfil completo")
+        
+        # Paso 2: Validar que la convocatoria exista y esté activa
+        convocatoria = self.convocatoria_repo.obtener_por_id(convocatoria_id)
+        if not convocatoria:
             raise ValueError("Convocatoria no encontrada")
-        if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
-            raise ValueError("Solo se puede postular a convocatorias publicadas")
-
-        existente = self.postulacion_repository.find_by_convocatoria_and_practicante(
-            convocatoria_id, practicante.id
+        if convocatoria.estado != 'activa':
+            raise ValueError("La convocatoria no está activa")
+        
+        # Paso 3: Validar que no haya expirado
+        if convocatoria.fecha_limite_postulacion < datetime.now().date():
+            raise ValueError("La convocatoria ha expirado")
+        
+        # Paso 4: Validar que no haya postulación duplicada
+        existente = self.postulacion_repo.obtener_por_practicante_y_convocatoria(
+            practicante_id, convocatoria_id
         )
-        if existente is not None:
+        if existente:
             raise ValueError("Ya existe una postulación para esta convocatoria")
-
-        return self.postulacion_repository.save(
-            Postulacion(
-                convocatoria_id=convocatoria_id,
-                practicante_id=practicante.id,
-            )
+        
+        # Paso 5: Crear la postulación
+        postulacion = Postulacion(
+            id=None,
+            convocatoria_id=convocatoria_id,
+            practicante_id=practicante_id,
+            fecha_postulacion=datetime.utcnow(),
+            estado='pendiente',
+            mensaje_postulacion=mensaje,
+            archivos_adjuntos=archivos or []
         )
+        
+        # Paso 6: Guardar
+        guardada = self.postulacion_repo.guardar(postulacion)
+        
+        return guardada.to_dict()
 
-    def list_for_practicante(self, usuario_id):
-        self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
-        if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
-        return [
-            (
-                postulacion,
-                self.convocatoria_repository.find_by_id(postulacion.convocatoria_id),
-            )
-            for postulacion in self.postulacion_repository.find_by_practicante_id(
-                practicante.id
-            )
-        ]
+    def obtener_postulaciones_practicante(self, practicante_id: int) -> List[Dict]:
+        """Obtiene todas las postulaciones de un practicante."""
+        postulaciones = self.postulacion_repo.obtener_por_practicante(practicante_id)
+        return [p.to_dict() for p in postulaciones]
 
-    def list_for_convocatoria(self, empresa_id, convocatoria_id):
-        self._require_repositories()
-        self._require_owned_convocatoria(empresa_id, convocatoria_id)
-        return [
-            (
-                postulacion,
-                self.perfil_repository.find_practicante_by_id(
-                    postulacion.practicante_id
-                ),
-            )
-            for postulacion in self.postulacion_repository.find_by_convocatoria_id(
-                convocatoria_id
-            )
-        ]
+    def obtener_postulaciones_convocatoria(self, convocatoria_id: int) -> List[Dict]:
+        """Obtiene todas las postulaciones de una convocatoria."""
+        postulaciones = self.postulacion_repo.obtener_por_convocatoria(convocatoria_id)
+        return [p.to_dict() for p in postulaciones]
 
-    def select_candidate(self, empresa_id, postulacion_id):
-        self._require_repositories()
-        postulacion = self.postulacion_repository.find_by_id(postulacion_id)
-        if postulacion is None:
+    def actualizar_estado(self, postulacion_id: int, nuevo_estado: str, 
+                          usuario_rol: str = "empresa") -> Dict:
+        """Actualiza el estado de una postulación."""
+        if usuario_rol != "empresa":
+            raise PermissionError("Solo las empresas pueden cambiar el estado de postulaciones")
+        
+        estados_validos = ['pendiente', 'aceptada', 'rechazada', 'completada']
+        if nuevo_estado not in estados_validos:
+            raise ValueError(f"Estado inválido. Debe ser uno de: {estados_validos}")
+        
+        postulacion = self.postulacion_repo.obtener_por_id(postulacion_id)
+        if not postulacion:
             raise ValueError("Postulación no encontrada")
-        convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
-        if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
-        if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
+        
+        if nuevo_estado == 'aceptada':
+            postulacion.aceptar()
+        elif nuevo_estado == 'rechazada':
+            postulacion.rechazar()
+        elif nuevo_estado == 'completada':
+            postulacion.completar()
+        
+        actualizada = self.postulacion_repo.actualizar_estado(postulacion_id, nuevo_estado)
+        return actualizada.to_dict()
 
-        postulacion.seleccionar()
-        seleccionada = self.postulacion_repository.save(postulacion)
-        for otra in self.postulacion_repository.find_by_convocatoria_id(
-            postulacion.convocatoria_id
-        ):
-            if (
-                otra.id != postulacion.id
-                and otra.estado == Postulacion.ESTADO_PENDIENTE
-            ):
-                otra.rechazar()
-                self.postulacion_repository.save(otra)
-        return seleccionada
-
-    def reject_candidate(self, empresa_id, postulacion_id):
-        self._require_repositories()
-        postulacion = self.postulacion_repository.find_by_id(postulacion_id)
-        if postulacion is None:
+    def retirar_postulacion(self, postulacion_id: int, practicante_id: int) -> bool:
+        """Retira una postulación (solo si está pendiente y es del practicante)."""
+        postulacion = self.postulacion_repo.obtener_por_id(postulacion_id)
+        if not postulacion:
             raise ValueError("Postulación no encontrada")
-        self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
-        postulacion.rechazar()
-        return self.postulacion_repository.save(postulacion)
-
-    def _require_owned_convocatoria(self, empresa_id, convocatoria_id):
-        convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
-        if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
-        if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
-        return convocatoria
-
-    def _require_repositories(self):
-        if (
-            self.postulacion_repository is None
-            or self.convocatoria_repository is None
-            or self.perfil_repository is None
-        ):
-            raise RuntimeError("PostulacionApplicationService requiere todos sus repositorios")
+        if postulacion.practicante_id != practicante_id:
+            raise PermissionError("No puedes retirar una postulación que no es tuya")
+        if postulacion.estado != 'pendiente':
+            raise ValueError(f"No se puede retirar una postulación en estado '{postulacion.estado}'")
+        return self.postulacion_repo.eliminar(postulacion_id)

@@ -1,81 +1,139 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# presentation/postulacion_controller.py
+from flask import Blueprint, request, jsonify, session
+from application.postulacion_application_service import PostulacionApplicationService
+from infrastructure.sqlalchemy_postulacion_repository import SQLAlchemyPostulacionRepository
+from infrastructure.sqlalchemy_convocatoria_repository import SQLAlchemyConvocatoriaRepository
+from infrastructure.sqlalchemy_perfil_repository import SQLAlchemyPerfilRepository
+from frameworks.sqlalchemy_orm.database import db
 
-class PostulacionController:
-    def __init__(self, postulacion_application_service=None):
-        self.postulacion_application_service = postulacion_application_service
- 
+# Crear blueprint
+postulacion_blueprint = Blueprint('postulacion', __name__, url_prefix='/postulaciones')
 
-    def postular(self, usuario_id, convocatoria_id):
-        self._require_service()
-        postulacion = self.postulacion_application_service.apply(
-            usuario_id, convocatoria_id
+# Inicializar dependencias
+postulacion_repo = SQLAlchemyPostulacionRepository(db.session)
+convocatoria_repo = SQLAlchemyConvocatoriaRepository(db.session)
+perfil_repo = SQLAlchemyPerfilRepository(db.session)
+
+postulacion_service = PostulacionApplicationService(
+    postulacion_repo=postulacion_repo,
+    convocatoria_repo=convocatoria_repo,
+    perfil_repo=perfil_repo
+)
+
+@postulacion_blueprint.route('', methods=['POST'])
+def crear_postulacion():
+    """
+    ESTILO ERROR/EXCEPTION HANDLING:
+    Cada tipo de error se captura con su excepción específica
+    y se devuelve una respuesta HTTP apropiada.
+    """
+    try:
+        # 1. Validar autenticación
+        usuario_id = session.get('usuario_id')
+        usuario_rol = session.get('usuario_rol', 'practicante')
+        
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+        
+        if usuario_rol != 'practicante':
+            return jsonify({"error": "Solo los practicantes pueden postularse"}), 403
+        
+        # 2. Validar datos de entrada
+        datos = request.get_json()
+        if not datos or 'convocatoria_id' not in datos:
+            return jsonify({"error": "Campo 'convocatoria_id' requerido"}), 400
+        
+        # 3. Ejecutar la lógica de negocio
+        resultado = postulacion_service.postularse(
+            practicante_id=usuario_id,
+            convocatoria_id=datos['convocatoria_id'],
+            mensaje=datos.get('mensaje', ''),
+            archivos=datos.get('archivos', [])
         )
-        return self._serialize_postulacion(postulacion), 201
+        
+        return jsonify(resultado), 201
+        
+    # 4. Errores de negocio (400 Bad Request)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    
+    # 5. Errores de permisos (403 Forbidden)
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    
+    # 6. Errores inesperados (500 Internal Server Error)
+    except Exception as e:
+        app.logger.error(f"Error inesperado: {str(e)}")
+        return jsonify({"error": "Error interno del servidor"}), 500
 
-    def list_mine(self, usuario_id):
-        self._require_service()
-        resultados = self.postulacion_application_service.list_for_practicante(
-            usuario_id
+@postulacion_blueprint.route('/me', methods=['GET'])
+def mis_postulaciones():
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+        postulaciones = postulacion_service.obtener_postulaciones_practicante(usuario_id)
+        return jsonify({"data": postulaciones, "total": len(postulaciones)}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@postulacion_blueprint.route('/convocatoria/<int:convocatoria_id>', methods=['GET'])
+def postulaciones_convocatoria(convocatoria_id):
+    try:
+        usuario_id = session.get('usuario_id')
+        usuario_rol = session.get('usuario_rol')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+        if usuario_rol != 'empresa':
+            return jsonify({"error": "Solo las empresas pueden ver postulantes"}), 403
+        postulaciones = postulacion_service.obtener_postulaciones_convocatoria(convocatoria_id)
+        return jsonify({"data": postulaciones, "total": len(postulaciones)}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@postulacion_blueprint.route('/<int:postulacion_id>/estado', methods=['PATCH'])
+def actualizar_estado_postulacion(postulacion_id):
+    try:
+        usuario_id = session.get('usuario_id')
+        usuario_rol = session.get('usuario_rol')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+        if usuario_rol != 'empresa':
+            return jsonify({"error": "Solo las empresas pueden cambiar el estado"}), 403
+        
+        datos = request.get_json()
+        if not datos or 'estado' not in datos:
+            return jsonify({"error": "Campo 'estado' requerido"}), 400
+        
+        resultado = postulacion_service.actualizar_estado(
+            postulacion_id=postulacion_id,
+            nuevo_estado=datos['estado'],
+            usuario_rol=usuario_rol
         )
-        data = []
-        for postulacion, convocatoria in resultados:
-            item = self._serialize_postulacion(postulacion)
-            item["convocatoria"] = (
-                {
-                    "id": convocatoria.id,
-                    "titulo": convocatoria.titulo,
-                    "estado": convocatoria.estado,
-                }
-                if convocatoria
-                else None
-            )
-            data.append(item)
-        return data, 200
+        return jsonify(resultado), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
-    def list_for_convocatoria(self, empresa_id, convocatoria_id):
-        self._require_service()
-        resultados = self.postulacion_application_service.list_for_convocatoria(
-            empresa_id, convocatoria_id
-        )
-        data = []
-        for postulacion, practicante in resultados:
-            item = self._serialize_postulacion(postulacion)
-            item["practicante"] = (
-                {
-                    "id": practicante.id,
-                    "nombres": practicante.nombres,
-                    "apellidos": practicante.apellidos,
-                    "habilidades": practicante.habilidades,
-                    "score_reputacion": practicante.score_reputacion,
-                    "identidad_verificada": practicante.identidad_verificada,
-                }
-                if practicante
-                else None
-            )
-            data.append(item)
-        return data, 200
 
-    def reject(self, empresa_id, postulacion_id):
-        self._require_service()
-        postulacion = self.postulacion_application_service.reject_candidate(
-            empresa_id, postulacion_id
-        )
-        return self._serialize_postulacion(postulacion), 200
-
-    def select(self, empresa_id, postulacion_id):
-        self._require_service()
-        postulacion = self.postulacion_application_service.select_candidate(empresa_id, postulacion_id)
-        return self._serialize_postulacion(postulacion), 200
-
-    def _require_service(self):
-        if self.postulacion_application_service is None:
-            raise RuntimeError("PostulacionController requiere un application service")
-
-    def _serialize_postulacion(self, postulacion):
-        return {
-            "id": postulacion.id,
-            "convocatoria_id": postulacion.convocatoria_id,
-            "practicante_id": postulacion.practicante_id,
-            "estado": postulacion.estado,
-        }
+@postulacion_blueprint.route('/<int:postulacion_id>', methods=['DELETE'])
+def retirar_postulacion(postulacion_id):
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+        resultado = postulacion_service.retirar_postulacion(postulacion_id, usuario_id)
+        if resultado:
+            return jsonify({"message": "Postulación retirada exitosamente"}), 200
+        return jsonify({"error": "No se pudo retirar la postulación"}), 400
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500

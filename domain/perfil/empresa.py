@@ -1,25 +1,12 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# domain/perfil/empresa.py
+from dataclasses import dataclass
+from typing import Optional
 
+@dataclass
 class Empresa:
-    def __init__(
-        self,
-        id=None,
-        usuario_id=None,
-        razon_social=None,
-        ruc=None,
-        verificada=False,
-    ):
-        self.id = id
-        self.usuario_id = usuario_id
-        self.razon_social = razon_social
-        self.ruc = ruc
-        self.verificada = verificada
-
-    def verificar_ruc(self):
-        """
-        Delega la validación en el value object RUC (self.ruc)
-        y actualiza self.verificada.
-        """
-        self.verificada = bool(self.ruc) and self.ruc.es_valido()
-        return self.verificada
+    id: Optional[int]
+    usuario_id: int
+    razon_social: str
+    ruc: str
+    descripcion: Optional[str] = None
+    ubicacion: Optional[str] = None

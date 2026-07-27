@@ -6,21 +6,9 @@ from abc import ABC, abstractmethod
 
 class IConvocatoriaRepository(ABC):
     @abstractmethod
-    def save(self, convocatoria):
+    def save(self):
         pass
 
     @abstractmethod
-    def find_by_id(self, convocatoria_id):
-        pass
-
-    @abstractmethod
-    def find_all(self):
-        pass
-
-    @abstractmethod
-    def search(self, query=None, estado=None):
-        pass
-
-    @abstractmethod
-    def find_by_empresa_id(self, empresa_id):
+    def find_by_id(self):
         pass

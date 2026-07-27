@@ -1,4 +1,4 @@
-from frameworks.sqlalchemy_orm.database import db, migrate
+# frameworks/sqlalchemy_orm/__init__.py
+from .database import db, Base
 
-
-__all__ = ["db", "migrate"]
+__all__ = ['db', 'Base']

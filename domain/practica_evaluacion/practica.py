@@ -1,54 +1,61 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# domain/practica_evaluacion/practica.py
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+from enum import Enum
 
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
+class EstadoPractica(str, Enum):
+    EN_PROGRESO = "en_progreso"
+    COMPLETADA = "completada"
+    CANCELADA = "cancelada"
 
-
+@dataclass
 class Practica:
-    ESTADO_EN_CURSO = "EN_CURSO"
-    ESTADO_FINALIZADA = "FINALIZADA"
+    """Entidad que representa una práctica preprofesional."""
+    id: Optional[int]
+    postulacion_id: int
+    fecha_inicio: datetime
+    fecha_fin: Optional[datetime] = None
+    estado: EstadoPractica = EstadoPractica.EN_PROGRESO
+    horario_trabajo: Optional[str] = None
+    supervisor_nombre: Optional[str] = None
+    supervisor_contacto: Optional[str] = None
+    acta_inicio_url: Optional[str] = None
+    acta_termino_url: Optional[str] = None
 
-    def __init__(self, id=None, postulacion_id=None, practicante_id=None,
-                 estado=None, entregables=None, evaluaciones=None):
-        self.id = id
-        self.postulacion_id = postulacion_id
-        self.practicante_id = practicante_id
-        self.estado = estado or self.ESTADO_EN_CURSO
-        self.entregables = entregables or []
-        self.evaluaciones = evaluaciones or []
+    def __post_init__(self):
+        if self.fecha_inicio is None:
+            self.fecha_inicio = datetime.utcnow()
 
-    def subir_entregable(self, archivo):
-        if self.estado == self.ESTADO_FINALIZADA:
-            raise ValueError("No se pueden subir entregables a una práctica finalizada")
+    def finalizar(self, acta_termino_url: str) -> None:
+        """Finaliza la práctica."""
+        if self.estado != EstadoPractica.EN_PROGRESO:
+            raise ValueError(f"No se puede finalizar una práctica en estado '{self.estado.value}'")
+        self.estado = EstadoPractica.COMPLETADA
+        self.fecha_fin = datetime.utcnow()
+        self.acta_termino_url = acta_termino_url
 
-        entregable = Entregable.crear(practica_id=self.id, archivo=archivo)
-        self.entregables.append(entregable)
-        return entregable
+    def cancelar(self) -> None:
+        """Cancela la práctica."""
+        if self.estado == EstadoPractica.COMPLETADA:
+            raise ValueError("No se puede cancelar una práctica ya completada")
+        self.estado = EstadoPractica.CANCELADA
+        self.fecha_fin = datetime.utcnow()
 
-    def registrar_evaluacion(self, puntaje):
-        if self.estado == self.ESTADO_FINALIZADA:
-            raise ValueError("No se pueden registrar evaluaciones en una práctica finalizada")
+    def esta_activa(self) -> bool:
+        """Verifica si la práctica está activa."""
+        return self.estado == EstadoPractica.EN_PROGRESO
 
-        evaluacion = Evaluacion.crear(practica_id=self.id, puntaje=puntaje)
-        self.evaluaciones.append(evaluacion)
-        return evaluacion
-
-    def finalizar(self):
-        if self.estado != self.ESTADO_EN_CURSO:
-            raise ValueError("La práctica ya está finalizada")
-        if not self.entregables:
-            raise ValueError("No se puede finalizar una práctica sin entregables registrados")
-        if not any(evaluacion.esta_aprobada() for evaluacion in self.evaluaciones):
-            raise ValueError(
-                "No se puede finalizar una práctica sin una evaluación aprobada"
-            )
-
-        self.estado = self.ESTADO_FINALIZADA
-        return self
-
-    def obtener_historial_entregables(self):
-        return sorted(self.entregables, key=lambda e: e.fecha_subida)
-
-    def obtener_historial_evaluaciones(self):
-        return sorted(self.evaluaciones, key=lambda e: e.fecha_evaluacion)
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "postulacion_id": self.postulacion_id,
+            "fecha_inicio": self.fecha_inicio.isoformat() if self.fecha_inicio else None,
+            "fecha_fin": self.fecha_fin.isoformat() if self.fecha_fin else None,
+            "estado": self.estado.value,
+            "horario_trabajo": self.horario_trabajo,
+            "supervisor_nombre": self.supervisor_nombre,
+            "supervisor_contacto": self.supervisor_contacto,
+            "acta_inicio_url": self.acta_inicio_url,
+            "acta_termino_url": self.acta_termino_url
+        }

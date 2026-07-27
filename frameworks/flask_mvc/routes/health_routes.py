@@ -1,14 +1,12 @@
+# frameworks/flask_mvc/routes/health_routes.py
 from flask import Blueprint, jsonify
 
+health_blueprint = Blueprint('health', __name__)
 
-health_bp = Blueprint("health", __name__)
-
-
-@health_bp.get("/")
-def index():
-    return jsonify({"service": "ChambeaYa", "status": "running"})
-
-
-@health_bp.get("/health")
+@health_blueprint.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "ok", "service": "ChambeaYa"})
+    """Endpoint para verificar que la aplicación está funcionando."""
+    return jsonify({
+        "status": "ok",
+        "message": "ChambeaYa API está funcionando correctamente"
+    }), 200

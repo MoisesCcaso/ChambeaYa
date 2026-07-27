@@ -1,44 +1,55 @@
+# frameworks/flask_mvc/app.py
+from flask import Flask
+from flask_migrate import Migrate
+from flask_cors import CORS
 import os
+from dotenv import load_dotenv
 
-from flask import Flask, jsonify
-from sqlalchemy.exc import IntegrityError
+from frameworks.sqlalchemy_orm.database import db
+from frameworks.sqlalchemy_orm.models import *
 
-from config import config_by_name
-from frameworks.flask_mvc.routes import register_routes
-from frameworks.sqlalchemy_orm import models  # noqa: F401
-from frameworks.sqlalchemy_orm.database import db, migrate
+# Importar blueprints de rutas existentes
+from frameworks.flask_mvc.routes.health_routes import health_blueprint
+from frameworks.flask_mvc.routes.auth_routes import auth_blueprint
+from frameworks.flask_mvc.routes.perfil_routes import perfil_blueprint
 
+# Importar nuevos blueprints de presentation
+from presentation.matching_controller import matching_blueprint
+from presentation.postulacion_controller import postulacion_blueprint
+from presentation.practica_controller import practica_blueprint
+from presentation.entregable_controller import entregable_blueprint
+from presentation.certificado_controller import certificado_blueprint
+from presentation.notificacion_controller import notificacion_blueprint  # <-- ESTE FALTABA
+from presentation.reporte_controller import reporte_blueprint           # <-- Y ESTE TAMBIÉN
 
-def create_app(config_name=None):
-    app = Flask(
-        __name__,
-        instance_relative_config=True,
-        static_folder="static",
-        template_folder="templates",
-    )
+load_dotenv()
 
-    selected_config = config_name or os.getenv("FLASK_ENV", "default")
-    app.config.from_object(config_by_name.get(selected_config, config_by_name["default"]))
-    if selected_config == "production" and app.config["SECRET_KEY"] == "dev-secret-key":
-        raise RuntimeError("SECRET_KEY debe configurarse en producción")
-    app.config.setdefault(
-        "UPLOAD_FOLDER",
-        os.path.join(app.instance_path, "uploads", "entregables"),
-    )
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
+def create_app():
+    app = Flask(__name__)
+    
+    # Configuración
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///chambeaya.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = False  # Para desarrollo local
+    app.config['SESSION_PERMANENT'] = False
+    
+    # Inicializar extensiones
     db.init_app(app)
-    migrate.init_app(app, db, directory="frameworks/migrations")
-
-    register_routes(app)
-
-    @app.errorhandler(IntegrityError)
-    def handle_integrity_error(_error):
-        db.session.rollback()
-        return jsonify({"error": "El registro ya existe o contiene datos en conflicto"}), 409
-
-    @app.errorhandler(413)
-    def handle_payload_too_large(_error):
-        return jsonify({"error": "El archivo excede el límite de 10 MB"}), 413
-
+    Migrate(app, db)
+    CORS(app, supports_credentials=True)
+    
+    # Registrar blueprints
+    app.register_blueprint(health_blueprint)
+    app.register_blueprint(auth_blueprint, url_prefix='/auth')
+    app.register_blueprint(perfil_blueprint, url_prefix='/perfil')
+    app.register_blueprint(matching_blueprint)
+    app.register_blueprint(postulacion_blueprint)
+    app.register_blueprint(practica_blueprint)
+    app.register_blueprint(entregable_blueprint)
+    app.register_blueprint(certificado_blueprint)
+    app.register_blueprint(notificacion_blueprint)  # <-- ESTE FALTABA
+    app.register_blueprint(reporte_blueprint)        # <-- Y ESTE TAMBIÉN
+    
     return app

@@ -3,8 +3,7 @@
 
 from domain.auth.usuario import Usuario
 from domain.perfil.practicante import Practicante
-from domain.perfil.empresa import Empresa
-from domain.perfil.ruc import RUC
+
 
 class PerfilApplicationService:
     def __init__(self, perfil_repository=None, usuario_repository=None):
@@ -31,17 +30,10 @@ class PerfilApplicationService:
             carnet_universitario=data.get("carnet_universitario"),
         )
 
-        habilidades = data.get("habilidades", []) or []
-        formaciones = data.get("formacion_educativa", []) or []
-        if not isinstance(habilidades, list):
-            raise ValueError("Las habilidades deben ser una lista")
-        if not isinstance(formaciones, list):
-            raise ValueError("La formación educativa debe ser una lista")
-
-        for habilidad in habilidades:
+        for habilidad in data.get("habilidades", []) or []:
             practicante.agregar_habilidad(habilidad)
 
-        for formacion in formaciones:
+        for formacion in data.get("formacion_educativa", []) or []:
             practicante.agregar_formacion(formacion)
 
         practicante.calcular_score()
@@ -69,29 +61,8 @@ class PerfilApplicationService:
         practicante.calcular_score()
         return self.perfil_repository.save_practicante(practicante)
 
-    def update_empresa(self, usuario_id, data):
-        self._require_repositories()
-        self._require_empresa_user(usuario_id)
-        empresa = self.perfil_repository.find_empresa_by_user_id(usuario_id)
-        if empresa is None:
-            empresa = Empresa(usuario_id=usuario_id)
-
-        numero_ruc = data.get("ruc")
-        if numero_ruc is not None:
-            empresa.ruc = RUC(numero=numero_ruc)
-
-        if data.get("razon_social") is not None:
-            empresa.razon_social = str(data["razon_social"]).strip()
-        if not empresa.razon_social:
-            raise ValueError("La razón social es obligatoria")
-        if not empresa.verificar_ruc():
-            raise ValueError("El RUC no es válido")
-        return self.perfil_repository.save_empresa(empresa)
-
-    def get_empresa_profile(self, usuario_id):
-        self._require_repositories()
-        self._require_empresa_user(usuario_id)
-        return self.perfil_repository.find_empresa_by_user_id(usuario_id)
+    def update_empresa(self):
+        pass
 
     def verify_profile(self, usuario_id):
         self._require_repositories()
@@ -127,18 +98,7 @@ class PerfilApplicationService:
             raise ValueError("La cuenta no está activa")
 
         return usuario
-    
-    def _require_empresa_user(self, usuario_id):
-        usuario = self.usuario_repository.find_by_id(usuario_id)
-        if usuario is None:
-            raise ValueError("Usuario no encontrado")
-        if usuario.tipo != Usuario.TIPO_EMPRESA:
-            raise ValueError("El usuario no es empresa")
-        if usuario.estado != Usuario.ESTADO_ACTIVO:
-            raise ValueError("La cuenta no está activa")
 
-        return usuario
-    
     def _require_repositories(self):
         if self.perfil_repository is None:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de perfil")

@@ -1,99 +1,112 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-import json
-
-from domain.notificaciones.notificacion import Notificacion
-from domain.notificaciones.i_notificacion_writer import INotificacionWriter
-from domain.notificaciones.i_notificacion_reader import INotificacionReader
-from frameworks.sqlalchemy_orm.database import db
+# infrastructure/sqlalchemy_notificacion_repository.py
+from typing import List, Optional
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
+from domain.notificacion.i_notificacion_repository import Notificacion, INotificacionRepository
 from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
 
+class SQLAlchemyNotificacionRepository(INotificacionRepository):
+    """Implementación SQLAlchemy del repositorio de notificaciones."""
 
-class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader):
-    def save(self, notificacion):
-        model = None
-        if notificacion.id is not None:
-            model = db.session.get(NotificacionModel, notificacion.id)
+    def __init__(self, session: Session):
+        self.session = session
 
-        if model is None:
-            model = NotificacionModel(
-                usuario_destino_id=notificacion.usuario_destino_id,
-                tipo=notificacion.tipo,
-                mensaje=notificacion.mensaje,
-            )
-            db.session.add(model)
-
-        model.leida = notificacion.leida
-        model.metadata_json = self._dump_json(notificacion.metadata)
-
-        db.session.commit()
-        return self._to_domain(model)
-
-    def mark_as_read(self, usuario_id, notificacion_id):
-        model = NotificacionModel.query.filter_by(
-            id=notificacion_id,
-            usuario_destino_id=usuario_id,
-        ).first()
-        if model is None:
-            raise ValueError("Notificación no encontrada")
-        model.leida = True
-        db.session.commit()
-        return self._to_domain(model)
-
-    def mark_all_as_read(self, usuario_id):
-        NotificacionModel.query.filter_by(
-            usuario_destino_id=usuario_id, leida=False
-        ).update({"leida": True})
-        db.session.commit()
-
-    def find_by_usuario_id(self, usuario_id):
-        models = (
-            NotificacionModel.query
-            .filter_by(usuario_destino_id=usuario_id)
-            .order_by(NotificacionModel.created_at.desc())
-            .all()
+    def _to_model(self, notificacion: Notificacion) -> NotificacionModel:
+        return NotificacionModel(
+            id=notificacion.id,
+            usuario_id=notificacion.usuario_id,
+            tipo=notificacion.tipo,
+            canal=notificacion.canal,
+            asunto=notificacion.asunto,
+            mensaje=notificacion.mensaje,
+            mensaje_html=notificacion.mensaje_html,
+            leida=notificacion.leida,
+            fecha_envio=notificacion.fecha_envio,
+            fecha_lectura=notificacion.fecha_lectura,
+            metadata=notificacion.metadata
         )
-        return [self._to_domain(m) for m in models]
 
-    def find_unread_by_usuario_id(self, usuario_id):
-        models = (
-            NotificacionModel.query
-            .filter_by(usuario_destino_id=usuario_id, leida=False)
-            .order_by(NotificacionModel.created_at.desc())
-            .all()
-        )
-        return [self._to_domain(m) for m in models]
-
-    def count_unread(self, usuario_id):
-        return NotificacionModel.query.filter_by(
-            usuario_destino_id=usuario_id, leida=False
-        ).count()
-
-    def _to_domain(self, model):
-        if model is None:
-            return None
+    def _to_entity(self, model: NotificacionModel) -> Notificacion:
         return Notificacion(
             id=model.id,
-            usuario_destino_id=model.usuario_destino_id,
+            usuario_id=model.usuario_id,
             tipo=model.tipo,
+            canal=model.canal,
+            asunto=model.asunto,
             mensaje=model.mensaje,
-            metadata=self._load_json(model.metadata_json),
+            mensaje_html=model.mensaje_html,
             leida=model.leida,
-            created_at=model.created_at,
+            fecha_envio=model.fecha_envio,
+            fecha_lectura=model.fecha_lectura,
+            metadata=model.metadata or {}
         )
 
-    def _dump_json(self, value):
-        if not value:
-            return "{}"
-        return json.dumps(value, ensure_ascii=False)
-
-    def _load_json(self, value):
-        if not value:
-            return {}
+    def guardar(self, notificacion: Notificacion) -> Notificacion:
         try:
-            parsed = json.loads(value)
-        except (json.JSONDecodeError, TypeError):
-            return {}
-        if not isinstance(parsed, dict):
-            return {}
-        return parsed
+            model = self._to_model(notificacion)
+            self.session.add(model)
+            self.session.commit()
+            self.session.refresh(model)
+            return self._to_entity(model)
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise RuntimeError(f"Error al guardar notificación: {str(e)}")
+
+    def obtener_por_usuario(self, usuario_id: int, limit: int = 50) -> List[Notificacion]:
+        try:
+            models = self.session.query(NotificacionModel).filter(
+                NotificacionModel.usuario_id == usuario_id
+            ).order_by(NotificacionModel.fecha_envio.desc()).limit(limit).all()
+            return [self._to_entity(m) for m in models]
+        except SQLAlchemyError as e:
+            raise RuntimeError(f"Error al obtener notificaciones: {str(e)}")
+
+    def obtener_no_leidas(self, usuario_id: int) -> List[Notificacion]:
+        try:
+            models = self.session.query(NotificacionModel).filter(
+                NotificacionModel.usuario_id == usuario_id,
+                NotificacionModel.leida == False
+            ).order_by(NotificacionModel.fecha_envio.desc()).all()
+            return [self._to_entity(m) for m in models]
+        except SQLAlchemyError as e:
+            raise RuntimeError(f"Error al obtener notificaciones no leídas: {str(e)}")
+
+    def marcar_como_leida(self, notificacion_id: int) -> Optional[Notificacion]:
+        try:
+            model = self.session.query(NotificacionModel).get(notificacion_id)
+            if not model:
+                return None
+            model.leida = True
+            model.fecha_lectura = datetime.utcnow()
+            self.session.commit()
+            self.session.refresh(model)
+            return self._to_entity(model)
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise RuntimeError(f"Error al marcar notificación como leída: {str(e)}")
+
+    def marcar_todas_como_leidas(self, usuario_id: int) -> int:
+        try:
+            now = datetime.utcnow()
+            result = self.session.query(NotificacionModel).filter(
+                NotificacionModel.usuario_id == usuario_id,
+                NotificacionModel.leida == False
+            ).update({"leida": True, "fecha_lectura": now})
+            self.session.commit()
+            return result
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise RuntimeError(f"Error al marcar todas como leídas: {str(e)}")
+
+    def eliminar_antiguas(self, dias: int) -> int:
+        try:
+            fecha_limite = datetime.utcnow() - timedelta(days=dias)
+            result = self.session.query(NotificacionModel).filter(
+                NotificacionModel.fecha_envio < fecha_limite
+            ).delete()
+            self.session.commit()
+            return result
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise RuntimeError(f"Error al eliminar notificaciones antiguas: {str(e)}")

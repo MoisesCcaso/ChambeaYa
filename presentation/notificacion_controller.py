@@ -1,42 +1,88 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# presentation/notificacion_controller.py
+from flask import Blueprint, request, jsonify, session
+from application.notificacion_application_service import NotificacionApplicationService
+from infrastructure.sqlalchemy_notificacion_repository import SQLAlchemyNotificacionRepository
+from frameworks.sqlalchemy_orm.database import db
+
+notificacion_blueprint = Blueprint('notificacion', __name__, url_prefix='/notificaciones')
+
+# Inicializar dependencias
+notificacion_repo = SQLAlchemyNotificacionRepository(db.session)
+notificacion_service = NotificacionApplicationService(notificacion_repo)
 
 
-class NotificacionController:
-    def __init__(self, notificacion_application_service=None):
-        self.notificacion_application_service = notificacion_application_service
+@notificacion_blueprint.route('', methods=['GET'])
+def obtener_notificaciones():
+    """Obtiene las notificaciones del usuario autenticado."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
 
-    def list_notifications(self, usuario_id):
-        self._require_service()
-        notificaciones = self.notificacion_application_service.list_notifications(usuario_id)
-        return [self._serialize(n) for n in notificaciones], 200
+        limit = request.args.get('limit', 50, type=int)
+        if limit > 100:
+            limit = 100
 
-    def mark_as_read(self, usuario_id, notificacion_id):
-        self._require_service()
-        self.notificacion_application_service.mark_as_read(usuario_id, notificacion_id)
-        return {"mensaje": "Notificación marcada como leída"}, 200
+        notificaciones = notificacion_service.obtener_notificaciones(usuario_id, limit)
+        return jsonify({
+            "data": notificaciones,
+            "total": len(notificaciones)
+        }), 200
 
-    def mark_all_as_read(self, usuario_id):
-        self._require_service()
-        self.notificacion_application_service.mark_all_as_read(usuario_id)
-        return {"mensaje": "Todas las notificaciones marcadas como leídas"}, 200
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
-    def count_unread(self, usuario_id):
-        self._require_service()
-        cantidad = self.notificacion_application_service.count_unread(usuario_id)
-        return {"cantidad": cantidad}, 200
 
-    def _require_service(self):
-        if self.notificacion_application_service is None:
-            raise RuntimeError("NotificacionController requiere un servicio de aplicación")
+@notificacion_blueprint.route('/no-leidas', methods=['GET'])
+def obtener_no_leidas():
+    """Obtiene las notificaciones no leídas del usuario autenticado."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
 
-    def _serialize(self, notificacion):
-        return {
-            "id": notificacion.id,
-            "usuario_destino_id": notificacion.usuario_destino_id,
-            "tipo": notificacion.tipo,
-            "mensaje": notificacion.mensaje,
-            "metadata": notificacion.metadata,
-            "leida": notificacion.leida,
-            "created_at": notificacion.created_at.isoformat() if notificacion.created_at else None,
-        }
+        notificaciones = notificacion_service.obtener_no_leidas(usuario_id)
+        return jsonify({
+            "data": notificaciones,
+            "total": len(notificaciones)
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@notificacion_blueprint.route('/<int:notificacion_id>/leer', methods=['PATCH'])
+def marcar_como_leida(notificacion_id):
+    """Marca una notificación como leída."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        notificacion = notificacion_service.marcar_como_leida(notificacion_id, usuario_id)
+        return jsonify(notificacion), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except PermissionError as e:
+        return jsonify({"error": str(e)}), 403
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@notificacion_blueprint.route('/leer-todas', methods=['PATCH'])
+def marcar_todas_como_leidas():
+    """Marca todas las notificaciones del usuario como leídas."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        count = notificacion_service.marcar_todas_como_leidas(usuario_id)
+        return jsonify({
+            "message": f"{count} notificaciones marcadas como leídas",
+            "count": count
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500

@@ -1,43 +1,79 @@
+# application/matching_application_service.py
+from typing import List, Dict
+from domain.matching.sugerencia import Sugerencia
+from domain.matching.i_sugerencia_repository import ISugerenciaRepository
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-
+from infrastructure.sqlalchemy_perfil_repository import SQLAlchemyPerfilRepository
+from infrastructure.sqlalchemy_convocatoria_repository import SQLAlchemyConvocatoriaRepository
 
 class MatchingApplicationService:
-    def __init__(self, sugerencia_repository=None, perfil_repository=None,
-                 convocatoria_repository=None, matching_servicio=None):
-        self.sugerencia_repository = sugerencia_repository
-        self.perfil_repository = perfil_repository
-        self.convocatoria_repository = convocatoria_repository
-        self.matching_servicio = matching_servicio or MatchingDominioServicio()
+    """Servicio de aplicación para el matching de convocatorias."""
 
-    def suggest_convocatorias(self, usuario_id, umbral=50.0):
-        self._require_repositories()
+    def __init__(self, 
+                 sugerencia_repo: ISugerenciaRepository,
+                 perfil_repo: SQLAlchemyPerfilRepository,
+                 convocatoria_repo: SQLAlchemyConvocatoriaRepository):
+        self.sugerencia_repo = sugerencia_repo
+        self.perfil_repo = perfil_repo
+        self.convocatoria_repo = convocatoria_repo
+        self.matching_servicio = MatchingDominioServicio()
 
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
-        if practicante is None:
-            raise ValueError("Practicante no encontrado")
+    def recomendar_convocatorias(self, practicante_id: int, limit: int = 10) -> List[Dict]:
+        """
+        ESTILO PIPELINE: Procesamiento en etapas secuenciales.
+        Cada etapa transforma los datos y los pasa a la siguiente.
+        """
+        # Etapa 1: Obtener perfil del practicante
+        perfil = self.perfil_repo.obtener_por_usuario_id(practicante_id)
+        if not perfil or not perfil.habilidades:
+            return []
+        
+        habilidades_practicante = perfil.habilidades
+        
+        # Etapa 2: Filtrar convocatorias activas
+        convocatorias = self.convocatoria_repo.listar_activas()
+        if not convocatorias:
+            return []
+        
+        # Etapa 3: Calcular score de coincidencia usando Jaccard
+        def calcular_match(convocatoria):
+            habilidades_conv = convocatoria.habilidades_requeridas or []
+            interseccion = set(habilidades_practicante) & set(habilidades_conv)
+            union = set(habilidades_practicante) | set(habilidades_conv)
+            score = len(interseccion) / len(union) if union else 0
+            habilidades_match = list(interseccion)
+            return (convocatoria, score, habilidades_match)
+        
+        # Etapa 4: Generar todas las coincidencias
+        matches = [calcular_match(c) for c in convocatorias]
+        
+        # Etapa 5: Filtrar solo las que tienen score > 0
+        matches = [m for m in matches if m[1] > 0]
+        
+        # Etapa 6: Ordenar por score descendente
+        matches.sort(key=lambda x: x[1], reverse=True)
+        
+        # Etapa 7: Seleccionar top N y formatear respuesta
+        resultado = []
+        for conv, score, habilidades_match in matches[:limit]:
+            resultado.append({
+                "convocatoria": conv.to_dict(),
+                "score_match": score,
+                "habilidades_match": habilidades_match
+            })
+        
+        return resultado
 
-        convocatorias = self.convocatoria_repository.find_all()
-        return self.matching_servicio.filtrar_convocatorias(practicante, convocatorias, umbral)
-
-    def calculate_for_practicante(self, usuario_id):
-        self._require_repositories()
-
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
-        if practicante is None:
-            raise ValueError("Practicante no encontrado")
-
-        convocatorias = self.convocatoria_repository.find_all()
-        resultados = self.matching_servicio.filtrar_convocatorias(practicante, convocatorias)
-
-        for resultado in resultados:
-            self.sugerencia_repository.save(resultado.sugerencia)
-
-        return resultados
-
-    def _require_repositories(self):
-        if self.sugerencia_repository is None:
-            raise RuntimeError("MatchingApplicationService requiere un repositorio de sugerencias")
-        if self.perfil_repository is None:
-            raise RuntimeError("MatchingApplicationService requiere un repositorio de perfil")
-        if self.convocatoria_repository is None:
-            raise RuntimeError("MatchingApplicationService requiere un repositorio de convocatorias")
+    def recomendar_practicantes(self, convocatoria_id: int, limit: int = 10) -> List[Dict]:
+        """
+        Genera recomendaciones de practicantes para una convocatoria.
+        """
+        # Obtener convocatoria
+        convocatoria = self.convocatoria_repo.obtener_por_id(convocatoria_id)
+        if not convocatoria:
+            return []
+        
+        # Obtener todos los practicantes con perfil
+        # Nota: Este método necesita ser implementado en el repositorio de perfiles
+        # Por ahora retornamos lista vacía
+        return []

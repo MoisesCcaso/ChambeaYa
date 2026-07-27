@@ -1,22 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import hashlib
-from uuid import uuid4
+
 class CodigoQR:
-    def __init__(self, valor=None, url_verificacion=None, hash_integridad=None):
-         self.valor = valor
-         self.url_verificacion = url_verificacion
-         self.hash_integridad = hash_integridad
+    def __init__(self):
+        self.valor = None
+        self.url_verificacion = None
+        self.hash_integridad = None
 
-    @staticmethod
-    def generar(practica_id):
-        valor = f"CERT-{practica_id}-{uuid4().hex[:8]}"
-        url_verificacion = f"/certificados/verificar/{valor}"
-        hash_integridad = hashlib.sha256(valor.encode()).hexdigest()
-        return CodigoQR(valor=valor, url_verificacion=url_verificacion, hash_integridad=hash_integridad)
+    def generar(self):
+        pass
 
-    def verificar(self, valor_a_verificar):
-        if not self.valor or not self.hash_integridad:
-            return False
-        hash_calculado = hashlib.sha256(self.valor.encode()).hexdigest()
-        return self.valor == valor_a_verificar and hash_calculado == self.hash_integridad
+    def verificar(self):
+        pass
