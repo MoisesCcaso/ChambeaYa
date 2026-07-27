@@ -202,29 +202,39 @@ La respuesta esperada es:
 ### Verificación de correo
 
 Las cuentas nuevas permanecen en estado `pendiente` hasta que el usuario abre
-el enlace de activación enviado a su correo.
-
-La configuración predeterminada de `.env.example` usa el modo `console`, que
-permite probar localmente sin un servidor de correo. En este modo, el token
-también se incluye en la respuesta para facilitar las pruebas.
-
-Para enviar correos reales con una cuenta de Gmail, activa la verificación en
-dos pasos, genera una
-[contraseña de aplicación](https://support.google.com/mail/answer/185833)
-y configura `.env`:
+el enlace de activación enviado a su correo. Para utilizar un servidor SMTP
+real, configura en `.env`:
 
 ```env
 APP_URL=http://127.0.0.1:5000
 MAIL_DELIVERY_MODE=smtp
-MAIL_SERVER=smtp.gmail.com
+MAIL_SERVER=smtp.tu-proveedor.com
 MAIL_PORT=587
-MAIL_USERNAME=tu_cuenta@gmail.com
-MAIL_PASSWORD=tu_contraseña_de_aplicacion
+MAIL_USERNAME=tu_usuario_smtp
+MAIL_PASSWORD=tu_clave_smtp
 MAIL_USE_TLS=true
 MAIL_USE_SSL=false
-MAIL_SENDER=ChambeaYa <tu_cuenta@gmail.com>
+MAIL_SENDER=ChambeaYa <no-reply@tu-dominio.com>
 EXPOSE_AUTH_TOKENS=false
 ```
+
+`APP_URL` debe ser la dirección desde la que el usuario puede abrir la
+aplicación. Si el correo se abre en otro dispositivo, utiliza una dirección de
+red o URL pública accesible en lugar de `127.0.0.1`.
+
+En los modos `console` y `demo` los tokens pueden exponerse para facilitar las
+pruebas locales. Este comportamiento debe permanecer desactivado cuando se
+envían correos reales.
+
+Para comprobar la conexión después de configurar SMTP:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask `
+  --app frameworks.flask_mvc.app:create_app `
+  test-email --to tu_correo@gmail.com
+```
+
+Levantar la aplicación:
 
 No utilices la contraseña normal de Gmail ni subas el archivo `.env` al
 repositorio.
@@ -266,6 +276,25 @@ Ejecutar todas las pruebas desde PowerShell:
 ```
 
 En Linux o macOS:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+La referencia completa del backend, sus endpoints y el flujo integrado se
+encuentra en [`BACKEND.md`](BACKEND.md).
+
+La guía de las vistas, rutas y estructura de la interfaz se encuentra en
+[`VISTAS.md`](VISTAS.md).
+
+Para una presentación local con cuentas y datos preparados, utiliza
+[`DEMO.md`](DEMO.md) y ejecuta:
+
+```powershell
+.\demo.ps1
+```
+
+Ejecutar las pruebas integrales:
 
 ```bash
 python -m unittest discover -s tests -v
