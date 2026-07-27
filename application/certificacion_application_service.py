@@ -33,10 +33,14 @@ class CertificacionApplicationService:
         if practicante is None:
             raise ValueError("Practicante no encontrado")
 
+        existente = self.certificado_repository.find_by_practica_id(practica_id)
+        if existente is not None:
+            return existente, False
+
         certificado = CertificacionDominioServicio().generar_certificado(
             practica, practicante, convocatoria
         )
-        return self.certificado_repository.save(certificado)
+        return self.certificado_repository.save(certificado), True
 
     def verify_certificate(self, codigo_qr_valor):
         self._require_repositories()
@@ -45,10 +49,30 @@ class CertificacionApplicationService:
         if certificado is None:
             raise ValueError("Certificado no encontrado")
 
-        return CertificacionDominioServicio().verificar_codigo_qr(certificado, codigo_qr_valor)
+        qr_valido = CertificacionDominioServicio().verificar_codigo_qr(
+            certificado, codigo_qr_valor
+        )
+        documento_valido = (
+            certificado.documento is not None
+            and certificado.verificar_integridad(certificado.documento.contenido)
+        )
+        return qr_valido and documento_valido
+
+    def find_by_practica_id(self, practica_id):
+        self._require_repositories()
+        return self.certificado_repository.find_by_practica_id(practica_id)
 
     def _require_repositories(self):
-        if self.certificado_repository is None:
-            raise RuntimeError("CertificacionApplicationService requiere un repositorio de certificado")
+        if any(
+            repository is None
+            for repository in (
+                self.certificado_repository,
+                self.practica_repository,
+                self.postulacion_repository,
+                self.convocatoria_repository,
+                self.perfil_repository,
+            )
+        ):
+            raise RuntimeError("CertificacionApplicationService requiere todos sus repositorios")
 
 

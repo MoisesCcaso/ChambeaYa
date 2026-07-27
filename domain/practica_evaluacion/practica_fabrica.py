@@ -5,9 +5,6 @@ from domain.practica_evaluacion.practica import Practica
 
 
 class PracticaFabrica:
-    def __init__(self):
-        pass # type: ignore
-
     def iniciar_practica(self, postulacion_id, practicante_id):
         if postulacion_id is None or practicante_id is None:
             raise ValueError("Se requiere postulación y practicante para iniciar la práctica")

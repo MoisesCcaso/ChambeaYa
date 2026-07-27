@@ -12,9 +12,6 @@ from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 
 
 class SqlAlchemyPracticaRepository(IPracticaRepository):
-    def __init__(self):
-        pass
-
     def save(self, practica):
         model = None
         if practica.id is not None:
@@ -29,6 +26,15 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
 
         model.estado = practica.estado
 
+        ids_entregables_actuales = {
+            entregable.id
+            for entregable in practica.entregables
+            if entregable.id is not None
+        }
+        for entregable_model in list(model.entregables):
+            if entregable_model.id not in ids_entregables_actuales:
+                model.entregables.remove(entregable_model)
+
         ids_existentes = {e.id for e in model.entregables}
         for entregable in practica.entregables:
             if entregable.id in ids_existentes:
@@ -37,6 +43,15 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
                 archivo=entregable.archivo,
                 fecha_subida=entregable.fecha_subida,
             ))
+
+        ids_evaluaciones_actuales = {
+            evaluacion.id
+            for evaluacion in practica.evaluaciones
+            if evaluacion.id is not None
+        }
+        for evaluacion_model in list(model.evaluaciones):
+            if evaluacion_model.id not in ids_evaluaciones_actuales:
+                model.evaluaciones.remove(evaluacion_model)
 
         ids_evaluaciones_existentes = {e.id for e in model.evaluaciones}
         for evaluacion in practica.evaluaciones:
@@ -57,6 +72,10 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
     def find_by_practicante_id(self, practicante_id):
         models = PracticaModel.query.filter_by(practicante_id=practicante_id).all()
         return [self._to_practica_domain(model) for model in models]
+
+    def find_by_postulacion_id(self, postulacion_id):
+        model = PracticaModel.query.filter_by(postulacion_id=postulacion_id).first()
+        return self._to_practica_domain(model)
 
     def _to_practica_domain(self, model):
         if model is None:

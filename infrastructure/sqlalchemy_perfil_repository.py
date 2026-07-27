@@ -13,9 +13,6 @@ from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 
 
 class SqlAlchemyPerfilRepository(IPerfilRepository):
-    def __init__(self):
-        pass
-
     def save_practicante(self, practicante):
         model = None
         if practicante.id is not None:
@@ -52,6 +49,7 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
             model = EmpresaModel(usuario_id=empresa.usuario_id)
             db.session.add(model)
 
+        model.razon_social = empresa.razon_social
         model.ruc = empresa.ruc.numero if empresa.ruc else None
         model.verificada = empresa.verificada
 
@@ -94,6 +92,7 @@ class SqlAlchemyPerfilRepository(IPerfilRepository):
             return Empresa(
                 id=model.id,
                 usuario_id=model.usuario_id,
+                razon_social=model.razon_social,
                 ruc=RUC(numero=model.ruc) if model.ruc else None,
                 verificada=model.verificada,
             )

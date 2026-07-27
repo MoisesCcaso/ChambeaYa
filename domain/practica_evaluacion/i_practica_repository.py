@@ -16,3 +16,7 @@ class IPracticaRepository(ABC):
     @abstractmethod
     def find_by_practicante_id(self, practicante_id):
         pass
+
+    @abstractmethod
+    def find_by_postulacion_id(self, postulacion_id):
+        pass

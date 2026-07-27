@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Panel · ChambeaYa{% endblock %}
+{% block body_class %}application-page{% endblock %}
+
+{% block body %}
+<div class="app-loading" id="app-loading">
+    <img class="brand-logo" src="{{ url_for('static', filename='img/chambeaya-logo-horizontal.png') }}" alt="ChambeaYa">
+    <p>Preparando tu espacio…</p>
+</div>
+
+<div class="app-shell" id="app-shell" hidden>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-head">
+            <a class="brand" href="/app" aria-label="ChambeaYa, resumen">
+                <img class="brand-logo" src="{{ url_for('static', filename='img/chambeaya-logo-horizontal.png') }}" alt="ChambeaYa">
+            </a>
+            <button class="icon-button sidebar-close" id="sidebar-close" aria-label="Cerrar menú"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-x"></use></svg></button>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegación de la aplicación">
+            <p>Principal</p>
+            <button class="nav-item active" data-view="resumen">
+                <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-home"></use></svg><span>Resumen</span>
+            </button>
+            <button class="nav-item" data-view="perfil">
+                <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-user"></use></svg><span>Mi perfil</span>
+            </button>
+
+            <div data-role="practicante">
+                <p>Oportunidades</p>
+                <button class="nav-item" data-view="oportunidades">
+                    <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-search"></use></svg><span>Explorar</span>
+                </button>
+                <button class="nav-item" data-view="sugerencias">
+                    <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-sparkles"></use></svg><span>Para ti</span>
+                </button>
+                <button class="nav-item" data-view="postulaciones">
+                    <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-send"></use></svg><span>Postulaciones</span>
+                </button>
+            </div>
+
+            <div data-role="empresa">
+                <p>Selección</p>
+                <button class="nav-item" data-view="convocatorias">
+                    <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-briefcase"></use></svg><span>Convocatorias</span>
+                </button>
+            </div>
+
+            <p>Seguimiento</p>
+            <button class="nav-item" data-view="practicas">
+                <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-clipboard"></use></svg><span>Prácticas</span>
+            </button>
+            <button class="nav-item" data-view="certificados" data-role="practicante">
+                <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-certificate"></use></svg><span>Certificados</span>
+            </button>
+            <button class="nav-item" data-view="notificaciones">
+                <svg class="nav-icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-bell"></use></svg><span>Notificaciones</span>
+                <span class="nav-count" id="sidebar-unread" hidden>0</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-account">
+            <div class="avatar" id="sidebar-avatar">U</div>
+            <div>
+                <strong id="sidebar-name">Usuario</strong>
+                <span id="sidebar-role">Cuenta</span>
+            </div>
+            <button class="icon-button" id="logout-button" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-log-out"></use></svg></button>
+        </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <main class="app-main">
+        <header class="app-topbar">
+            <button class="icon-button menu-button" id="menu-button" aria-label="Abrir menú"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-menu"></use></svg></button>
+            <div>
+                <p id="page-context">Panel personal</p>
+                <h1 id="page-title">Resumen</h1>
+            </div>
+            <div class="topbar-actions">
+                <button class="notification-button" data-go-view="notificaciones" aria-label="Ver notificaciones">
+                    <svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-bell"></use></svg>
+                    <i id="topbar-unread" hidden></i>
+                </button>
+                <div class="topbar-user">
+                    <span class="avatar avatar-small" id="topbar-avatar">U</span>
+                    <span id="topbar-email">usuario@correo.com</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-content">
+            <section class="app-view active" data-view-panel="resumen">
+                <header class="view-heading welcome-heading">
+                    <div>
+                        <p class="eyebrow" id="welcome-eyebrow">Tu espacio de trabajo</p>
+                        <h2 id="welcome-title">Hola</h2>
+                        <p id="welcome-description">Aquí tienes un resumen de tu actividad.</p>
+                    </div>
+                    <button class="button button-primary" id="primary-action">Completar perfil</button>
+                </header>
+
+                <div class="metrics-strip" id="dashboard-metrics"></div>
+
+                <div class="dashboard-grid">
+                    <section class="content-section">
+                        <header class="section-heading">
+                            <div><h3 id="activity-title">Actividad reciente</h3><p>Los movimientos más importantes de tu cuenta.</p></div>
+                            <button class="text-button" data-go-view="notificaciones">Ver todo</button>
+                        </header>
+                        <div class="plain-list" id="dashboard-activity"></div>
+                    </section>
+                    <aside class="progress-panel" id="dashboard-progress"></aside>
+                </div>
+
+                <section class="content-section dashboard-secondary">
+                    <header class="section-heading">
+                        <div><h3 id="dashboard-list-title">Oportunidades recientes</h3><p id="dashboard-list-description">Convocatorias que podrían interesarte.</p></div>
+                        <button class="text-button" id="dashboard-list-action">Explorar</button>
+                    </header>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead id="dashboard-list-head"></thead>
+                            <tbody id="dashboard-list-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section class="app-view" data-view-panel="perfil">
+                <header class="view-heading">
+                    <div><p class="eyebrow">Configuración</p><h2>Mi perfil</h2><p>Mantén tu información actualizada y relevante.</p></div>
+                </header>
+
+                <div class="profile-layout">
+                    <aside class="profile-summary" id="profile-summary"></aside>
+
+                    <form class="content-section form-section" id="student-profile-form" data-role="practicante">
+                        <header class="section-heading"><div><h3>Información personal</h3><p>Datos visibles durante tus postulaciones.</p></div></header>
+                        <div class="form-grid">
+                            <label class="field"><span>Nombres</span><input name="nombres" required></label>
+                            <label class="field"><span>Apellidos</span><input name="apellidos" required></label>
+                            <label class="field"><span>DNI</span><input name="dni" inputmode="numeric" maxlength="8" placeholder="8 dígitos"></label>
+                            <label class="field"><span>Carnet universitario</span><input name="carnet_universitario"></label>
+                        </div>
+                        <div class="field">
+                            <span>Habilidades</span>
+                            <div class="tag-editor" id="skills-editor">
+                                <div class="tag-list" id="skills-list"></div>
+                                <div class="inline-entry"><input id="skill-input" placeholder="Ej. Python"><button type="button" class="button button-secondary button-small" id="add-skill"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-plus"></use></svg>Añadir</button></div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <span>Formación educativa</span>
+                            <div class="tag-editor">
+                                <div class="tag-list" id="education-list"></div>
+                                <div class="inline-entry"><input id="education-input" placeholder="Ej. Ingeniería de Sistemas · UNSA"><button type="button" class="button button-secondary button-small" id="add-education"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-plus"></use></svg>Añadir</button></div>
+                            </div>
+                        </div>
+                        <footer class="form-actions">
+                            <span id="student-profile-status" class="form-status"></span>
+                            <button class="button button-primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-check"></use></svg>Guardar cambios</button>
+                        </footer>
+                    </form>
+
+                    <form class="content-section form-section" id="company-profile-form" data-role="empresa">
+                        <header class="section-heading"><div><h3>Información de la empresa</h3><p>Datos utilizados para publicar y administrar convocatorias.</p></div></header>
+                        <div class="form-grid single-column">
+                            <label class="field"><span>Razón social</span><input name="razon_social" required></label>
+                            <label class="field"><span>RUC</span><input name="ruc" inputmode="numeric" minlength="11" maxlength="11" pattern="[0-9]{11}" placeholder="11 dígitos" required><small>Ingresa un RUC válido; este dato habilita la publicación de convocatorias.</small></label>
+                        </div>
+                        <footer class="form-actions">
+                            <span id="company-profile-status" class="form-status"></span>
+                            <button class="button button-primary" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-check"></use></svg>Guardar empresa</button>
+                        </footer>
+                    </form>
+                </div>
+            </section>
+
+            <section class="app-view" data-view-panel="oportunidades" data-role="practicante">
+                <header class="view-heading split-heading">
+                    <div><p class="eyebrow">Explorar</p><h2>Oportunidades</h2><p>Convocatorias activas disponibles para postular.</p></div>
+                    <label class="search-field"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-search"></use></svg><input id="opportunity-search" type="search" placeholder="Buscar por puesto o habilidad"></label>
+                </header>
+                <div class="opportunity-layout">
+                    <div class="result-list" id="opportunity-list"></div>
+                    <aside class="detail-panel" id="opportunity-detail">
+                        <div class="empty-state compact"><span class="empty-state-icon"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-search"></use></svg></span><h3>Selecciona una convocatoria</h3><p>Consulta sus requisitos y beneficios antes de postular.</p></div>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="app-view" data-view-panel="sugerencias" data-role="practicante">
+                <header class="view-heading split-heading">
+                    <div><p class="eyebrow">Matching</p><h2>Recomendaciones para ti</h2><p>Ordenadas según las habilidades de tu perfil.</p></div>
+                    <button class="button button-secondary" id="recalculate-matches"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-refresh"></use></svg>Actualizar recomendaciones</button>
+                </header>
+                <div class="match-list" id="match-list"></div>
+            </section>
+
+            <section class="app-view" data-view-panel="postulaciones" data-role="practicante">
+                <header class="view-heading">
+                    <div><p class="eyebrow">Seguimiento</p><h2>Mis postulaciones</h2><p>Consulta el estado de cada proceso de selección.</p></div>
+                </header>
+                <section class="content-section flush-section">
+                    <div class="filter-bar">
+                        <div class="segmented-control" id="application-filters">
+                            <button class="active" data-filter="todas">Todas</button>
+                            <button data-filter="pendiente">Pendientes</button>
+                            <button data-filter="seleccionada">Seleccionadas</button>
+                            <button data-filter="rechazada">No seleccionadas</button>
+                            <button data-filter="cancelada">Retiradas</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>Convocatoria</th><th>Estado</th><th>Referencia</th><th class="align-right">Acciones</th></tr></thead>
+                            <tbody id="applications-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section class="app-view" data-view-panel="convocatorias" data-role="empresa">
+                <header class="view-heading split-heading">
+                    <div><p class="eyebrow">Selección</p><h2>Convocatorias</h2><p>Publica oportunidades y revisa a tus candidatos.</p></div>
+                    <button class="button button-primary" id="new-opening-button"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-plus"></use></svg>Nueva convocatoria</button>
+                </header>
+                <section class="content-section flush-section">
+                    <div class="filter-bar">
+                        <div class="segmented-control" id="opening-filters">
+                            <button class="active" data-filter="todas">Todas</button>
+                            <button data-filter="borrador">Borradores</button>
+                            <button data-filter="publicada">Publicadas</button>
+                            <button data-filter="cerrada">Cerradas</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>Convocatoria</th><th>Estado</th><th>Publicación</th><th class="align-right">Acciones</th></tr></thead>
+                            <tbody id="openings-table"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <section class="app-view" data-view-panel="practicas">
+                <header class="view-heading">
+                    <div><p class="eyebrow">Seguimiento</p><h2>Prácticas</h2><p>Entregables, evaluaciones y certificación del proceso.</p></div>
+                </header>
+                <div class="practice-list" id="practice-list"></div>
+            </section>
+
+            <section class="app-view" data-view-panel="certificados" data-role="practicante">
+                <header class="view-heading">
+                    <div><p class="eyebrow">Documentos</p><h2>Certificados</h2><p>Documentos digitales emitidos al finalizar tus prácticas.</p></div>
+                </header>
+                <div class="certificate-list" id="certificate-list"></div>
+            </section>
+
+            <section class="app-view" data-view-panel="notificaciones">
+                <header class="view-heading split-heading">
+                    <div><p class="eyebrow">Actividad</p><h2>Notificaciones</h2><p>Novedades importantes sobre tus procesos.</p></div>
+                    <button class="button button-secondary" id="mark-all-read"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-check"></use></svg>Marcar todas como leídas</button>
+                </header>
+                <section class="content-section flush-section">
+                    <div class="notification-list" id="notification-list"></div>
+                </section>
+            </section>
+        </div>
+    </main>
+</div>
+
+<dialog class="app-dialog" id="opening-dialog">
+    <form method="dialog" class="dialog-shell" id="opening-form">
+        <header class="dialog-header">
+            <div><p class="eyebrow">Convocatoria</p><h2 id="opening-dialog-title">Nueva convocatoria</h2></div>
+            <button type="button" class="icon-button" data-close-dialog="opening-dialog" aria-label="Cerrar"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-x"></use></svg></button>
+        </header>
+        <input type="hidden" name="id">
+        <div class="dialog-body form-stack">
+            <label class="field"><span>Título</span><input name="titulo" placeholder="Ej. Practicante de desarrollo backend" required></label>
+            <label class="field"><span>Descripción</span><textarea name="descripcion" rows="5" placeholder="Responsabilidades, modalidad y contexto del puesto"></textarea></label>
+            <label class="field"><span>Habilidades requeridas</span><input name="habilidades_requeridas" placeholder="Python, Flask, SQL"><small>Separa cada habilidad con una coma.</small></label>
+            <label class="field"><span>Beneficios</span><input name="beneficios" placeholder="Mentoría, horario flexible"><small>Separa cada beneficio con una coma.</small></label>
+        </div>
+        <footer class="dialog-actions">
+            <button type="button" class="button button-ghost" data-close-dialog="opening-dialog">Cancelar</button>
+            <button type="submit" class="button button-primary"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-check"></use></svg>Guardar borrador</button>
+        </footer>
+    </form>
+</dialog>
+
+<dialog class="app-dialog confirmation-dialog" id="confirmation-dialog">
+    <div class="dialog-shell">
+        <header class="dialog-header">
+            <div><p class="eyebrow">Confirmación</p><h2 id="confirmation-title">Confirmar acción</h2></div>
+            <button type="button" class="icon-button" data-close-dialog="confirmation-dialog" aria-label="Cerrar"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-x"></use></svg></button>
+        </header>
+        <div class="dialog-body">
+            <p class="confirmation-message" id="confirmation-message"></p>
+        </div>
+        <footer class="dialog-actions">
+            <button type="button" class="button button-ghost" data-close-dialog="confirmation-dialog">Cancelar</button>
+            <button type="button" class="button button-primary" id="confirmation-accept">Confirmar</button>
+        </footer>
+    </div>
+</dialog>
+
+<dialog class="app-dialog wide-dialog" id="candidates-dialog">
+    <div class="dialog-shell">
+        <header class="dialog-header">
+            <div><p class="eyebrow">Candidatos</p><h2 id="candidates-title">Postulaciones</h2></div>
+            <button class="icon-button" data-close-dialog="candidates-dialog" aria-label="Cerrar"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-x"></use></svg></button>
+        </header>
+        <div class="dialog-body">
+            <div class="candidate-list" id="candidate-list"></div>
+        </div>
+    </div>
+</dialog>
+
+<dialog class="app-dialog wide-dialog" id="practice-dialog">
+    <div class="dialog-shell">
+        <header class="dialog-header">
+            <div><p class="eyebrow">Detalle de práctica</p><h2 id="practice-dialog-title">Seguimiento</h2></div>
+            <button class="icon-button" data-close-dialog="practice-dialog" aria-label="Cerrar"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-x"></use></svg></button>
+        </header>
+        <div class="dialog-body practice-detail" id="practice-detail"></div>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

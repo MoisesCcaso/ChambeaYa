@@ -9,12 +9,20 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class AutenticacionDominioServicio:
-    def __init__(self):
-        pass
-
     def generar_password_hash(self, password):
         if not password:
             raise ValueError("La contraseña es obligatoria")
+        password = str(password)
+        if len(password) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres")
+        if len(password) > 128:
+            raise ValueError("La contraseña no puede superar 128 caracteres")
+        if not any(character.islower() for character in password):
+            raise ValueError("La contraseña debe incluir una letra minúscula")
+        if not any(character.isupper() for character in password):
+            raise ValueError("La contraseña debe incluir una letra mayúscula")
+        if not any(character.isdigit() for character in password):
+            raise ValueError("La contraseña debe incluir un número")
 
         return generate_password_hash(password)
 

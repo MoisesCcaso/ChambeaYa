@@ -5,9 +5,6 @@ from domain.certificacion.codigo_qr import CodigoQR
 from domain.practica_evaluacion.practica import Practica
 
 class CertificacionDominioServicio:
-    def __init__(self):
-        pass
-
     def generar_certificado(self, practica, practicante, convocatoria):
         if practica.estado != Practica.ESTADO_FINALIZADA:
             raise ValueError("Solo se puede certificar una práctica finalizada")

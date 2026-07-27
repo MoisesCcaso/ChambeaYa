@@ -27,15 +27,25 @@ class PerfilApplicationService:
         practicante.actualizar_datos(
             nombres=data.get("nombres"),
             apellidos=data.get("apellidos"),
-            dni=data.get("dni"),
-            carnet_universitario=data.get("carnet_universitario"),
         )
 
-        for habilidad in data.get("habilidades", []) or []:
-            practicante.agregar_habilidad(habilidad)
+        identidad_actualizada = "dni" in data or "carnet_universitario" in data
+        if "dni" in data:
+            practicante.dni = self._optional_text(data.get("dni"))
+        if "carnet_universitario" in data:
+            practicante.carnet_universitario = self._optional_text(
+                data.get("carnet_universitario")
+            )
+        if "habilidades" in data:
+            practicante.reemplazar_habilidades(data.get("habilidades") or [])
+        if "formacion_educativa" in data:
+            practicante.reemplazar_formacion(data.get("formacion_educativa") or [])
 
-        for formacion in data.get("formacion_educativa", []) or []:
-            practicante.agregar_formacion(formacion)
+        if identidad_actualizada:
+            if practicante.dni or practicante.carnet_universitario:
+                practicante.verificar_identidad()
+            else:
+                practicante.identidad_verificada = False
 
         practicante.calcular_score()
         return self.perfil_repository.save_practicante(practicante)
@@ -73,8 +83,18 @@ class PerfilApplicationService:
         if numero_ruc is not None:
             empresa.ruc = RUC(numero=numero_ruc)
 
-        empresa.verificar_ruc()
+        if data.get("razon_social") is not None:
+            empresa.razon_social = str(data["razon_social"]).strip()
+        if not empresa.razon_social:
+            raise ValueError("La razón social es obligatoria")
+        if not empresa.verificar_ruc():
+            raise ValueError("El RUC no es válido")
         return self.perfil_repository.save_empresa(empresa)
+
+    def get_empresa_profile(self, usuario_id):
+        self._require_repositories()
+        self._require_empresa_user(usuario_id)
+        return self.perfil_repository.find_empresa_by_user_id(usuario_id)
 
     def verify_profile(self, usuario_id):
         self._require_repositories()
@@ -127,3 +147,9 @@ class PerfilApplicationService:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de perfil")
         if self.usuario_repository is None:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de usuario")
+
+    def _optional_text(self, value):
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized or None

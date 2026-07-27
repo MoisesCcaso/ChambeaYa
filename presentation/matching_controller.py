@@ -18,6 +18,13 @@ class MatchingController:
             "convocatoria_id": resultado.convocatoria_id,
             "score_compatibilidad": round(resultado.score_compatibilidad, 2),
             "es_compatible": resultado.es_compatible(),
+            "habilidades_coincidentes": resultado.sugerencia.habilidades_coincidentes,
+            "convocatoria": {
+                "id": resultado.convocatoria.id,
+                "titulo": resultado.convocatoria.titulo,
+                "descripcion": resultado.convocatoria.descripcion,
+                "beneficios": resultado.convocatoria.beneficios,
+            } if resultado.convocatoria else None,
         }
 
     def _require_service(self):

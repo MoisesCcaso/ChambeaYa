@@ -8,9 +8,6 @@ from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 
 
 class SqlAlchemyUsuarioRepository(IUsuarioRepository):
-    def __init__(self):
-        pass
-
     def save(self, usuario):
         model = None
         if usuario.id is not None:

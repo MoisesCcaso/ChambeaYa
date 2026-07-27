@@ -12,8 +12,20 @@ class Sugerencia:
             self.puntaje_match = 0.0
             return self.puntaje_match
 
-        set_practicante = {h for h in habilidades_practicante if h}
-        set_requeridas = {h for h in habilidades_requeridas if h}
+        set_practicante = {
+            str(h).strip().casefold()
+            for h in habilidades_practicante or []
+            if str(h).strip()
+        }
+        set_requeridas = {
+            str(h).strip().casefold()
+            for h in habilidades_requeridas or []
+            if str(h).strip()
+        }
+        if not set_requeridas:
+            self.puntaje_match = 0.0
+            self.habilidades_coincidentes = []
+            return self.puntaje_match
         coincidentes = set_practicante & set_requeridas
 
         self.habilidades_coincidentes = list(coincidentes)

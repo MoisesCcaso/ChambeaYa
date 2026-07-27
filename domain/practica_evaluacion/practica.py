@@ -34,9 +34,39 @@ class Practica:
         self.evaluaciones.append(evaluacion)
         return evaluacion
 
+    def eliminar_entregable(self, entregable_id):
+        if self.estado != self.ESTADO_EN_CURSO:
+            raise ValueError("No se pueden eliminar entregables de una práctica finalizada")
+        entregable = next(
+            (item for item in self.entregables if item.id == entregable_id),
+            None,
+        )
+        if entregable is None:
+            raise ValueError("Entregable no encontrado")
+        self.entregables.remove(entregable)
+        return entregable
+
+    def eliminar_evaluacion(self, evaluacion_id):
+        if self.estado != self.ESTADO_EN_CURSO:
+            raise ValueError("No se pueden eliminar evaluaciones de una práctica finalizada")
+        evaluacion = next(
+            (item for item in self.evaluaciones if item.id == evaluacion_id),
+            None,
+        )
+        if evaluacion is None:
+            raise ValueError("Evaluación no encontrada")
+        self.evaluaciones.remove(evaluacion)
+        return evaluacion
+
     def finalizar(self):
+        if self.estado != self.ESTADO_EN_CURSO:
+            raise ValueError("La práctica ya está finalizada")
         if not self.entregables:
             raise ValueError("No se puede finalizar una práctica sin entregables registrados")
+        if not any(evaluacion.esta_aprobada() for evaluacion in self.evaluaciones):
+            raise ValueError(
+                "No se puede finalizar una práctica sin una evaluación aprobada"
+            )
 
         self.estado = self.ESTADO_FINALIZADA
         return self

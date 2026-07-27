@@ -10,9 +10,6 @@ from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
  
 
 class SqlAlchemyCertificadoRepository(ICertificadoRepository):
-    def __init__(self):
-        pass
-
     def save(self, certificado):
         model = None
         if certificado.id is not None:
@@ -30,6 +27,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
         if certificado.documento is not None:
             model.documento_url = certificado.documento.url
             model.documento_hash = certificado.documento.hash_integridad
+            model.documento_contenido = certificado.documento.contenido
 
         db.session.commit()
         return self._to_certificado_domain(model)
@@ -40,6 +38,10 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
 
     def find_by_codigo(self, codigo_qr_valor):
         model = CertificadoModel.query.filter_by(codigo_qr_valor=codigo_qr_valor).first()
+        return self._to_certificado_domain(model)
+
+    def find_by_practica_id(self, practica_id):
+        model = CertificadoModel.query.filter_by(practica_id=practica_id).first()
         return self._to_certificado_domain(model)
 
     def _to_certificado_domain(self, model):
@@ -59,6 +61,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
             documento = ArchivoPDF(
                 url=model.documento_url,
                 hash_integridad=model.documento_hash,
+                contenido=model.documento_contenido,
             )
 
         return Certificado(

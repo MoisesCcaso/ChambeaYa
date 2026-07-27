@@ -8,7 +8,12 @@ class PracticaModel(db.Model):
     __tablename__ = "practicas"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    postulacion_id = db.Column(db.Integer, nullable=False)  # sin FK: postulacion_model.py aún no existe
+    postulacion_id = db.Column(
+        db.Integer,
+        db.ForeignKey("postulaciones.id"),
+        unique=True,
+        nullable=False,
+    )
     practicante_id = db.Column(db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
     estado = db.Column(db.String(20), nullable=False, default="EN_CURSO")
 

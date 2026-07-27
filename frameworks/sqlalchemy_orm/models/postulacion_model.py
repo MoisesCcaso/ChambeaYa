@@ -4,6 +4,13 @@ from frameworks.sqlalchemy_orm.models.mixins import TimestampMixin
 
 class PostulacionModel(TimestampMixin, db.Model):
     __tablename__ = "postulaciones"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "convocatoria_id",
+            "practicante_id",
+            name="uq_postulacion_convocatoria_practicante",
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     convocatoria_id = db.Column(db.Integer, db.ForeignKey("convocatorias.id"), nullable=False)

@@ -52,9 +52,29 @@ class Practicante:
 
         return self
 
+    def reemplazar_habilidades(self, habilidades):
+        if not isinstance(habilidades, list):
+            raise ValueError("Las habilidades deben ser una lista")
+        self.habilidades = []
+        for habilidad in habilidades:
+            self.agregar_habilidad(habilidad)
+        return self
+
+    def reemplazar_formacion(self, formaciones):
+        if not isinstance(formaciones, list):
+            raise ValueError("La formación educativa debe ser una lista")
+        self.formacion_educativa = []
+        for formacion in formaciones:
+            self.agregar_formacion(formacion)
+        return self
+
     def verificar_identidad(self):
         if not self.dni and not self.carnet_universitario:
             raise ValueError("Se requiere DNI o carnet universitario")
+        if self.dni and (not str(self.dni).isdigit() or len(str(self.dni)) != 8):
+            raise ValueError("El DNI debe contener exactamente 8 dígitos")
+        if self.carnet_universitario and len(str(self.carnet_universitario).strip()) < 4:
+            raise ValueError("El carnet universitario no es válido")
 
         self.identidad_verificada = True
         return self

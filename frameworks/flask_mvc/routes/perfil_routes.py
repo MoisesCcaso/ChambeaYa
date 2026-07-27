@@ -28,12 +28,19 @@ def get_my_profile():
 
     controller = build_perfil_controller()
     try:
-        data, status_code = controller.get_practicante(usuario_id)
+        usuario = SqlAlchemyUsuarioRepository().find_by_id(usuario_id)
+        if usuario is None:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+        if usuario.tipo == "empresa":
+            data, status_code = controller.get_empresa(usuario_id)
+        else:
+            data, status_code = controller.get_practicante(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
     if data is None:
-        return jsonify({"error": "Perfil de practicante no encontrado"}), status_code
+        profile_type = "empresa" if usuario.tipo == "empresa" else "practicante"
+        return jsonify({"error": f"Perfil de {profile_type} no encontrado"}), status_code
 
     return jsonify(data), status_code
 
