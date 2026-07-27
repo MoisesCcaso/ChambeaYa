@@ -86,7 +86,17 @@ ChambeaYa tiene como propósito facilitar la gestión integral de prácticas pre
 
 ## 3.2 Prototipo (GUI)
 
-<img width="653" height="1600" alt="screen" src="https://github.com/user-attachments/assets/4b9551bf-5712-44be-8374-ccdae991e3a6" />
+<img width="2560" height="2274" alt="image" src="https://github.com/user-attachments/assets/34553da9-6040-4355-9546-bb309ab573e5" />
+
+<img width="2560" height="1417" alt="image" src="https://github.com/user-attachments/assets/58c69ccc-fbf3-4980-baee-fed182929df0" />
+
+<img width="2560" height="1504" alt="image" src="https://github.com/user-attachments/assets/8116b851-98e2-4e3a-b504-7fe8d963b0c7" />
+
+<img width="2560" height="1417" alt="image" src="https://github.com/user-attachments/assets/5afbc9f5-3ddd-4e85-910c-a44d63f42d72" />
+
+<img width="2560" height="1417" alt="image" src="https://github.com/user-attachments/assets/10dcebf7-a0a0-4412-83a4-a9753bc3156c" />
+
+<img width="2560" height="1417" alt="image" src="https://github.com/user-attachments/assets/969b9e9f-82d1-4c22-920b-f17beeb7d525" />
 
 ## 3.3 Funcionalidades principales
 
@@ -1199,6 +1209,7 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 **URL del tablero:** `https://trello.com/b/OvZDZjiX/sistema-de-practicas-pre-profesionales-verificadas-unsa-2026`
 
 <img width="1856" height="818" alt="TableroTrello-ChambeaYa" src="https://github.com/user-attachments/assets/0502f27f-b8a4-43d3-8807-3707745d04c8" />
+
 
 ## 7.3 Distribución de responsabilidades
 
