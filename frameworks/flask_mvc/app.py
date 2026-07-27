@@ -1,55 +1,55 @@
 # frameworks/flask_mvc/app.py
+# LAB 12 - SOLID: D (Inversión de Dependencias)
+# Los módulos de alto nivel dependen de abstracciones, no de implementaciones concretas.
+
 from flask import Flask
 from flask_migrate import Migrate
 from flask_cors import CORS
-import os
-from dotenv import load_dotenv
-
 from frameworks.sqlalchemy_orm.database import db
-from frameworks.sqlalchemy_orm.models import *
-
-# Importar blueprints de rutas existentes
-from frameworks.flask_mvc.routes.health_routes import health_blueprint
-from frameworks.flask_mvc.routes.auth_routes import auth_blueprint
-from frameworks.flask_mvc.routes.perfil_routes import perfil_blueprint
-
-# Importar nuevos blueprints de presentation
+from infrastructure.sqlalchemy_usuario_repository import SQLAlchemyUsuarioRepository
+from infrastructure.sqlalchemy_perfil_repository import SQLAlchemyPerfilRepository
+from infrastructure.sqlalchemy_convocatoria_repository import SQLAlchemyConvocatoriaRepository
+from infrastructure.sqlalchemy_postulacion_repository import SQLAlchemyPostulacionRepository
+from application.usuario_application_service import UsuarioApplicationService
+from application.matching_application_service import MatchingApplicationService
 from presentation.matching_controller import matching_blueprint
 from presentation.postulacion_controller import postulacion_blueprint
-from presentation.practica_controller import practica_blueprint
-from presentation.entregable_controller import entregable_blueprint
-from presentation.certificado_controller import certificado_blueprint
-from presentation.notificacion_controller import notificacion_blueprint  # <-- ESTE FALTABA
-from presentation.reporte_controller import reporte_blueprint           # <-- Y ESTE TAMBIÉN
+# ... otros imports
 
-load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    
-    # Configuración
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///chambeaya.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chambeaya.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = False  # Para desarrollo local
-    app.config['SESSION_PERMANENT'] = False
-    
-    # Inicializar extensiones
+    app.config['SECRET_KEY'] = 'dev-secret-key'
+
     db.init_app(app)
     Migrate(app, db)
-    CORS(app, supports_credentials=True)
+    CORS(app)
+
+    # ============================================
+    # LAB 12 - DIP: Inyección de Dependencias
+    # Los servicios reciben interfaces (abstracciones),
+    # no implementaciones concretas.
+    # ============================================
+
+    # Repositorios concretos (implementaciones)
+    usuario_repo = SQLAlchemyUsuarioRepository(db.session)
+    perfil_repo = SQLAlchemyPerfilRepository(db.session)
+    convocatoria_repo = SQLAlchemyConvocatoriaRepository(db.session)
+    postulacion_repo = SQLAlchemyPostulacionRepository(db.session)
     
-    # Registrar blueprints
-    app.register_blueprint(health_blueprint)
-    app.register_blueprint(auth_blueprint, url_prefix='/auth')
-    app.register_blueprint(perfil_blueprint, url_prefix='/perfil')
+    # Servicios de aplicación (dependen de interfaces)
+    usuario_service = UsuarioApplicationService(usuario_repo)
+    matching_service = MatchingApplicationService(
+        sugerencia_repo=SugerenciaRepository(db.session),  # Inyección
+        perfil_repo=perfil_repo,
+        convocatoria_repo=convocatoria_repo
+    )
+    
+    # Controladores (reciben servicios)
     app.register_blueprint(matching_blueprint)
     app.register_blueprint(postulacion_blueprint)
-    app.register_blueprint(practica_blueprint)
-    app.register_blueprint(entregable_blueprint)
-    app.register_blueprint(certificado_blueprint)
-    app.register_blueprint(notificacion_blueprint)  # <-- ESTE FALTABA
-    app.register_blueprint(reporte_blueprint)        # <-- Y ESTE TAMBIÉN
-    
+    # ... otros blueprints
+
     return app

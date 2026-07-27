@@ -1,26 +1,49 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# domain/auth/i_usuario_repository.py
+# LAB 12 - SOLID: I (Segregación de Interfaces)
 
 from abc import ABC, abstractmethod
+from typing import List, Optional
+from domain.auth.usuario import Usuario
 
 
-class IUsuarioRepository(ABC):
+class IUsuarioRepositoryLectura(ABC):
+    """Interfaz específica para operaciones de lectura de usuarios."""
+    
     @abstractmethod
-    def save(self, usuario):
+    def obtener_por_id(self, usuario_id: int) -> Optional[Usuario]:
         pass
 
     @abstractmethod
-    def find_by_email(self, email):
+    def obtener_por_email(self, email: str) -> Optional[Usuario]:
         pass
 
     @abstractmethod
-    def find_by_id(self, usuario_id):
+    def obtener_por_rol(self, rol: str) -> List[Usuario]:
+        pass
+
+
+class IUsuarioRepositoryEscritura(ABC):
+    """Interfaz específica para operaciones de escritura de usuarios."""
+    
+    @abstractmethod
+    def guardar(self, usuario: Usuario) -> Usuario:
         pass
 
     @abstractmethod
-    def find_by_activation_token(self, token):
+    def actualizar(self, usuario: Usuario) -> Usuario:
         pass
 
     @abstractmethod
-    def find_by_password_reset_token(self, token):
+    def activar(self, usuario_id: int) -> Usuario:
         pass
+
+    @abstractmethod
+    def desactivar(self, usuario_id: int) -> Usuario:
+        pass
+
+
+class IUsuarioRepository(IUsuarioRepositoryLectura, IUsuarioRepositoryEscritura):
+    """
+    Interfaz completa que hereda de las interfaces segregadas.
+    """
+    pass
