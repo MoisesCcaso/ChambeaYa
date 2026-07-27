@@ -1,29 +1,27 @@
-from frameworks.sqlalchemy_orm.database import db
-from frameworks.sqlalchemy_orm.models.mixins import TimestampMixin
+# frameworks/sqlalchemy_orm/models/usuario_model.py
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy.orm import relationship
+from datetime import datetime
+from frameworks.sqlalchemy_orm.database import Base
+from .mixins import TimestampMixin
 
+class UsuarioModel(Base, TimestampMixin):
+    __tablename__ = 'usuarios'
 
-class UsuarioModel(TimestampMixin, db.Model):
-    __tablename__ = "usuarios"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(100), nullable=False, unique=True, index=True)
+    password_hash = Column(String(200), nullable=False)
+    nombre = Column(String(50), nullable=False)
+    apellido = Column(String(50), nullable=False)
+    rol = Column(String(20), nullable=False)  # practicante, empresa, admin
+    activo = Column(Boolean, default=True)
+    activation_token = Column(String(100), nullable=True, index=True)
+    password_reset_token = Column(String(100), nullable=True, index=True)
 
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
-    tipo = db.Column(db.String(40), nullable=False)
-    estado = db.Column(db.String(40), nullable=False, default="pendiente")
-    activation_token = db.Column(db.String(255), unique=True, nullable=True, index=True)
-    activation_token_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
-    password_reset_token = db.Column(db.String(255), unique=True, nullable=True, index=True)
-    password_reset_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
-
-    practicante = db.relationship(
-        "PracticanteModel",
-        back_populates="usuario",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
-    empresa = db.relationship(
-        "EmpresaModel",
-        back_populates="usuario",
-        uselist=False,
-        cascade="all, delete-orphan",
-    )
+    # Relaciones
+    practicante = relationship("PracticanteModel", back_populates="usuario", uselist=False, cascade="all, delete-orphan")
+    empresa = relationship("EmpresaModel", back_populates="usuario", uselist=False, cascade="all, delete-orphan")
+    convocatorias = relationship("ConvocatoriaModel", back_populates="empresa", cascade="all, delete-orphan")
+    postulaciones = relationship("PostulacionModel", foreign_keys="PostulacionModel.practicante_id", cascade="all, delete-orphan")
+    notificaciones = relationship("NotificacionModel", back_populates="usuario", cascade="all, delete-orphan")
+    reputacion = relationship("ReputacionModel", back_populates="usuario", uselist=False, cascade="all, delete-orphan")

@@ -1,102 +1,119 @@
-from flask import Blueprint, jsonify, request, session
+# frameworks/flask_mvc/routes/auth_routes.py
+from flask import Blueprint, request, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from frameworks.sqlalchemy_orm.database import db
+from infrastructure.sqlalchemy_usuario_repository import SQLAlchemyUsuarioRepository
+from domain.auth.usuario import Usuario
 
-from application.usuario_application_service import UsuarioApplicationService
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
-from presentation.usuario_controller import UsuarioController
-
-
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
-
-
-def build_usuario_controller():
-    repository = SqlAlchemyUsuarioRepository()
-    service = UsuarioApplicationService(repository)
-    return UsuarioController(service)
+auth_blueprint = Blueprint('auth', __name__)
+usuario_repo = SQLAlchemyUsuarioRepository(db.session)
 
 
-@auth_bp.post("/register")
+@auth_blueprint.route('/register', methods=['POST'])
 def register():
-    payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
-
+    """Registro de usuario."""
     try:
-        data, status_code = controller.register(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        datos = request.get_json()
+        if not datos:
+            return jsonify({"error": "Datos inválidos"}), 400
 
-    return jsonify(data), status_code
+        # Validar campos requeridos
+        required = ['email', 'password', 'nombre', 'apellido', 'rol']
+        for campo in required:
+            if campo not in datos:
+                return jsonify({"error": f"Campo '{campo}' requerido"}), 400
+
+        # Verificar que el email no esté registrado
+        existing = usuario_repo.obtener_por_email(datos['email'])
+        if existing:
+            return jsonify({"error": "El email ya está registrado"}), 409
+
+        # Crear usuario
+        usuario = Usuario(
+            id=None,
+            email=datos['email'],
+            password_hash=generate_password_hash(datos['password']),
+            nombre=datos['nombre'],
+            apellido=datos['apellido'],
+            rol=datos['rol'],
+            activo=True  # Para pruebas, activar automáticamente
+        )
+
+        usuario_guardado = usuario_repo.guardar(usuario)
+
+        return jsonify({
+            "id": usuario_guardado.id,
+            "email": usuario_guardado.email,
+            "nombre": usuario_guardado.nombre,
+            "apellido": usuario_guardado.apellido,
+            "rol": usuario_guardado.rol,
+            "message": "Usuario registrado exitosamente"
+        }), 201
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
 
-@auth_bp.post("/login")
+@auth_blueprint.route('/login', methods=['POST'])
 def login():
-    payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
-
+    """Inicio de sesión."""
     try:
-        data, status_code = controller.login(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 401
+        datos = request.get_json()
+        if not datos or 'email' not in datos or 'password' not in datos:
+            return jsonify({"error": "Email y password requeridos"}), 400
 
-    session["usuario_id"] = data["id"]
-    return jsonify(data), status_code
+        # Buscar usuario por email
+        usuario = usuario_repo.obtener_por_email(datos['email'])
+        if not usuario:
+            return jsonify({"error": "Credenciales inválidas"}), 401
 
+        # Verificar password
+        if not check_password_hash(usuario.password_hash, datos['password']):
+            return jsonify({"error": "Credenciales inválidas"}), 401
 
-@auth_bp.post("/activate")
-def activate():
-    payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
+        # Verificar que esté activo
+        if not usuario.activo:
+            return jsonify({"error": "Cuenta no activada"}), 403
 
-    try:
-        data, status_code = controller.activate_account(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        # Guardar en sesión
+        session['usuario_id'] = usuario.id
+        session['usuario_rol'] = usuario.rol
 
-    return jsonify(data), status_code
+        return jsonify({
+            "id": usuario.id,
+            "email": usuario.email,
+            "nombre": usuario.nombre,
+            "apellido": usuario.apellido,
+            "rol": usuario.rol,
+            "message": "Login exitoso"
+        }), 200
 
-
-@auth_bp.post("/recover-password")
-def recover_password():
-    payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
-
-    try:
-        data, status_code = controller.recover_password(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-
-    return jsonify(data), status_code
-
-
-@auth_bp.post("/reset-password")
-def reset_password():
-    payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
-
-    try:
-        data, status_code = controller.reset_password(payload)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
-
-    return jsonify(data), status_code
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
 
-@auth_bp.post("/logout")
+@auth_blueprint.route('/logout', methods=['POST'])
 def logout():
-    session.pop("usuario_id", None)
-    return jsonify({"status": "ok"})
+    """Cierre de sesión."""
+    session.clear()
+    return jsonify({"message": "Logout exitoso"}), 200
 
 
-@auth_bp.get("/me")
+@auth_blueprint.route('/me', methods=['GET'])
 def me():
-    usuario_id = session.get("usuario_id")
-    if usuario_id is None:
+    """Obtener usuario autenticado."""
+    usuario_id = session.get('usuario_id')
+    if not usuario_id:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_usuario_controller()
-    try:
-        data, status_code = controller.get_authenticated_user(usuario_id)
-    except ValueError as exc:
-        session.pop("usuario_id", None)
-        return jsonify({"error": str(exc)}), 404
+    usuario = usuario_repo.obtener_por_id(usuario_id)
+    if not usuario:
+        return jsonify({"error": "Usuario no encontrado"}), 404
 
-    return jsonify(data), status_code
+    return jsonify({
+        "id": usuario.id,
+        "email": usuario.email,
+        "nombre": usuario.nombre,
+        "apellido": usuario.apellido,
+        "rol": usuario.rol
+    }), 200

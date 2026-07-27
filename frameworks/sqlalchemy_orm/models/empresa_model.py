@@ -1,19 +1,19 @@
-from frameworks.sqlalchemy_orm.database import db
-from frameworks.sqlalchemy_orm.models.mixins import TimestampMixin
+# frameworks/sqlalchemy_orm/models/empresa_model.py
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
+from sqlalchemy.orm import relationship
+from frameworks.sqlalchemy_orm.database import Base
+from .mixins import TimestampMixin
 
+class EmpresaModel(Base, TimestampMixin):
+    __tablename__ = 'empresas'
 
-class EmpresaModel(TimestampMixin, db.Model):
-    __tablename__ = "empresas"
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'), nullable=False, unique=True)
+    razon_social = Column(String(200), nullable=False)
+    ruc = Column(String(11), nullable=False, unique=True)
+    descripcion = Column(Text, nullable=True)
+    ubicacion = Column(String(200), nullable=True)
 
-    id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), unique=True, nullable=False)
-    razon_social = db.Column(db.String(180), nullable=True)
-    ruc = db.Column(db.String(20), unique=True, nullable=False)
-    verificada = db.Column(db.Boolean, nullable=False, default=False)
-
-    usuario = db.relationship("UsuarioModel", back_populates="empresa")
-    convocatorias = db.relationship(
-        "ConvocatoriaModel",
-        back_populates="empresa",
-        cascade="all, delete-orphan",
-    )
+    # Relaciones
+    usuario = relationship("UsuarioModel", foreign_keys=[usuario_id])
+    # NOTA: La relación con convocatorias se define en ConvocatoriaModel

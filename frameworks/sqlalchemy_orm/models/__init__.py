@@ -1,25 +1,30 @@
-from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
-from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
-from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+# frameworks/sqlalchemy_orm/models/__init__.py
+from .usuario_model import UsuarioModel
+from .practicante_model import PracticanteModel
+from .empresa_model import EmpresaModel
+from .convocatoria_model import ConvocatoriaModel
 
+# Nuevos modelos
+from .postulacion_model import PostulacionModel
+from .sugerencia_model import SugerenciaModel
+from .practica_model import PracticaModel
+from .entregable_model import EntregableModel
+from .evaluacion_model import EvaluacionModel
+from .certificado_model import CertificadoModel
+from .reputacion_model import ReputacionModel
+from .notificacion_model import NotificacionModel
 
 __all__ = [
-    "CertificadoModel",
-    "ConvocatoriaModel",
-    "EmpresaModel",
-    "PracticanteModel",
-    "SugerenciaModel",
-    "UsuarioModel",
-    "PracticaModel",
-    "EntregableModel",
-    "EvaluacionModel",
-    "PostulacionModel",
-    "CertificadoModel",
+    'UsuarioModel',
+    'PracticanteModel',
+    'EmpresaModel',
+    'ConvocatoriaModel',
+    'PostulacionModel',
+    'SugerenciaModel',
+    'PracticaModel',
+    'EntregableModel',
+    'EvaluacionModel',
+    'CertificadoModel',
+    'ReputacionModel',
+    'NotificacionModel'
 ]

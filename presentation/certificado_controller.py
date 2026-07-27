@@ -1,34 +1,146 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# presentation/certificado_controller.py
+from flask import Blueprint, request, jsonify, session
+from application.certificacion_application_service import CertificacionApplicationService
+from infrastructure.sqlalchemy_certificado_repository import SQLAlchemyCertificadoRepository, SQLAlchemyReputacionRepository
+from infrastructure.sqlalchemy_practica_repository import SQLAlchemyPracticaRepository
+from infrastructure.sqlalchemy_postulacion_repository import SQLAlchemyPostulacionRepository
+from infrastructure.sqlalchemy_evaluacion_repository import SQLAlchemyEvaluacionRepository
+from frameworks.sqlalchemy_orm.database import db
 
-class CertificadoController:
-    def __init__(self, certificacion_application_service=None):
-        self.certificacion_application_service = certificacion_application_service
+certificado_blueprint = Blueprint('certificado', __name__, url_prefix='/certificados')
 
-    def issue(self, empresa_id, practica_id):
-        self._require_service()
-        certificado = self.certificacion_application_service.issue_certificate(empresa_id, practica_id)
-        return self._serialize_certificado(certificado), 201
+# Inicializar dependencias
+certificado_repo = SQLAlchemyCertificadoRepository(db.session)
+reputacion_repo = SQLAlchemyReputacionRepository(db.session)
+practica_repo = SQLAlchemyPracticaRepository(db.session)
+postulacion_repo = SQLAlchemyPostulacionRepository(db.session)
+evaluacion_repo = SQLAlchemyEvaluacionRepository(db.session)
 
-    def verify(self, codigo_qr_valor):
-        self._require_service()
-        es_valido = self.certificacion_application_service.verify_certificate(codigo_qr_valor)
-        return {"codigo_qr_valor": codigo_qr_valor, "valido": es_valido}, 200
+certificacion_service = CertificacionApplicationService(
+    certificado_repo=certificado_repo,
+    reputacion_repo=reputacion_repo,
+    practica_repo=practica_repo,
+    postulacion_repo=postulacion_repo,
+    evaluacion_repo=evaluacion_repo
+)
 
-    def _require_service(self):
-        if self.certificacion_application_service is None:
-            raise RuntimeError("CertificadoController requiere un servicio de aplicación")
 
-    def _serialize_certificado(self, certificado):
-        return {
-            "id": certificado.id,
-            "practica_id": certificado.practica_id,
-            "codigo_qr": {
-                "valor": certificado.codigo_qr.valor,
-                "url_verificacion": certificado.codigo_qr.url_verificacion,
-            } if certificado.codigo_qr else None,
-            "documento": {
-                "url": certificado.documento.url,
-            } if certificado.documento else None,
-        }
+@certificado_blueprint.route('/generar/<int:practica_id>', methods=['POST'])
+def generar_certificado(practica_id):
+    """Genera un certificado para una práctica completada (solo empresa)."""
+    try:
+        usuario_id = session.get('usuario_id')
+        usuario_rol = session.get('usuario_rol')
 
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        if usuario_rol != 'empresa':
+            return jsonify({"error": "Solo las empresas pueden generar certificados"}), 403
+
+        certificado = certificacion_service.generar_certificado(practica_id)
+        return jsonify(certificado.to_dict()), 201
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/me', methods=['GET'])
+def mis_certificados():
+    """Obtiene todos los certificados del practicante autenticado."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        certificados = certificacion_service.obtener_certificados_practicante(usuario_id)
+        return jsonify({
+            "data": certificados,
+            "total": len(certificados)
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/verificar/<codigo>', methods=['GET'])
+def verificar_certificado(codigo):
+    """Verifica la validez de un certificado (público)."""
+    try:
+        resultado = certificacion_service.verificar_certificado(codigo)
+        return jsonify(resultado), 200 if resultado['valido'] else 404
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/revocar/<int:certificado_id>', methods=['POST'])
+def revocar_certificado(certificado_id):
+    """Revoca un certificado (solo admin)."""
+    try:
+        usuario_id = session.get('usuario_id')
+        usuario_rol = session.get('usuario_rol')
+
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        if usuario_rol != 'admin':
+            return jsonify({"error": "Solo administradores pueden revocar certificados"}), 403
+
+        datos = request.get_json()
+        if not datos or 'motivo' not in datos:
+            return jsonify({"error": "Campo 'motivo' requerido"}), 400
+
+        certificado = certificacion_service.revocar_certificado(certificado_id, datos['motivo'])
+        return jsonify(certificado.to_dict()), 200
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/reputacion/me', methods=['GET'])
+def mi_reputacion():
+    """Obtiene la reputación del usuario autenticado."""
+    try:
+        usuario_id = session.get('usuario_id')
+        if not usuario_id:
+            return jsonify({"error": "No autenticado"}), 401
+
+        reputacion = certificacion_service.obtener_reputacion(usuario_id)
+        return jsonify(reputacion), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/reputacion/top', methods=['GET'])
+def top_reputacion():
+    """Obtiene el top de practicantes por reputación (público)."""
+    try:
+        limit = request.args.get('limit', 10, type=int)
+        if limit > 50:
+            limit = 50
+
+        top = certificacion_service.obtener_top_reputacion(limit)
+        return jsonify({
+            "data": top,
+            "total": len(top)
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+
+
+@certificado_blueprint.route('/reputacion/usuario/<int:usuario_id>', methods=['GET'])
+def reputacion_usuario(usuario_id):
+    """Obtiene la reputación de un usuario específico (público)."""
+    try:
+        reputacion = certificacion_service.obtener_reputacion(usuario_id)
+        return jsonify(reputacion), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500

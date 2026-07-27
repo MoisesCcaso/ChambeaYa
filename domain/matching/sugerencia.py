@@ -1,21 +1,34 @@
+# domain/matching/sugerencia.py
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List, Optional
+
+@dataclass
 class Sugerencia:
-    def __init__(self, id=None, practicante_id=None, convocatoria_id=None,
-                 puntaje_match=None, habilidades_coincidentes=None):
-        self.id = id
-        self.practicante_id = practicante_id
-        self.convocatoria_id = convocatoria_id
-        self.puntaje_match = puntaje_match or 0.0
-        self.habilidades_coincidentes = habilidades_coincidentes or []
+    """Entidad que representa una sugerencia de matching."""
+    id: Optional[int]
+    convocatoria_id: int
+    practicante_id: int
+    score_match: float
+    habilidades_match: List[str]
+    fecha_generacion: Optional[datetime] = None
 
-    def calcular_compatibilidad(self, habilidades_practicante, habilidades_requeridas):
-        if not habilidades_requeridas:
-            self.puntaje_match = 0.0
-            return self.puntaje_match
+    def __post_init__(self):
+        if self.fecha_generacion is None:
+            self.fecha_generacion = datetime.utcnow()
+        if self.habilidades_match is None:
+            self.habilidades_match = []
 
-        set_practicante = {h for h in habilidades_practicante if h}
-        set_requeridas = {h for h in habilidades_requeridas if h}
-        coincidentes = set_practicante & set_requeridas
+    def es_relevante(self, umbral: float = 0.3) -> bool:
+        """Verifica si la sugerencia es relevante (score mayor al umbral)."""
+        return self.score_match >= umbral
 
-        self.habilidades_coincidentes = list(coincidentes)
-        self.puntaje_match = len(coincidentes) / len(set_requeridas) * 100
-        return self.puntaje_match
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "convocatoria_id": self.convocatoria_id,
+            "practicante_id": self.practicante_id,
+            "score_match": self.score_match,
+            "habilidades_match": self.habilidades_match,
+            "fecha_generacion": self.fecha_generacion.isoformat() if self.fecha_generacion else None
+        }

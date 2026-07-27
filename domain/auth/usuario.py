@@ -1,71 +1,43 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# domain/auth/usuario.py
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
+@dataclass
 class Usuario:
-    ESTADO_ACTIVO = "activo"
-    ESTADO_PENDIENTE = "pendiente"
-    TIPO_EMPRESA = "empresa"
-    TIPO_PRACTICANTE = "practicante"
+    id: Optional[int]
+    email: str
+    password_hash: str
+    nombre: str
+    apellido: str
+    rol: str
+    activo: bool = True
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
-    def __init__(
-        self,
-        id=None,
-        email=None,
-        password_hash=None,
-        tipo=None,
-        estado=None,
-        activation_token=None,
-        activation_token_expires_at=None,
-        password_reset_token=None,
-        password_reset_expires_at=None,
-    ):
-        self.id = id
-        self.email = email
-        self.password_hash = password_hash
-        self.tipo = tipo
-        self.estado = estado or self.ESTADO_PENDIENTE
-        self.activation_token = activation_token
-        self.activation_token_expires_at = activation_token_expires_at
-        self.password_reset_token = password_reset_token
-        self.password_reset_expires_at = password_reset_expires_at
+    def __post_init__(self):
+        if self.created_at is None:
+            self.created_at = datetime.utcnow()
+        if self.updated_at is None:
+            self.updated_at = datetime.utcnow()
 
-    def registrar(self):
-        if not self.email:
-            raise ValueError("El email es obligatorio")
-        if not self.password_hash:
-            raise ValueError("La contraseña es obligatoria")
-        if self.tipo not in {self.TIPO_PRACTICANTE, self.TIPO_EMPRESA}:
-            raise ValueError("El tipo de usuario no es válido")
+    def es_practicante(self) -> bool:
+        return self.rol == 'practicante'
 
-        return self
+    def es_empresa(self) -> bool:
+        return self.rol == 'empresa'
 
-    def login(self):
-        if self.estado != self.ESTADO_ACTIVO:
-            raise ValueError("La cuenta no está activa")
+    def es_admin(self) -> bool:
+        return self.rol == 'admin'
 
-        return self
-
-    def activar(self):
-        self.estado = self.ESTADO_ACTIVO
-        self.activation_token = None
-        self.activation_token_expires_at = None
-        return self
-
-    def asignar_token_activacion(self, token):
-        self.activation_token = token.valor
-        self.activation_token_expires_at = token.expiracion
-        return self
-
-    def asignar_token_recuperacion(self, token):
-        self.password_reset_token = token.valor
-        self.password_reset_expires_at = token.expiracion
-        return self
-
-    def actualizar_password(self, password_hash):
-        if not password_hash:
-            raise ValueError("La contraseña es obligatoria")
-
-        self.password_hash = password_hash
-        self.password_reset_token = None
-        self.password_reset_expires_at = None
-        return self
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "email": self.email,
+            "nombre": self.nombre,
+            "apellido": self.apellido,
+            "rol": self.rol,
+            "activo": self.activo,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+        }

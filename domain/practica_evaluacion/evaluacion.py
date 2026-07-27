@@ -1,32 +1,34 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# domain/practica_evaluacion/evaluacion.py
+from dataclasses import dataclass
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 
-from datetime import datetime, timezone
-
-PUNTAJE_APROBACION = 60.0
-
-
+@dataclass
 class Evaluacion:
-    def __init__(self, id=None, practica_id=None, puntaje=None, fecha_evaluacion=None):
-        self.id = id
-        self.practica_id = practica_id
-        self.puntaje = puntaje
-        self.fecha_evaluacion = fecha_evaluacion
+    """Entidad que representa una evaluación de entregable."""
+    id: Optional[int]
+    entregable_id: int
+    puntaje: float
+    comentario: str
+    criterios_evaluacion: List[Dict[str, Any]]
+    fecha_evaluacion: Optional[datetime] = None
 
-    @staticmethod
-    def crear(practica_id, puntaje):
-        if puntaje is None:
-            raise ValueError("Debe indicarse un puntaje")
-        if puntaje < 0 or puntaje > 100:
-            raise ValueError("El puntaje debe estar entre 0 y 100")
+    def __post_init__(self):
+        if self.fecha_evaluacion is None:
+            self.fecha_evaluacion = datetime.utcnow()
+        if self.criterios_evaluacion is None:
+            self.criterios_evaluacion = []
 
-        return Evaluacion(
-            practica_id=practica_id,
-            puntaje=puntaje,
-            fecha_evaluacion= datetime.now(timezone.utc),
-        )
+    def es_aprobatoria(self) -> bool:
+        """Verifica si la evaluación es aprobatoria (puntaje >= 4.0)."""
+        return self.puntaje >= 4.0
 
-    def esta_aprobada(self):
-        if self.puntaje is None:
-            return False
-        return self.puntaje >= PUNTAJE_APROBACION
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "entregable_id": self.entregable_id,
+            "puntaje": self.puntaje,
+            "comentario": self.comentario,
+            "criterios_evaluacion": self.criterios_evaluacion,
+            "fecha_evaluacion": self.fecha_evaluacion.isoformat() if self.fecha_evaluacion else None
+        }

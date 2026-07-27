@@ -16,10 +16,6 @@ class IPerfilRepository(ABC):
     @abstractmethod
     def find_practicante_by_user_id(self, usuario_id):
         pass
-    @abstractmethod
-
-    def find_practicante_by_id(self, practicante_id):
-        pass
 
     @abstractmethod
     def find_empresa_by_user_id(self, usuario_id):
