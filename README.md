@@ -14,8 +14,6 @@ ChambeaYa tiene como propósito facilitar la gestión integral de prácticas pre
 
 ## Funcionalidades de Alto Nivel
 
-> **Agregar aquí el Diagrama de Casos de Uso UML**
-
 <img width="653" height="350" alt="Diagrama_casos_uso_Usuario1" src="https://github.com/user-attachments/assets/8cc71cd1-e318-4a91-a9f2-13b458c95fff" />
 <img width="641" height="402" alt="Diagrama_casos_uso_Interfaz" src="https://github.com/user-attachments/assets/e0c4a67f-6437-4308-b2ad-3c3ba6a44b68" />
 
@@ -23,11 +21,13 @@ ChambeaYa tiene como propósito facilitar la gestión integral de prácticas pre
 ### Funcionalidades principales
 
 - Gestión de usuarios.
+- Registro, activación de cuenta y recuperación de contraseña por correo.
 - Gestión de perfiles de estudiantes y empresas.
 - Publicación y administración de convocatorias.
 - Postulación a convocatorias.
-- Seguimiento del proceso de prácticas.
+- Seguimiento de prácticas, entregables y evaluaciones.
 - Recomendación de oportunidades basada en habilidades.
+- Gestión de notificaciones.
 - Gestión y emisión de certificados digitales.
 
 ## Prototipo (GUI)
@@ -74,7 +74,9 @@ ChambeaYa/
 │   ├── __init__.py
 │   ├── certificacion_application_service.py
 │   ├── convocatoria_application_service.py
+│   ├── email_delivery_error.py
 │   ├── matching_application_service.py
+│   ├── notificacion_application_service.py
 │   ├── perfil_application_service.py
 │   ├── postulacion_application_service.py
 │   ├── practica_application_service.py
@@ -85,6 +87,7 @@ ChambeaYa/
 │   ├── certificacion/
 │   ├── convocatorias/
 │   ├── matching/
+│   ├── notificaciones/
 │   ├── perfil/
 │   └── practica_evaluacion/
 ├── frameworks/
@@ -101,18 +104,21 @@ ChambeaYa/
 │       └── models/
 ├── infrastructure/
 │   ├── __init__.py
+│   ├── smtp_auth_email_sender.py
 │   ├── sqlalchemy_certificado_repository.py
 │   ├── sqlalchemy_convocatoria_repository.py
+│   ├── sqlalchemy_matching_repository.py
+│   ├── sqlalchemy_notificacion_repository.py
 │   ├── sqlalchemy_perfil_repository.py
 │   ├── sqlalchemy_postulacion_repository.py
 │   ├── sqlalchemy_practica_repository.py
-│   ├── sqlalchemy_sugerencia_repository.py
 │   └── sqlalchemy_usuario_repository.py
 └── presentation/
     ├── __init__.py
     ├── certificado_controller.py
     ├── convocatoria_controller.py
     ├── matching_controller.py
+    ├── notificacion_controller.py
     ├── perfil_controller.py
     ├── postulacion_controller.py
     ├── practica_controller.py
@@ -133,30 +139,64 @@ ChambeaYa/
 
 # Tecnologías
 
-- Python
-- Flask
-- SQLAlchemy
-- Flask-Migrate
+- Python 3.10 o superior
+- Flask 3
+- SQLAlchemy y Flask-SQLAlchemy
+- Alembic y Flask-Migrate
+- SQLite
+- ReportLab y QRCode
 
 ## Ejecución local
 
-Crear y activar entorno virtual:
+### Windows (PowerShell)
+
+Crear el entorno, instalar las dependencias y copiar la configuración local:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+Crear o actualizar la base de datos:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask `
+  --app frameworks.flask_mvc.app:create_app `
+  db upgrade
+```
+
+Iniciar la aplicación:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask `
+  --app frameworks.flask_mvc.app:create_app `
+  run --debug
+```
+
+### Linux o macOS
+
+Crear y activar el entorno:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-```
-
-Instalar dependencias:
-
-```bash
-pip install -r requirements.txt
-```
-
-Configurar variables de entorno:
-
-```bash
+python -m pip install -r requirements.txt
 cp .env.example .env
+python -m flask --app frameworks.flask_mvc.app:create_app db upgrade
+python -m flask --app frameworks.flask_mvc.app:create_app run --debug
+```
+
+La aplicación estará disponible en `http://127.0.0.1:5000`. Para comprobarla:
+
+```powershell
+curl.exe http://127.0.0.1:5000/health
+```
+
+La respuesta esperada es:
+
+```json
+{"service":"ChambeaYa","status":"ok"}
 ```
 
 ### Verificación de correo
@@ -196,14 +236,49 @@ Para comprobar la conexión después de configurar SMTP:
 
 Levantar la aplicación:
 
-```bash
-flask --app frameworks.flask_mvc.app:create_app run --debug
+No utilices la contraseña normal de Gmail ni subas el archivo `.env` al
+repositorio.
+
+`APP_URL` debe ser la dirección desde la que el usuario puede abrir la
+aplicación. Si el correo se abre en otro dispositivo, utiliza una dirección de
+red o URL pública accesible en lugar de `127.0.0.1`.
+
+Para comprobar la conexión después de configurar SMTP:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask `
+  --app frameworks.flask_mvc.app:create_app `
+  test-email --to tu_correo@gmail.com
 ```
 
-Verificar que la app responde:
+La referencia completa del backend, sus endpoints y el flujo integrado se
+encuentra en [`BACKEND.md`](BACKEND.md).
+
+La guía de las vistas, rutas y estructura de la interfaz se encuentra en
+[`VISTAS.md`](VISTAS.md).
+
+Para una presentación local con cuentas y datos preparados, utiliza
+[`DEMO.md`](DEMO.md) y ejecuta:
+
+```powershell
+.\demo.ps1 -Reset
+```
+
+Esto usa `instance/chambeaya-demo.db`, una base independiente de la base de
+desarrollo, y carga dos cuentas listas para la exposición.
+
+## Pruebas
+
+Ejecutar todas las pruebas desde PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+En Linux o macOS:
 
 ```bash
-curl http://127.0.0.1:5000/health
+python -m unittest discover -s tests -v
 ```
 
 La referencia completa del backend, sus endpoints y el flujo integrado se
@@ -228,24 +303,31 @@ python -m unittest discover -s tests -v
 ## Migraciones
 
 El entorno de migraciones ya está inicializado en `frameworks/migrations`.
+En Windows, usa `.\.venv\Scripts\python.exe` donde los siguientes comandos
+indican `python`.
 
 Crear una nueva migración después de modificar modelos:
 
 ```bash
-flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
+python -m flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
 ```
 
 Aplicar migraciones:
 
 ```bash
-flask --app frameworks.flask_mvc.app:create_app db upgrade
+python -m flask --app frameworks.flask_mvc.app:create_app db upgrade
 ```
 
 Revertir la última migración:
 
 ```bash
-flask --app frameworks.flask_mvc.app:create_app db downgrade
+python -m flask --app frameworks.flask_mvc.app:create_app db downgrade
 ```
+
+La base SQLite de desarrollo se guarda en `instance/chambeaya.db`. Para
+reiniciarla, detén la aplicación, elimina únicamente ese archivo y vuelve a
+ejecutar `db upgrade`. Los archivos subidos se almacenan por separado en
+`instance/uploads/entregables`.
 
 ## Endpoints iniciales
 
@@ -289,7 +371,7 @@ Inicio de sesión:
 curl -X POST http://127.0.0.1:5000/auth/login \
   -c cookies.txt \
   -H "Content-Type: application/json" \
-  -d '{"email":"practicante@example.com","password":"secret123"}'
+  -d '{"email":"practicante@example.com","password":"Secret123"}'
 ```
 
 Usuario autenticado:
