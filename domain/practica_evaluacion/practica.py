@@ -35,8 +35,14 @@ class Practica:
         return evaluacion
 
     def finalizar(self):
+        if self.estado != self.ESTADO_EN_CURSO:
+            raise ValueError("La práctica ya está finalizada")
         if not self.entregables:
             raise ValueError("No se puede finalizar una práctica sin entregables registrados")
+        if not any(evaluacion.esta_aprobada() for evaluacion in self.evaluaciones):
+            raise ValueError(
+                "No se puede finalizar una práctica sin una evaluación aprobada"
+            )
 
         self.estado = self.ESTADO_FINALIZADA
         return self

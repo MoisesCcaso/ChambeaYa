@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, current_app, jsonify, request, session
 
 from application.usuario_application_service import UsuarioApplicationService
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
@@ -24,6 +24,8 @@ def register():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
+    if not current_app.config["EXPOSE_AUTH_TOKENS"]:
+        data.pop("activation_token", None)
     return jsonify(data), status_code
 
 
@@ -37,6 +39,7 @@ def login():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 401
 
+    session.clear()
     session["usuario_id"] = data["id"]
     return jsonify(data), status_code
 
@@ -51,6 +54,8 @@ def activate():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
+    if not current_app.config["EXPOSE_AUTH_TOKENS"]:
+        data.pop("password_reset_token", None)
     return jsonify(data), status_code
 
 

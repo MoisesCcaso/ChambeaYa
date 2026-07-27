@@ -55,6 +55,10 @@ class Practicante:
     def verificar_identidad(self):
         if not self.dni and not self.carnet_universitario:
             raise ValueError("Se requiere DNI o carnet universitario")
+        if self.dni and (not str(self.dni).isdigit() or len(str(self.dni)) != 8):
+            raise ValueError("El DNI debe contener exactamente 8 dígitos")
+        if self.carnet_universitario and len(str(self.carnet_universitario).strip()) < 4:
+            raise ValueError("El carnet universitario no es válido")
 
         self.identidad_verificada = True
         return self

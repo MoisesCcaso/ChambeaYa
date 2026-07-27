@@ -9,12 +9,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class AutenticacionDominioServicio:
-    def __init__(self):
-        pass
-
     def generar_password_hash(self, password):
         if not password:
             raise ValueError("La contraseña es obligatoria")
+        if len(str(password)) < 8:
+            raise ValueError("La contraseña debe tener al menos 8 caracteres")
 
         return generate_password_hash(password)
 

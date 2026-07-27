@@ -171,6 +171,15 @@ Verificar que la app responde:
 curl http://127.0.0.1:5000/health
 ```
 
+La referencia completa del backend, sus endpoints y el flujo integrado se
+encuentra en [`BACKEND.md`](BACKEND.md).
+
+Ejecutar las pruebas integrales:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## Migraciones
 
 El entorno de migraciones ya está inicializado en `frameworks/migrations`.

@@ -56,7 +56,7 @@ def marcar_leida(notificacion_id):
 
     controller = build_notificacion_controller()
     try:
-        data, status_code = controller.mark_as_read(notificacion_id)
+        data, status_code = controller.mark_as_read(usuario_id, notificacion_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 

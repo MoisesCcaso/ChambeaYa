@@ -39,6 +39,13 @@ class PerfilController:
         empresa = self.perfil_application_service.update_empresa(usuario_id, payload)
         return self._serialize_empresa(empresa), 200
 
+    def get_empresa(self, usuario_id):
+        self._require_service()
+        empresa = self.perfil_application_service.get_empresa_profile(usuario_id)
+        if empresa is None:
+            return None, 404
+        return self._serialize_empresa(empresa), 200
+
     def verify_identity(self, usuario_id, payload):
         self._require_service()
         practicante = self.perfil_application_service.register_identity(
@@ -76,6 +83,7 @@ class PerfilController:
         return {
             "id": empresa.id,
             "usuario_id": empresa.usuario_id,
+            "razon_social": empresa.razon_social,
             "ruc": empresa.ruc.numero if empresa.ruc else None,
             "verificada": empresa.verificada,
         }

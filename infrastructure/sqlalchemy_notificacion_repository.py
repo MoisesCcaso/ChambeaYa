@@ -10,9 +10,6 @@ from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionMode
 
 
 class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader):
-    def __init__(self):
-        pass
-
     def save(self, notificacion):
         model = None
         if notificacion.id is not None:
@@ -27,17 +24,21 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
             db.session.add(model)
 
         model.leida = notificacion.leida
-        model.metadata = self._dump_json(notificacion.metadata)
+        model.metadata_json = self._dump_json(notificacion.metadata)
 
         db.session.commit()
         return self._to_domain(model)
 
-    def mark_as_read(self, notificacion_id):
-        model = db.session.get(NotificacionModel, notificacion_id)
+    def mark_as_read(self, usuario_id, notificacion_id):
+        model = NotificacionModel.query.filter_by(
+            id=notificacion_id,
+            usuario_destino_id=usuario_id,
+        ).first()
         if model is None:
             raise ValueError("Notificación no encontrada")
         model.leida = True
         db.session.commit()
+        return self._to_domain(model)
 
     def mark_all_as_read(self, usuario_id):
         NotificacionModel.query.filter_by(
@@ -76,7 +77,7 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
             usuario_destino_id=model.usuario_destino_id,
             tipo=model.tipo,
             mensaje=model.mensaje,
-            metadata=self._load_json(model.metadata),
+            metadata=self._load_json(model.metadata_json),
             leida=model.leida,
             created_at=model.created_at,
         )

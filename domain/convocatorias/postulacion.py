@@ -13,10 +13,13 @@ class Postulacion:
        self.estado = estado or self.ESTADO_PENDIENTE
 
     def aceptar(self):
-        pass
+        return self.seleccionar()
 
     def rechazar(self):
-        pass
+        if self.estado != self.ESTADO_PENDIENTE:
+            raise ValueError("Solo una postulación pendiente puede rechazarse")
+        self.estado = self.ESTADO_RECHAZADA
+        return self
 
     def seleccionar(self):
         """Selecciona la postulación si está pendiente."""
@@ -24,3 +27,4 @@ class Postulacion:
             raise ValueError("Solo una postulación pendiente puede seleccionarse")
 
         self.estado = self.ESTADO_SELECCIONADA
+        return self

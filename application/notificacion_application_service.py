@@ -24,9 +24,9 @@ class NotificacionApplicationService:
         self._require_reader()
         return self.reader.find_by_usuario_id(usuario_id)
 
-    def mark_as_read(self, notificacion_id):
+    def mark_as_read(self, usuario_id, notificacion_id):
         self._require_writer()
-        return self.writer.mark_as_read(notificacion_id)
+        return self.writer.mark_as_read(usuario_id, notificacion_id)
 
     def mark_all_as_read(self, usuario_id):
         self._require_writer()

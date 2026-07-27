@@ -12,5 +12,5 @@ class NotificacionModel(TimestampMixin, db.Model):
     usuario_destino_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False, index=True)
     tipo = db.Column(db.String(50), nullable=False)
     mensaje = db.Column(db.Text, nullable=False)
-    metadata = db.Column(db.Text, nullable=True)
-    leida = db.Column(db.Boolean, default=False, index=True)
+    metadata_json = db.Column("metadata", db.Text, nullable=True)
+    leida = db.Column(db.Boolean, nullable=False, default=False, index=True)

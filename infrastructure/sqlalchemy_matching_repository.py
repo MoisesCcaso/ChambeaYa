@@ -7,13 +7,16 @@ from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 
 
 class SqlAlchemyMatchingRepository(ISugerenciaRepository):
-    def __init__(self):
-        pass
-
     def save(self, sugerencia):
         model = None
         if sugerencia.id is not None:
             model = db.session.get(SugerenciaModel, sugerencia.id)
+
+        if model is None:
+            model = SugerenciaModel.query.filter_by(
+                practicante_id=sugerencia.practicante_id,
+                convocatoria_id=sugerencia.convocatoria_id,
+            ).first()
 
         if model is None:
             model = SugerenciaModel(

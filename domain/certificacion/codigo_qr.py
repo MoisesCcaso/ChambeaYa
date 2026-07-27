@@ -16,4 +16,7 @@ class CodigoQR:
         return CodigoQR(valor=valor, url_verificacion=url_verificacion, hash_integridad=hash_integridad)
 
     def verificar(self, valor_a_verificar):
-        return self.valor == valor_a_verificar
+        if not self.valor or not self.hash_integridad:
+            return False
+        hash_calculado = hashlib.sha256(self.valor.encode()).hexdigest()
+        return self.valor == valor_a_verificar and hash_calculado == self.hash_integridad

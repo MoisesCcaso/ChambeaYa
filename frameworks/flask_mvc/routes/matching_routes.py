@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, session
+from flask import Blueprint, current_app, jsonify, session
 
 from application.matching_application_service import MatchingApplicationService
 from application.notificacion_application_service import NotificacionApplicationService
@@ -55,7 +55,7 @@ def calculate_match():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    if status_code == 200:
+    if status_code == 200 and data:
         try:
             repo = SqlAlchemyNotificacionRepository()
             notif_service = NotificacionApplicationService(writer=repo, reader=repo)
@@ -65,6 +65,8 @@ def calculate_match():
                 mensaje="Nuevas sugerencias de convocatorias disponibles",
             )
         except Exception:
-            pass
+            current_app.logger.exception(
+                "No se pudo crear la notificación de nuevas sugerencias"
+            )
 
     return jsonify(data), status_code

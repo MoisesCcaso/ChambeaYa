@@ -17,6 +17,10 @@ class Evaluacion:
     def crear(practica_id, puntaje):
         if puntaje is None:
             raise ValueError("Debe indicarse un puntaje")
+        try:
+            puntaje = float(puntaje)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("El puntaje debe ser numérico") from exc
         if puntaje < 0 or puntaje > 100:
             raise ValueError("El puntaje debe estar entre 0 y 100")
 

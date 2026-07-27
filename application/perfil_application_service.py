@@ -31,10 +31,17 @@ class PerfilApplicationService:
             carnet_universitario=data.get("carnet_universitario"),
         )
 
-        for habilidad in data.get("habilidades", []) or []:
+        habilidades = data.get("habilidades", []) or []
+        formaciones = data.get("formacion_educativa", []) or []
+        if not isinstance(habilidades, list):
+            raise ValueError("Las habilidades deben ser una lista")
+        if not isinstance(formaciones, list):
+            raise ValueError("La formación educativa debe ser una lista")
+
+        for habilidad in habilidades:
             practicante.agregar_habilidad(habilidad)
 
-        for formacion in data.get("formacion_educativa", []) or []:
+        for formacion in formaciones:
             practicante.agregar_formacion(formacion)
 
         practicante.calcular_score()
@@ -73,8 +80,18 @@ class PerfilApplicationService:
         if numero_ruc is not None:
             empresa.ruc = RUC(numero=numero_ruc)
 
-        empresa.verificar_ruc()
+        if data.get("razon_social") is not None:
+            empresa.razon_social = str(data["razon_social"]).strip()
+        if not empresa.razon_social:
+            raise ValueError("La razón social es obligatoria")
+        if not empresa.verificar_ruc():
+            raise ValueError("El RUC no es válido")
         return self.perfil_repository.save_empresa(empresa)
+
+    def get_empresa_profile(self, usuario_id):
+        self._require_repositories()
+        self._require_empresa_user(usuario_id)
+        return self.perfil_repository.find_empresa_by_user_id(usuario_id)
 
     def verify_profile(self, usuario_id):
         self._require_repositories()

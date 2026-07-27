@@ -12,9 +12,6 @@ from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 
 
 class SqlAlchemyPracticaRepository(IPracticaRepository):
-    def __init__(self):
-        pass
-
     def save(self, practica):
         model = None
         if practica.id is not None:
@@ -57,6 +54,10 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
     def find_by_practicante_id(self, practicante_id):
         models = PracticaModel.query.filter_by(practicante_id=practicante_id).all()
         return [self._to_practica_domain(model) for model in models]
+
+    def find_by_postulacion_id(self, postulacion_id):
+        model = PracticaModel.query.filter_by(postulacion_id=postulacion_id).first()
+        return self._to_practica_domain(model)
 
     def _to_practica_domain(self, model):
         if model is None:

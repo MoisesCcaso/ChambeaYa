@@ -11,9 +11,9 @@ class NotificacionController:
         notificaciones = self.notificacion_application_service.list_notifications(usuario_id)
         return [self._serialize(n) for n in notificaciones], 200
 
-    def mark_as_read(self, notificacion_id):
+    def mark_as_read(self, usuario_id, notificacion_id):
         self._require_service()
-        self.notificacion_application_service.mark_as_read(notificacion_id)
+        self.notificacion_application_service.mark_as_read(usuario_id, notificacion_id)
         return {"mensaje": "Notificación marcada como leída"}, 200
 
     def mark_all_as_read(self, usuario_id):

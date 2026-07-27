@@ -1,17 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import json
-
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
 from frameworks.sqlalchemy_orm.database import db
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 
 class SqlAlchemyPostulacionRepository(IPostulacionRepository):
-    def __init__(self):
-        pass
-
     def save(self, postulacion):
         model = None
         if postulacion.id is not None:
@@ -31,6 +26,21 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
 
     def find_by_id(self, postulacion_id):
         model = db.session.get(PostulacionModel, postulacion_id)
+        return self._to_postulacion_domain(model)
+
+    def find_by_practicante_id(self, practicante_id):
+        models = PostulacionModel.query.filter_by(practicante_id=practicante_id).all()
+        return [self._to_postulacion_domain(model) for model in models]
+
+    def find_by_convocatoria_id(self, convocatoria_id):
+        models = PostulacionModel.query.filter_by(convocatoria_id=convocatoria_id).all()
+        return [self._to_postulacion_domain(model) for model in models]
+
+    def find_by_convocatoria_and_practicante(self, convocatoria_id, practicante_id):
+        model = PostulacionModel.query.filter_by(
+            convocatoria_id=convocatoria_id,
+            practicante_id=practicante_id,
+        ).first()
         return self._to_postulacion_domain(model)
 
     def _to_postulacion_domain(self, model):

@@ -6,10 +6,22 @@ class PracticaController:
     def __init__(self, practica_application_service=None):
         self.practica_application_service = practica_application_service
 
-    def start(self, postulacion_id, practicante_id):
+    def start(self, empresa_id, postulacion_id):
         self._require_service()
-        practica = self.practica_application_service.start_practica(postulacion_id, practicante_id)
+        practica = self.practica_application_service.start_practica(
+            empresa_id, postulacion_id
+        )
         return self._serialize_practica(practica), 201
+
+    def list_for_user(self, usuario_id):
+        self._require_service()
+        practicas = self.practica_application_service.list_for_user(usuario_id)
+        return [self._serialize_practica(item) for item in practicas], 200
+
+    def get_for_user(self, usuario_id, practica_id):
+        self._require_service()
+        practica = self.practica_application_service.get_for_user(usuario_id, practica_id)
+        return self._serialize_practica(practica), 200
 
     def upload_deliverable(self, usuario_id, practica_id, payload):
         self._require_service()
@@ -33,9 +45,9 @@ class PracticaController:
         evaluaciones = self.practica_application_service.get_evaluations_history(usuario_id, practica_id)
         return [self._serialize_evaluacion(e) for e in evaluaciones], 200
 
-    def finish(self, practica_id):
+    def finish(self, empresa_id, practica_id):
         self._require_service()
-        practica = self.practica_application_service.finish(practica_id)
+        practica = self.practica_application_service.finish(empresa_id, practica_id)
         return self._serialize_practica(practica), 200
 
     def _require_service(self):
@@ -56,6 +68,12 @@ class PracticaController:
             "practica_id": entregable.practica_id,
             "archivo": entregable.archivo,
             "fecha_subida": entregable.fecha_subida.isoformat() if entregable.fecha_subida else None,
+            "archivo_url": (
+                f"/practicas/{entregable.practica_id}/entregables/"
+                f"{entregable.id}/archivo"
+                if entregable.id is not None
+                else None
+            ),
         }
 
     def _serialize_evaluacion(self, evaluacion):

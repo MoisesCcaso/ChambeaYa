@@ -9,7 +9,7 @@ class INotificacionWriter(ABC):
         pass
 
     @abstractmethod
-    def mark_as_read(self, notificacion_id):
+    def mark_as_read(self, usuario_id, notificacion_id):
         pass
 
     @abstractmethod
