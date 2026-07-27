@@ -35,6 +35,13 @@ class PracticaController:
         entregables = self.practica_application_service.get_deliverables_history(usuario_id, practica_id)
         return [self._serialize_entregable(e) for e in entregables], 200
 
+    def delete_deliverable(self, usuario_id, practica_id, entregable_id):
+        self._require_service()
+        entregable = self.practica_application_service.delete_deliverable(
+            usuario_id, practica_id, entregable_id
+        )
+        return self._serialize_entregable(entregable), 200
+
     def register_evaluation(self, empresa_id, practica_id, payload):
         self._require_service()
         practica = self.practica_application_service.evaluate(empresa_id, practica_id, payload.get("puntaje"))
@@ -44,6 +51,13 @@ class PracticaController:
         self._require_service()
         evaluaciones = self.practica_application_service.get_evaluations_history(usuario_id, practica_id)
         return [self._serialize_evaluacion(e) for e in evaluaciones], 200
+
+    def delete_evaluation(self, empresa_id, practica_id, evaluacion_id):
+        self._require_service()
+        evaluacion = self.practica_application_service.delete_evaluation(
+            empresa_id, practica_id, evaluacion_id
+        )
+        return self._serialize_evaluacion(evaluacion), 200
 
     def finish(self, empresa_id, practica_id):
         self._require_service()

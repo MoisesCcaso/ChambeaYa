@@ -22,6 +22,30 @@ class ConvocatoriaController:
         )
         return self._serialize_convocatoria(convocatoria), 200
 
+    def reopen(self, empresa_id, convocatoria_id):
+        self._require_service()
+        convocatoria = self.convocatoria_application_service.reopen(
+            empresa_id, convocatoria_id
+        )
+        return self._serialize_convocatoria(convocatoria), 200
+
+    def duplicate(self, empresa_id, convocatoria_id):
+        self._require_service()
+        convocatoria = self.convocatoria_application_service.duplicate(
+            empresa_id, convocatoria_id
+        )
+        return self._serialize_convocatoria(convocatoria), 201
+
+    def delete(self, empresa_id, convocatoria_id):
+        self._require_service()
+        convocatoria = self.convocatoria_application_service.delete(
+            empresa_id, convocatoria_id
+        )
+        return {
+            "id": convocatoria.id,
+            "mensaje": "Convocatoria eliminada",
+        }, 200
+
     def update(self, empresa_id, convocatoria_id, payload):
         self._require_service()
         convocatoria = self.convocatoria_application_service.update(

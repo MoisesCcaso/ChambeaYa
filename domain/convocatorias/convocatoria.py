@@ -47,6 +47,19 @@ class Convocatoria:
         self.fecha_cierre = datetime.now(timezone.utc)
         return self
 
+    def reabrir(self):
+        if self.estado != self.ESTADO_CERRADA:
+            raise ValueError("Solo una convocatoria cerrada puede reabrirse")
+        self.estado = self.ESTADO_PUBLICADA
+        self.fecha_publicacion = datetime.now(timezone.utc)
+        self.fecha_cierre = None
+        return self
+
+    def validar_eliminacion(self):
+        if self.estado != self.ESTADO_BORRADOR:
+            raise ValueError("Solo una convocatoria en borrador puede eliminarse")
+        return self
+
     def actualizar(
         self,
         titulo=None,

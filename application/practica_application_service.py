@@ -50,6 +50,13 @@ class PracticaApplicationService:
         practica = self._get_practica_visible(usuario_id, practica_id)
         return practica.obtener_historial_entregables()
 
+    def delete_deliverable(self, usuario_id, practica_id, entregable_id):
+        self._require_repositories()
+        practica = self._get_practica_autorizada(usuario_id, practica_id)
+        eliminado = practica.eliminar_entregable(entregable_id)
+        self.practica_repository.save(practica)
+        return eliminado
+
     def evaluate(self, empresa_id, practica_id, puntaje):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
@@ -72,6 +79,16 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self._get_practica_visible(usuario_id, practica_id)
         return practica.obtener_historial_evaluaciones()
+
+    def delete_evaluation(self, empresa_id, practica_id, evaluacion_id):
+        self._require_repositories()
+        practica = self.practica_repository.find_by_id(practica_id)
+        if practica is None:
+            raise ValueError(NOT_FOUND)
+        self._require_empresa_owner(empresa_id, practica)
+        eliminada = practica.eliminar_evaluacion(evaluacion_id)
+        self.practica_repository.save(practica)
+        return eliminada
 
     def finish(self, empresa_id, practica_id):
         self._require_repositories()

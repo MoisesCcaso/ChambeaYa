@@ -52,6 +52,22 @@ class Practicante:
 
         return self
 
+    def reemplazar_habilidades(self, habilidades):
+        if not isinstance(habilidades, list):
+            raise ValueError("Las habilidades deben ser una lista")
+        self.habilidades = []
+        for habilidad in habilidades:
+            self.agregar_habilidad(habilidad)
+        return self
+
+    def reemplazar_formacion(self, formaciones):
+        if not isinstance(formaciones, list):
+            raise ValueError("La formación educativa debe ser una lista")
+        self.formacion_educativa = []
+        for formacion in formaciones:
+            self.agregar_formacion(formacion)
+        return self
+
     def verificar_identidad(self):
         if not self.dni and not self.carnet_universitario:
             raise ValueError("Se requiere DNI o carnet universitario")

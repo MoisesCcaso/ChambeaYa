@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% set titles = {
+    "login": "Ingresa a tu cuenta",
+    "register": "Crea tu cuenta",
+    "activate": "Activa tu cuenta",
+    "recover": "Recupera tu acceso",
+    "reset": "Define una nueva contraseña"
+} %}
+{% set descriptions = {
+    "login": "Continúa con tus postulaciones y prácticas.",
+    "register": "Empieza a gestionar tu experiencia profesional.",
+    "activate": "Ingresa el código recibido para habilitar tu cuenta.",
+    "recover": "Te ayudaremos a generar un acceso nuevo.",
+    "reset": "Utiliza tu código de recuperación para continuar."
+} %}
+
+{% block title %}{{ titles[mode] }} · ChambeaYa{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block body %}
+<main class="auth-layout">
+    <section class="auth-panel">
+        <a class="back-link" href="/"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-arrow-left"></use></svg> Volver al inicio</a>
+        <div class="auth-box" data-auth-mode="{{ mode }}">
+            <a class="brand auth-brand" href="/" aria-label="ChambeaYa, inicio">
+                <img class="brand-logo" src="{{ url_for('static', filename='img/chambeaya-logo-horizontal.png') }}" alt="ChambeaYa">
+            </a>
+            <header>
+                <p class="eyebrow">{{ "Bienvenido" if mode == "login" else "ChambeaYa" }}</p>
+                <h2 id="auth-title">{{ titles[mode] }}</h2>
+                <p id="auth-description">{{ descriptions[mode] }}</p>
+            </header>
+
+            {% if mode == "login" %}
+            {% if config.get("DEMO_MODE") %}
+            <div class="demo-access">
+                <span>Accesos preparados</span>
+                <div>
+                    <button type="button" data-demo-login="practicante@demo.local">Practicante</button>
+                    <button type="button" data-demo-login="empresa@demo.local">Empresa</button>
+                </div>
+            </div>
+            {% endif %}
+            <form id="auth-form" class="form-stack">
+                <label class="field">
+                    <span>Correo electrónico</span>
+                    <input type="email" name="email" autocomplete="email" placeholder="nombre@correo.com" required>
+                </label>
+                <label class="field">
+                    <span class="field-label-row"><span>Contraseña</span><a href="/recuperar">¿Olvidaste tu contraseña?</a></span>
+                    <span class="password-field">
+                        <input type="password" name="password" autocomplete="current-password" placeholder="Tu contraseña" required>
+                        <button type="button" data-toggle-password aria-label="Mostrar contraseña"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-eye"></use></svg><span class="sr-only">Ver</span></button>
+                    </span>
+                </label>
+                <button class="button button-primary button-block" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-log-in"></use></svg>Ingresar</button>
+            </form>
+            <p class="auth-switch">¿Aún no tienes una cuenta? <a href="/registro">Regístrate</a></p>
+            {% elif mode == "register" %}
+            <form id="auth-form" class="form-stack">
+                <fieldset class="role-choice">
+                    <legend>Quiero usar ChambeaYa como</legend>
+                    <label><input type="radio" name="tipo" value="practicante" checked><span><strong>Practicante</strong><small>Busco una oportunidad</small></span></label>
+                    <label><input type="radio" name="tipo" value="empresa"><span><strong>Empresa</strong><small>Busco talento</small></span></label>
+                </fieldset>
+                <label class="field">
+                    <span>Correo electrónico</span>
+                    <input type="email" name="email" autocomplete="email" placeholder="nombre@correo.com" required>
+                </label>
+                <label class="field">
+                    <span>Contraseña</span>
+                    <span class="password-field">
+                        <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Crea una contraseña segura" data-password-source required>
+                        <button type="button" data-toggle-password aria-label="Mostrar contraseña"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-eye"></use></svg><span class="sr-only">Ver</span></button>
+                    </span>
+                </label>
+                <ul class="password-requirements" id="password-requirements" aria-label="Requisitos de contraseña">
+                    <li data-password-rule="length">8 caracteres como mínimo</li>
+                    <li data-password-rule="lowercase">Una letra minúscula</li>
+                    <li data-password-rule="uppercase">Una letra mayúscula</li>
+                    <li data-password-rule="number">Un número</li>
+                </ul>
+                <label class="field">
+                    <span>Repite tu contraseña</span>
+                    <span class="password-field">
+                        <input type="password" name="password_confirmation" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Escríbela nuevamente" required>
+                        <button type="button" data-toggle-password aria-label="Mostrar contraseña"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-eye"></use></svg><span class="sr-only">Ver</span></button>
+                    </span>
+                </label>
+                <button class="button button-primary button-block" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-user"></use></svg>Crear cuenta</button>
+                <small class="form-note">La cuenta permanecerá pendiente hasta que confirmes el enlace enviado a tu correo.</small>
+            </form>
+            <p class="auth-switch">¿Ya tienes una cuenta? <a href="/ingresar">Ingresa</a></p>
+            {% elif mode == "activate" %}
+            <form id="auth-form" class="form-stack">
+                <input type="hidden" name="token">
+                <div class="mail-notice" id="activation-notice">
+                    <span class="mail-notice-icon"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-send"></use></svg></span>
+                    <p id="activation-notice-text">Revisa la bandeja de entrada y la carpeta de correo no deseado.</p>
+                </div>
+                <label class="field" id="activation-email-field">
+                    <span>Correo utilizado en el registro</span>
+                    <input type="email" name="email" autocomplete="email" placeholder="nombre@correo.com">
+                </label>
+                <button class="button button-primary button-block" type="submit" id="activation-submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-refresh"></use></svg>Reenviar enlace</button>
+            </form>
+            <p class="auth-switch">¿Tu cuenta ya está activa? <a href="/ingresar">Ingresa</a></p>
+            {% elif mode == "recover" %}
+            <form id="auth-form" class="form-stack">
+                <label class="field">
+                    <span>Correo electrónico</span>
+                    <input type="email" name="email" autocomplete="email" placeholder="nombre@correo.com" required>
+                </label>
+                <button class="button button-primary button-block" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-refresh"></use></svg>Generar acceso</button>
+            </form>
+            <p class="auth-switch"><a href="/ingresar">Volver a ingresar</a></p>
+            {% elif mode == "reset" %}
+            <form id="auth-form" class="form-stack">
+                <label class="field">
+                    <span>Código de recuperación</span>
+                    <textarea name="token" rows="3" placeholder="Pega aquí tu código" required></textarea>
+                </label>
+                <label class="field">
+                    <span>Nueva contraseña</span>
+                    <span class="password-field">
+                        <input type="password" name="new_password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                        <button type="button" data-toggle-password aria-label="Mostrar contraseña"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-eye"></use></svg><span class="sr-only">Ver</span></button>
+                    </span>
+                </label>
+                <button class="button button-primary button-block" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-check"></use></svg>Cambiar contraseña</button>
+            </form>
+            {% endif %}
+
+            <div class="form-feedback" id="form-feedback" hidden></div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

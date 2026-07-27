@@ -138,3 +138,54 @@ def close_convocatoria(convocatoria_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     return jsonify(data), status_code
+
+
+@convocatoria_bp.post("/<int:convocatoria_id>/reabrir")
+def reopen_convocatoria(convocatoria_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+    try:
+        data, status_code = build_convocatoria_controller().reopen(
+            empresa.id, convocatoria_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(data), status_code
+
+
+@convocatoria_bp.post("/<int:convocatoria_id>/duplicar")
+def duplicate_convocatoria(convocatoria_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+    try:
+        data, status_code = build_convocatoria_controller().duplicate(
+            empresa.id, convocatoria_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(data), status_code
+
+
+@convocatoria_bp.delete("/<int:convocatoria_id>")
+def delete_convocatoria(convocatoria_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": "No autenticado"}), 401
+    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+    try:
+        data, status_code = build_convocatoria_controller().delete(
+            empresa.id, convocatoria_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(data), status_code
