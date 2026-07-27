@@ -7,9 +7,11 @@ from frameworks.flask_mvc.routes.perfil_routes import perfil_bp
 from frameworks.flask_mvc.routes.practica_routes import practica_bp
 from frameworks.flask_mvc.routes.convocatoria_routes import convocatoria_bp
 from frameworks.flask_mvc.routes.postulacion_routes import postulacion_bp
+from frameworks.flask_mvc.routes.web_routes import web_bp
 
 
 def register_routes(app):
+    app.register_blueprint(web_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(certificado_bp)
     app.register_blueprint(convocatoria_bp)

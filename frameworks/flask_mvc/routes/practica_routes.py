@@ -197,6 +197,51 @@ def get_evaluations_history(practica_id):
     return jsonify(data), status_code
 
 
+@practica_bp.delete(
+    "/<int:practica_id>/entregables/<int:entregable_id>"
+)
+def delete_deliverable(practica_id, entregable_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": NO_AUTENTICADO_ERROR}), 401
+    try:
+        data, status_code = build_practica_controller().delete_deliverable(
+            usuario_id, practica_id, entregable_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    nombre = Path(data["archivo"]).name
+    ruta = Path(current_app.config["UPLOAD_FOLDER"]) / nombre
+    try:
+        if ruta.is_file():
+            ruta.unlink()
+    except OSError:
+        current_app.logger.exception(
+            "El entregable fue eliminado, pero no se pudo borrar su archivo"
+        )
+    return jsonify(data), status_code
+
+
+@practica_bp.delete(
+    "/<int:practica_id>/evaluaciones/<int:evaluacion_id>"
+)
+def delete_evaluation(practica_id, evaluacion_id):
+    usuario_id = get_authenticated_user_id()
+    if usuario_id is None:
+        return jsonify({"error": NO_AUTENTICADO_ERROR}), 401
+    empresa = get_authenticated_empresa()
+    if empresa is None:
+        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+    try:
+        data, status_code = build_practica_controller().delete_evaluation(
+            empresa.id, practica_id, evaluacion_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(data), status_code
+
+
 @practica_bp.get(
     "/<int:practica_id>/entregables/<int:entregable_id>/archivo"
 )

@@ -159,6 +159,41 @@ Configurar variables de entorno:
 cp .env.example .env
 ```
 
+### Verificación de correo
+
+Las cuentas nuevas permanecen en estado `pendiente` hasta que el usuario abre
+el enlace de activación enviado a su correo. Para utilizar un servidor SMTP
+real, configura en `.env`:
+
+```env
+APP_URL=http://127.0.0.1:5000
+MAIL_DELIVERY_MODE=smtp
+MAIL_SERVER=smtp.tu-proveedor.com
+MAIL_PORT=587
+MAIL_USERNAME=tu_usuario_smtp
+MAIL_PASSWORD=tu_clave_smtp
+MAIL_USE_TLS=true
+MAIL_USE_SSL=false
+MAIL_SENDER=ChambeaYa <no-reply@tu-dominio.com>
+EXPOSE_AUTH_TOKENS=false
+```
+
+`APP_URL` debe ser la dirección desde la que el usuario puede abrir la
+aplicación. Si el correo se abre en otro dispositivo, utiliza una dirección de
+red o URL pública accesible en lugar de `127.0.0.1`.
+
+En los modos `console` y `demo` los tokens pueden exponerse para facilitar las
+pruebas locales. Este comportamiento debe permanecer desactivado cuando se
+envían correos reales.
+
+Para comprobar la conexión después de configurar SMTP:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask `
+  --app frameworks.flask_mvc.app:create_app `
+  test-email --to tu_correo@gmail.com
+```
+
 Levantar la aplicación:
 
 ```bash
@@ -173,6 +208,16 @@ curl http://127.0.0.1:5000/health
 
 La referencia completa del backend, sus endpoints y el flujo integrado se
 encuentra en [`BACKEND.md`](BACKEND.md).
+
+La guía de las vistas, rutas y estructura de la interfaz se encuentra en
+[`VISTAS.md`](VISTAS.md).
+
+Para una presentación local con cuentas y datos preparados, utiliza
+[`DEMO.md`](DEMO.md) y ejecuta:
+
+```powershell
+.\demo.ps1
+```
 
 Ejecutar las pruebas integrales:
 
@@ -215,10 +260,12 @@ Registro de usuario:
 ```bash
 curl -X POST http://127.0.0.1:5000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"practicante@example.com","password":"secret123","tipo":"practicante"}'
+  -d '{"email":"practicante@example.com","password":"Secret123","password_confirmation":"Secret123","tipo":"practicante"}'
 ```
 
-La respuesta incluye `activation_token` para pruebas locales. En producción ese token debe enviarse por correo.
+La respuesta incluye `activation_token` únicamente en los modos locales que
+tienen `EXPOSE_AUTH_TOKENS=true`. Con SMTP, el token se entrega dentro del
+enlace enviado al correo.
 
 Activación de cuenta:
 
@@ -226,6 +273,14 @@ Activación de cuenta:
 curl -X POST http://127.0.0.1:5000/auth/activate \
   -H "Content-Type: application/json" \
   -d '{"token":"TOKEN_DE_ACTIVACION"}'
+```
+
+Reenviar el enlace de activación:
+
+```bash
+curl -X POST http://127.0.0.1:5000/auth/resend-activation \
+  -H "Content-Type: application/json" \
+  -d '{"email":"practicante@example.com"}'
 ```
 
 Inicio de sesión:
@@ -257,7 +312,9 @@ curl -X POST http://127.0.0.1:5000/auth/recover-password \
   -d '{"email":"practicante@example.com"}'
 ```
 
-La respuesta incluye `password_reset_token` para pruebas locales. En producción ese token debe enviarse por correo.
+La respuesta incluye `password_reset_token` solamente cuando
+`EXPOSE_AUTH_TOKENS=true`. En el flujo SMTP se envía un enlace de recuperación
+al correo registrado.
 
 Restablecimiento de contraseña:
 

@@ -4,6 +4,8 @@ from flask import Flask, jsonify
 from sqlalchemy.exc import IntegrityError
 
 from config import config_by_name
+from frameworks.flask_mvc.demo import register_demo_commands
+from frameworks.flask_mvc.email_cli import register_email_commands
 from frameworks.flask_mvc.routes import register_routes
 from frameworks.sqlalchemy_orm import models  # noqa: F401
 from frameworks.sqlalchemy_orm.database import db, migrate
@@ -31,6 +33,8 @@ def create_app(config_name=None):
     migrate.init_app(app, db, directory="frameworks/migrations")
 
     register_routes(app)
+    register_demo_commands(app)
+    register_email_commands(app)
 
     @app.errorhandler(IntegrityError)
     def handle_integrity_error(_error):

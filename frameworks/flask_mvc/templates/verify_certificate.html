@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Verificar certificado · ChambeaYa{% endblock %}
+{% block body_class %}verify-page{% endblock %}
+
+{% block body %}
+<header class="public-header compact-header">
+    <a class="brand" href="/" aria-label="ChambeaYa, inicio">
+        <img class="brand-logo" src="{{ url_for('static', filename='img/chambeaya-logo-horizontal.png') }}" alt="ChambeaYa">
+    </a>
+    <a class="button button-ghost button-small" href="/ingresar">Ingresar</a>
+</header>
+<main class="verify-layout">
+    <section class="verify-copy">
+        <p class="eyebrow">Validación pública</p>
+        <h1>Verifica un certificado digital.</h1>
+        <p>Ingresa el código incluido en el documento o accede desde su código QR.</p>
+    </section>
+    <section class="verify-box">
+        <form id="verify-form" class="form-stack">
+            <label class="field">
+                <span>Código del certificado</span>
+                <input name="codigo" placeholder="CERT-1-XXXXXXXX" required>
+            </label>
+            <button class="button button-primary button-block" type="submit"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-search"></use></svg>Verificar</button>
+        </form>
+        <div class="verification-result" id="verification-result" hidden></div>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/verify.js') }}"></script>
+{% endblock %}

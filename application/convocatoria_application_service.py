@@ -47,6 +47,33 @@ class ConvocatoriaApplicationService:
         convocatoria.cerrar()
         return self.convocatoria_repository.save(convocatoria)
 
+    def reopen(self, empresa_id, convocatoria_id):
+        self._require_repository()
+        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria.reabrir()
+        return self.convocatoria_repository.save(convocatoria)
+
+    def duplicate(self, empresa_id, convocatoria_id):
+        self._require_repository()
+        original = self._find_owned(empresa_id, convocatoria_id)
+        return self.create_convocatoria(
+            empresa_id,
+            {
+                "titulo": f"Copia de {original.titulo}",
+                "descripcion": original.descripcion,
+                "habilidades_requeridas": list(original.habilidades_requeridas),
+                "beneficios": list(original.beneficios),
+            },
+        )
+
+    def delete(self, empresa_id, convocatoria_id):
+        self._require_repository()
+        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria.validar_eliminacion()
+        if not self.convocatoria_repository.delete(convocatoria_id):
+            raise ValueError("Convocatoria no encontrada")
+        return convocatoria
+
     def search(self, query=None, estado=None):
         self._require_repository()
         return self.convocatoria_repository.search(query=query, estado=estado)

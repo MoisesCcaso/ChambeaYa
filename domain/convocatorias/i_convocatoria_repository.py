@@ -24,3 +24,7 @@ class IConvocatoriaRepository(ABC):
     @abstractmethod
     def find_by_empresa_id(self, empresa_id):
         pass
+
+    @abstractmethod
+    def delete(self, convocatoria_id):
+        pass

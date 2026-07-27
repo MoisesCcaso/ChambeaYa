@@ -39,7 +39,8 @@ def get_my_profile():
         return jsonify({"error": str(exc)}), 400
 
     if data is None:
-        return jsonify({"error": "Perfil de practicante no encontrado"}), status_code
+        profile_type = "empresa" if usuario.tipo == "empresa" else "practicante"
+        return jsonify({"error": f"Perfil de {profile_type} no encontrado"}), status_code
 
     return jsonify(data), status_code
 

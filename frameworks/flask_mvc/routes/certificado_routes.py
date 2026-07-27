@@ -149,8 +149,8 @@ def download_certificado_qr(codigo_qr_valor):
 
     buffer = BytesIO()
     verification_url = url_for(
-        "certificado.verify_certificado",
-        codigo_qr_valor=codigo_qr_valor,
+        "web.verify_certificate_view",
+        codigo=codigo_qr_valor,
         _external=True,
     )
     imagen = qrcode.make(verification_url)

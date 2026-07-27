@@ -10,6 +10,7 @@ class UsuarioController:
         usuario = self.usuario_application_service.register_user(
             email=payload.get("email"),
             password=payload.get("password"),
+            password_confirmation=payload.get("password_confirmation"),
             tipo=payload.get("tipo"),
         )
 
@@ -47,6 +48,22 @@ class UsuarioController:
         )
 
         return self._serialize_usuario(usuario), 200
+
+    def resend_activation(self, payload):
+        self._require_service()
+        usuario = self.usuario_application_service.resend_activation(
+            email=payload.get("email"),
+        )
+        data = {
+            "status": "ok",
+            "message": (
+                "Si la cuenta existe y está pendiente, recibirás un nuevo "
+                "enlace de activación."
+            ),
+        }
+        if usuario is not None:
+            data["activation_token"] = usuario.activation_token
+        return data, 200
 
     def reset_password(self, payload):
         self._require_service()

@@ -42,6 +42,14 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         models = ConvocatoriaModel.query.filter_by(empresa_id=empresa_id).all()
         return [self._to_convocatoria_domain(model) for model in models]
 
+    def delete(self, convocatoria_id):
+        model = db.session.get(ConvocatoriaModel, convocatoria_id)
+        if model is None:
+            return False
+        db.session.delete(model)
+        db.session.commit()
+        return True
+
     def search(self, query=None, estado=None):
         statement = ConvocatoriaModel.query
         if estado:

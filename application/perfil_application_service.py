@@ -27,22 +27,25 @@ class PerfilApplicationService:
         practicante.actualizar_datos(
             nombres=data.get("nombres"),
             apellidos=data.get("apellidos"),
-            dni=data.get("dni"),
-            carnet_universitario=data.get("carnet_universitario"),
         )
 
-        habilidades = data.get("habilidades", []) or []
-        formaciones = data.get("formacion_educativa", []) or []
-        if not isinstance(habilidades, list):
-            raise ValueError("Las habilidades deben ser una lista")
-        if not isinstance(formaciones, list):
-            raise ValueError("La formación educativa debe ser una lista")
+        identidad_actualizada = "dni" in data or "carnet_universitario" in data
+        if "dni" in data:
+            practicante.dni = self._optional_text(data.get("dni"))
+        if "carnet_universitario" in data:
+            practicante.carnet_universitario = self._optional_text(
+                data.get("carnet_universitario")
+            )
+        if "habilidades" in data:
+            practicante.reemplazar_habilidades(data.get("habilidades") or [])
+        if "formacion_educativa" in data:
+            practicante.reemplazar_formacion(data.get("formacion_educativa") or [])
 
-        for habilidad in habilidades:
-            practicante.agregar_habilidad(habilidad)
-
-        for formacion in formaciones:
-            practicante.agregar_formacion(formacion)
+        if identidad_actualizada:
+            if practicante.dni or practicante.carnet_universitario:
+                practicante.verificar_identidad()
+            else:
+                practicante.identidad_verificada = False
 
         practicante.calcular_score()
         return self.perfil_repository.save_practicante(practicante)
@@ -144,3 +147,9 @@ class PerfilApplicationService:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de perfil")
         if self.usuario_repository is None:
             raise RuntimeError("PerfilApplicationService requiere un repositorio de usuario")
+
+    def _optional_text(self, value):
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized or None
