@@ -36,6 +36,14 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
   - [6.2 Convenciones de Codificación](#62-convenciones-de-codificación)
   - [6.3 Codificación Limpia (Clean Code)](#63-codificación-limpia-clean-code)
   - [6.4 Principios SOLID](#64-principios-solid)
+  - [6.5 Domain-Driven Design (DDD)](#65-domain-driven-design-ddd)
+    - [6.5.1 Entidades](#651-entidades)
+    - [6.5.2 Objetos de Valor](#652-objetos-de-valor)
+    - [6.5.3 Servicios de Dominio](#653-servicios-de-dominio)
+    - [6.5.4 Agregados y Módulos](#654-agregados-y-módulos)
+    - [6.5.5 Fábricas](#655-fábricas)
+    - [6.5.6 Repositorios](#656-repositorios)
+    - [6.5.7 Arquitectura en Capas](#657-arquitectura-en-capas)
 - [7. Gestión del Proyecto](#7-gestión-del-proyecto)
   - [7.1 Tablero Trello](#71-tablero-trello)
   - [7.3 Distribución de responsabilidades](#73-distribución-de-responsabilidades)
@@ -998,6 +1006,186 @@ def build_notificacion_controller():
     repo = SqlAlchemyNotificacionRepository()                     # concreción
     service = NotificacionApplicationService(writer=repo, reader=repo)  # como abstracción
     return NotificacionController(service)
+```
+
+## 6.5 Domain-Driven Design (DDD)
+
+### 6.5.1 Entidades
+
+Objetos con identidad propia (`id`) y ciclo de vida. Son mutables y encapsulan reglas de negocio.
+
+```python
+# domain/practica_evaluacion/practica.py
+class Practica:
+    ESTADO_EN_CURSO = "en_curso"
+    ESTADO_FINALIZADA = "finalizada"
+
+    def __init__(self, id=None, postulacion_id=None, practicante_id=None):
+        self.id = id
+        self.postulacion_id = postulacion_id
+        self.practicante_id = practicante_id
+        self.estado = self.ESTADO_EN_CURSO
+        self.entregables = []
+        self.evaluaciones = []
+
+    def finalizar(self):
+        if self.estado != self.ESTADO_EN_CURSO:
+            raise ValueError("La práctica ya está finalizada")
+        self.estado = self.ESTADO_FINALIZADA
+```
+
+### 6.5.2 Objetos de Valor
+
+Inmutables, sin identidad, se comparan por su contenido. Encapsulan conceptos pequeños del dominio.
+
+```python
+# domain/perfil/nombre_completo.py
+class NombreCompleto:
+    def __init__(self, nombres=None, apellidos=None):
+        self.nombres = nombres
+        self.apellidos = apellidos
+
+    def validar(self):
+        if not self.nombres or not self.apellidos:
+            raise ValueError("Nombres y apellidos son obligatorios")
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos}".strip()
+
+# domain/perfil/ruc.py
+class RUC:
+    def __init__(self, numero=None):
+        self.numero = numero
+
+    def es_valido(self):
+        # Algoritmo de módulo 11 de SUNAT
+        ...
+```
+
+### 6.5.3 Servicios de Dominio
+
+Operaciones que no pertenecen naturalmente a una sola entidad. Son stateless y coordinant varias entidades o value objects.
+
+```python
+# domain/auth/autenticacion_dominio_servicio.py
+class AutenticacionDominioServicio:
+    def autenticar(self, usuario, password):
+        if not usuario or not usuario.esta_activo():
+            return False
+        return usuario.login(password)
+
+    def generar_token(self, horas_vigencia=24):
+        expiracion = datetime.now(timezone.utc) + timedelta(hours=horas_vigencia)
+        valor = secrets.token_urlsafe(48)
+        return TokenRecuperacion(valor=valor, expiracion=expiracion)
+```
+
+### 6.5.4 Agregados y Módulos
+
+El agregado raíz `Practica` encapsula `Entregable` y `Evaluacion` como hijos, garantizando invariantes. Los módulos agrupan conceptos por contexto acotado.
+
+```python
+# domain/practica_evaluacion/practica.py
+def subir_entregable(self, archivo):
+    entregable = Entregable.crear(practica_id=self.id, archivo=archivo)
+    self.entregables.append(entregable)
+    return entregable
+
+def registrar_evaluacion(self, puntaje):
+    evaluacion = Evaluacion.crear(practica_id=self.id, puntaje=puntaje)
+    self.evaluaciones.append(evaluacion)
+    return evaluacion
+```
+
+```
+domain/                  ← Módulos por contexto
+├── auth/                ← Autenticación y usuarios
+├── convocatorias/       ← Convocatorias y postulaciones
+├── perfil/              ← Perfiles de practicante y empresa
+├── certificacion/       ← Certificados, QR, PDF
+├── practica_evaluacion/ ← Prácticas, entregables, evaluaciones
+├── matching/            ← Sugerencias y compatibilidad
+└── notificaciones/      ← Notificaciones
+```
+
+### 6.5.5 Fábricas
+
+Encapsulan la creación de objetos complejos. Pueden ser clases dedicadas o métodos estáticos.
+
+```python
+# domain/convocatorias/convocatoria_fabrica.py
+class ConvocatoriaFabrica:
+    def crear_convocatoria(self, empresa_id, titulo, descripcion=None):
+        if not empresa_id:
+            raise ValueError("La empresa es obligatoria")
+        if not titulo or not str(titulo).strip():
+            raise ValueError("El título es obligatorio")
+        convocatoria = Convocatoria()
+        convocatoria.empresa_id = empresa_id
+        convocatoria.titulo = str(titulo).strip()
+        convocatoria.descripcion = descripcion
+        convocatoria.estado = Convocatoria.ESTADO_BORRADOR
+        return convocatoria
+
+# domain/practica_evaluacion/entregable.py — fábrica estática
+@staticmethod
+def crear(practica_id, archivo):
+    if not archivo or not str(archivo).strip():
+        raise ValueError("Debe adjuntarse un archivo")
+    return Entregable(practica_id=practica_id, archivo=str(archivo).strip())
+```
+
+### 6.5.6 Repositorios
+
+Interfaces en el dominio que definen el contrato de persistencia; implementaciones concretas en infraestructura.
+
+```python
+# domain/auth/i_usuario_repository.py
+class IUsuarioRepository(ABC):
+    @abstractmethod
+    def save(self, usuario): ...
+
+    @abstractmethod
+    def find_by_email(self, email): ...
+
+    @abstractmethod
+    def find_by_id(self, usuario_id): ...
+
+# infrastructure/sqlalchemy_usuario_repository.py
+class SqlAlchemyUsuarioRepository(IUsuarioRepository):
+    def save(self, usuario):
+        model = UsuarioModel.query.get(usuario.id) if usuario.id else None
+        if model is None:
+            model = UsuarioModel()
+            db.session.add(model)
+        model.email = usuario.email
+        model.password_hash = usuario.password_hash
+        db.session.commit()
+        return self._to_domain(model)
+```
+
+### 6.5.7 Arquitectura en Capas
+
+Cinco capas con dependencias hacia adentro: el dominio no conoce infraestructura ni frameworks.
+
+```
+frameworks/    ← Flask, SQLAlchemy, Alembic (configuración, rutas)
+presentation/  ← Controllers (serialización HTTP)
+application/   ← Application Services (orquestación de casos de uso)
+infrastructure/← Repositorios concretos, email sender
+domain/        ← Entidades, VO, servicios de dominio, interfaces de repositorio
+```
+
+Flujo de ejemplo para registrar un usuario:
+
+```
+UsuarioController.register(payload)
+  → UsuarioApplicationService.register_user(...)
+    → AutenticacionDominioServicio.generar_password_hash(password)
+    → Usuario.registrar()
+    → IUsuarioRepository.save(usuario)         ← interfaz
+      → SqlAlchemyUsuarioRepository.save(...)  ← implementación
+        → db.session (SQLAlchemy)
 ```
 
 ---
