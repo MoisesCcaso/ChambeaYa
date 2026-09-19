@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from domain.notificaciones.notificacion import Notificacion
-from domain.notificaciones.i_notificacion_writer import INotificacionWriter
-from domain.notificaciones.i_notificacion_reader import INotificacionReader
 
 
 class NotificacionApplicationService:
