@@ -23,8 +23,15 @@ Para ejecutar todas las pruebas con el comando oficial (PowerShell, Ubuntu/Linux
 y macOS):
 
 ```sh
+poetry --version
+poetry install
 poetry run pytest -v
 ```
+
+El proyecto requiere Poetry 2.4.3 y Python 3.12 o superior. Poetry administra
+el entorno virtual `.venv`; el archivo `.env` contiene la configuración local
+de Flask. En Ubuntu, si la versión del sistema no coincide, consulta los pasos
+con pipx en la sección de pruebas del [README](README.md#10-pruebas).
 
 ## Autenticación
 

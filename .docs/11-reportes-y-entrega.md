@@ -4,25 +4,28 @@ Relacionado: [reparto](04-reparto-equipo.md).
 
 ## Preparar y ejecutar Poetry + pytest
 
-Desde la raíz del repositorio, usar Python 3.12 (el proyecto exige `>=3.12`). Poetry necesita que ese intérprete ya esté instalado; verifica la versión antes de instalar dependencias. Si ya tienes Poetry, salta el paso de instalación.
+Desde la raíz del repositorio, usar Python 3.12 (el proyecto exige `>=3.12`) y Poetry 2.4.3, la versión registrada en `poetry.lock`. Comprueba ambas versiones antes de instalar dependencias. `poetry.toml` configura el entorno virtual del proyecto como `.venv`; el archivo `.env` es solo para la configuración local de Flask.
 
-Bash en Ubuntu/Linux y macOS (instalador oficial de Poetry, solo si `poetry --version` no responde):
+Bash en Ubuntu/Linux (si la versión del sistema no es 2.4.3, instala Poetry aislado con pipx):
 
 ```bash
 python3 --version
-curl -sSL https://install.python-poetry.org | python3 -
-poetry --version
-poetry env use python3.12
-poetry install
-poetry run python --version
-poetry run pytest -v
+# El sudo se usa solo para instalar pipx desde los paquetes de Ubuntu.
+sudo apt install pipx
+pipx ensurepath
+pipx install "poetry==2.4.3"
+~/.local/bin/poetry --version
+~/.local/bin/poetry env use python3.12
+~/.local/bin/poetry install
+~/.local/bin/poetry run python --version
+~/.local/bin/poetry run pytest -v
 ```
 
-PowerShell (si `poetry --version` no responde):
+En macOS, instala Poetry 2.4.3 mediante la [guía oficial](https://python-poetry.org/docs/#installation). En PowerShell, el instalador oficial permite fijar la versión requerida:
 
 ```powershell
 py -3.12 --version
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py - --version 2.4.3
 poetry --version
 poetry env use (py -3.12 -c "import sys; print(sys.executable)")
 poetry install
@@ -30,7 +33,7 @@ poetry run python --version
 poetry run pytest -v
 ```
 
-`poetry install` lee `poetry.lock` y el grupo no opcional `dev`, que contiene pytest y pytest-cov. `poetry run` ejecuta herramientas dentro del entorno del proyecto. El resultado de `poetry run python --version` debe ser 3.12 o posterior; pytest debe terminar con código 0 y mostrar los tests descubiertos. Para ver cobertura en terminal: `poetry run pytest --cov --cov-report=term-missing`. La suite existente usa `unittest.TestCase`, que pytest descubre; después de Fase 0, las rutas unitarias por capa se pueden ejecutar con el segundo comando de reportes de abajo. Si `poetry` no se reconoce tras instalar, abre una terminal nueva y revisa PATH según las instrucciones oficiales de Poetry.
+`poetry install` lee `poetry.lock` y el grupo no opcional `dev`, que contiene pytest y pytest-cov. `poetry run` ejecuta herramientas dentro de `.venv`. El resultado de `poetry --version` debe ser 2.4.3 y `poetry run python --version` debe ser 3.12 o posterior. En Ubuntu, usa la ruta `~/.local/bin/poetry` en todos los comandos si `/usr/bin/poetry` apunta a una versión anterior. La suite existente usa `unittest.TestCase`, que pytest descubre; después de Fase 0, las rutas unitarias por capa se pueden ejecutar con el segundo comando de reportes de abajo.
 
 Desde la raíz, con Poetry instalado y dependencias del grupo dev (`poetry install`). Bash/macOS:
 

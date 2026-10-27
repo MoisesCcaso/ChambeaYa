@@ -1227,7 +1227,7 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 
 # 8. Tecnologías
 
-- Python 3.10 o superior
+- Python 3.12 o superior
 - Flask 3
 - SQLAlchemy y Flask-SQLAlchemy
 - Alembic y Flask-Migrate
@@ -1237,6 +1237,11 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 ---
 
 # 9. Ejecución local
+
+`.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del
+repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
+`.env` es un archivo distinto: contiene configuración local de Flask, como la
+clave secreta y los datos SMTP.
 
 ### Windows (PowerShell)
 
@@ -1333,8 +1338,30 @@ El comando oficial usa pytest y descubre tanto las clases `unittest.TestCase`
 como las pruebas pytest. Desde PowerShell, Ubuntu/Linux o macOS:
 
 ```sh
+poetry --version
+poetry install
 poetry run pytest -v
 ```
+
+Este repositorio usa Poetry 2.4.3, la versión registrada en `poetry.lock`.
+Comprueba que `poetry --version` muestre exactamente `2.4.3` antes de instalar
+las dependencias. En Ubuntu, si la versión del sistema es antigua, instala la
+versión requerida con pipx y usa su ruta explícita para evitar seleccionar la
+versión de `/usr/bin/poetry`:
+
+```bash
+# El sudo se usa solo para instalar pipx desde los paquetes de Ubuntu.
+sudo apt install pipx
+pipx ensurepath
+pipx install "poetry==2.4.3"
+~/.local/bin/poetry --version
+~/.local/bin/poetry install
+~/.local/bin/poetry run pytest -v
+```
+
+En Windows y macOS, instala Poetry 2.4.3 siguiendo la
+[guía oficial de instalación](https://python-poetry.org/docs/#installation),
+y comprueba su versión antes de ejecutar `poetry install`.
 
 La suite actual contiene 12 métodos de integración que cubren el flujo de
 negocio. Los reportes globales y unitarios se generan en `reports/`; consulta
