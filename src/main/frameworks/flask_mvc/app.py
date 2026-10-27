@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from flask import Flask, jsonify
 from sqlalchemy.exc import IntegrityError
@@ -12,8 +13,11 @@ from frameworks.sqlalchemy_orm.database import db, migrate
 
 
 def create_app(config_name=None):
+    project_root = Path(__file__).resolve().parents[4]
+    instance_path = project_root / "instance"
     app = Flask(
         __name__,
+        instance_path=str(instance_path),
         instance_relative_config=True,
         static_folder="static",
         template_folder="templates",
@@ -30,7 +34,8 @@ def create_app(config_name=None):
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
-    migrate.init_app(app, db, directory="frameworks/migrations")
+    migrations_directory = Path(__file__).resolve().parents[1] / "migrations"
+    migrate.init_app(app, db, directory=str(migrations_directory))
 
     register_routes(app)
     register_demo_commands(app)

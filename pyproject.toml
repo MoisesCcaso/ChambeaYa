@@ -31,18 +31,18 @@ dev = [
 
 [tool.poetry]
 packages = [
-    { include = "application" },      # capa de aplicación (casos de uso)
-    { include = "domain" },           # capa de dominio (entidades y reglas)
-    { include = "frameworks" },       # Flask, SQLAlchemy, migraciones
-    { include = "infrastructure" },   # repositorios, SMTP
-    { include = "presentation" },     # controladores
-    { include = "config.py" },
-    { include = "run.py" },
+    { include = "application", from = "src/main" },      # capa de aplicación (casos de uso)
+    { include = "domain", from = "src/main" },           # capa de dominio (entidades y reglas)
+    { include = "frameworks", from = "src/main" },       # Flask, SQLAlchemy, migraciones
+    { include = "infrastructure", from = "src/main" },   # repositorios, SMTP
+    { include = "presentation", from = "src/main" },     # controladores
+    { include = "config.py", from = "src/main" },
+    { include = "run.py", from = "src/main" },
 ]
 include = [
-    { path = "frameworks/flask_mvc/templates/**/*", format = ["sdist", "wheel"] },
-    { path = "frameworks/flask_mvc/static/**/*", format = ["sdist", "wheel"] },
-    { path = "frameworks/migrations/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/frameworks/flask_mvc/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/frameworks/flask_mvc/static/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/frameworks/migrations/**/*", format = ["sdist", "wheel"] },
 ]
 exclude = ["**/__pycache__/**", "**/*.pyc"]
 
@@ -50,13 +50,14 @@ exclude = ["**/__pycache__/**", "**/*.pyc"]
 chambeaya = "run:main"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["src/test"]
+pythonpath = ["src/main"]
 python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
 source = ["application", "domain", "frameworks", "infrastructure", "presentation"]
-omit = ["frameworks/migrations/*", "*/__pycache__/*"]
+omit = ["src/main/frameworks/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]
 output = "reports/coverage.xml"
@@ -67,4 +68,4 @@ directory = "reports/htmlcov"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-exclude = ["frameworks/migrations", ".venv"]
+exclude = ["src/main/frameworks/migrations", ".venv"]
