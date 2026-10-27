@@ -10,7 +10,7 @@ Estas guías son la referencia compartida del equipo. El GitHub Project refleja 
 
 ## Checklist maestro
 
-- [ ] Fase 0: separar implementación en `src/main/` y pruebas en `src/test/`, revisar rutas dependientes y volver a validar la suite antes del push.
+- [x] Fase 0: separar implementación en `src/main/` y pruebas en `src/test/`, revisar rutas dependientes y validar la suite: 12 pasaron, 80 % de cobertura global (3 328 sentencias, 674 no cubiertas). Commits locales; push pendiente.
 - [ ] Fase 1: Integrante 1 completó issues y PR.
 - [ ] Fase 1: Integrante 2 completó issues y PR.
 - [ ] Fase 1: Integrante 3 completó issues y PR.

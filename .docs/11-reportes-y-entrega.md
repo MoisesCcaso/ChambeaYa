@@ -66,7 +66,7 @@ Cada integrante entrega en su PR: nombre/ruta de los tests, salida de pytest, l�
 
 - [ ] R1 `main` + `development`; ramas de laboratorio desde `development` actualizado. Responsable: Integrante 1.
 - [ ] R2 Poetry declara pytest y pytest-cov; `unittest.mock` estándar. Responsable: Integrante 1.
-- [ ] R3 implementación en `src/main/` y pruebas en `src/test/`, con pruebas organizadas por domain/infrastructure/application/integration. Responsable: Integrante 1.
+- [x] R3 implementación en `src/main/` y pruebas en `src/test/`, con pruebas organizadas por domain/infrastructure/application/integration. La suite de partida pasa (12/12) tras el cambio de rutas. Responsable: Integrante 1.
 - [ ] R4 Project KANBAN con cinco columnas exactas. Responsable: coordinador autorizado.
 - [ ] R5 Issues con descripción, responsable, etiqueta, duración y criterios. Responsable: coordinador + equipo.
 - [ ] R6 commits a `development` vía PR con Conventional Commits y footer `fix #n`. Responsable: cada integrante.
