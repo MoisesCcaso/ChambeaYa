@@ -1,0 +1,67 @@
+[project]
+name = "chambeaya"
+version = "1.0.0"
+description = "Plataforma web para la gestion de practicas preprofesionales"
+authors = [
+    {name = "JLtz00",email = "lorenzoltx@gmail.com"}
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "flask (>=3.0,<4.0)",
+    "flask-sqlalchemy (>=3.1,<4.0)",
+    "flask-migrate (>=4.0,<5.0)",
+    "python-dotenv (>=1.0,<2.0)",
+    "reportlab (>=4.0,<5.0)",
+    "qrcode (>=7.0,<9.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.3,<9.0)",
+    "pytest-cov (>=6.0,<7.0)",
+    "ruff (>=0.8,<0.9)"
+]
+
+[tool.poetry]
+packages = [
+    { include = "application" },      # capa de aplicación (casos de uso)
+    { include = "domain" },           # capa de dominio (entidades y reglas)
+    { include = "frameworks" },       # Flask, SQLAlchemy, migraciones
+    { include = "infrastructure" },   # repositorios, SMTP
+    { include = "presentation" },     # controladores
+    { include = "config.py" },
+    { include = "run.py" },
+]
+include = [
+    { path = "frameworks/flask_mvc/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "frameworks/flask_mvc/static/**/*", format = ["sdist", "wheel"] },
+    { path = "frameworks/migrations/**/*", format = ["sdist", "wheel"] },
+]
+exclude = ["**/__pycache__/**", "**/*.pyc"]
+
+[project.scripts]
+chambeaya = "run:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
+
+[tool.coverage.run]
+source = ["application", "domain", "frameworks", "infrastructure", "presentation"]
+omit = ["frameworks/migrations/*", "*/__pycache__/*"]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = ["frameworks/migrations", ".venv"]
