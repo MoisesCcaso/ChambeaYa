@@ -51,7 +51,14 @@ poetry run pytest -v --junitxml=reports/junit.xml --cov --cov-report=term-missin
 poetry run pytest -v tests/domain tests/infrastructure tests/application --junitxml=reports/junit-unit.xml --cov --cov-report=term-missing --cov-report=html:reports/unit-htmlcov --cov-report=xml:reports/unit-coverage.xml
 ```
 
-La primera ejecución incluye integración + unitarias: `reports/junit.xml`, `reports/coverage.xml`, `reports/htmlcov/`. La segunda limita tests unitarios por ruta: `reports/junit-unit.xml`, `reports/unit-coverage.xml`, `reports/unit-htmlcov/`. Ambos grupos de artefactos se versionan en Git después de la ejecución final; `.coverage` y cachés no. Los informes de cobertura calculan cobertura de código de producción; el filtro selecciona qué pruebas la ejercitan. No publicar como “cobertura unitaria” un informe obtenido con la suite global.
+La primera ejecución incluye integración + unitarias: `reports/junit.xml`, `reports/coverage.xml`, `reports/htmlcov/`. La segunda limita tests unitarios por ruta: `reports/junit-unit.xml`, `reports/unit-coverage.xml`, `reports/unit-htmlcov/`. Coverage.py crea un `reports/htmlcov/.gitignore` que oculta su HTML; al versionar los reportes finales, fuerza la inclusión de esas carpetas:
+
+```bash
+git add reports/junit.xml reports/coverage.xml reports/junit-unit.xml reports/unit-coverage.xml
+git add -f reports/htmlcov reports/unit-htmlcov
+```
+
+En PowerShell se usan los mismos comandos Git. Versionar los reportes después de la ejecución final; `.coverage` y cachés no. Los informes de cobertura calculan cobertura de código de producción; el filtro selecciona qué pruebas la ejercitan. No publicar como “cobertura unitaria” un informe obtenido con la suite global.
 
 Cada integrante entrega en su PR: nombre/ruta de los tests, salida de pytest, líneas ejecutables/cubiertas de los archivos asignados, observaciones de fallos y enlace al issue. Tras integrar los seis PR, la persona integradora ejecuta ambos comandos desde `development`, revisa los reportes XML/HTML y versiona los artefactos finales en `reports/`.
 

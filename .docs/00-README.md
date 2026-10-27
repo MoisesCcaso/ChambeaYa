@@ -10,7 +10,7 @@ Estas guías son la referencia compartida del equipo. El GitHub Project refleja 
 
 ## Checklist maestro
 
-- [ ] Fase 0: estructura compartida, fixture, comando de pruebas y carpeta de reportes listos en `development`.
+- [x] Fase 0: estructura compartida, fixture, comando de pruebas y carpeta de reportes listos en `development`; suite base 12/12 y cobertura global 80 %.
 - [ ] Fase 1: Integrante 1 completó issues y PR.
 - [ ] Fase 1: Integrante 2 completó issues y PR.
 - [ ] Fase 1: Integrante 3 completó issues y PR.
