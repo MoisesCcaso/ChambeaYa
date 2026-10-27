@@ -19,10 +19,11 @@ Para ejecutar:
 .\.venv\Scripts\python.exe -m flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
-Para ejecutar las pruebas integrales:
+Para ejecutar todas las pruebas con el comando oficial (PowerShell, Ubuntu/Linux
+y macOS):
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```sh
+poetry run pytest -v
 ```
 
 ## Autenticación

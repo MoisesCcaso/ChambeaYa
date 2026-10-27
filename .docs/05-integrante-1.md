@@ -44,4 +44,4 @@ DoD: tres archivos exclusivos, reglas/casos descritos, SQLite para repositorio s
 - `domain/auth/usuario.py:32-71`; `token_recuperacion.py:7-20`; `autenticacion_dominio_servicio.py:11-41`.
 - `application/usuario_application_service.py:18-172` (inyección, registro, recuperación y activación).
 - `infrastructure/sqlalchemy_usuario_repository.py:10-62`; interfaces `domain/auth/i_usuario_repository.py`, `domain/auth/i_auth_email_sender.py`.
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48` (`create_app`, selección config, modelos importados); la suite actual gestiona `db.create_all/drop_all` en `tests/test_backend_integration.py:21-28`.
+- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48` (`create_app`, selección config, modelos importados); la suite actual gestiona `db.create_all/drop_all` en `tests/integration/test_backend_integration.py:21-28`.

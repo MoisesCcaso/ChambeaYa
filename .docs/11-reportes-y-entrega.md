@@ -6,7 +6,7 @@ Relacionado: [reparto](04-reparto-equipo.md).
 
 Desde la raíz del repositorio, usar Python 3.12 (el proyecto exige `>=3.12`). Poetry necesita que ese intérprete ya esté instalado; verifica la versión antes de instalar dependencias. Si ya tienes Poetry, salta el paso de instalación.
 
-Bash/macOS (instalador oficial de Poetry, solo si `poetry --version` no responde):
+Bash en Ubuntu/Linux y macOS (instalador oficial de Poetry, solo si `poetry --version` no responde):
 
 ```bash
 python3 --version

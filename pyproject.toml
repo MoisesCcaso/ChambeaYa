@@ -59,7 +59,10 @@ source = ["application", "domain", "frameworks", "infrastructure", "presentation
 omit = ["frameworks/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]
-output = "coverage.xml"
+output = "reports/coverage.xml"
+
+[tool.coverage.html]
+directory = "reports/htmlcov"
 
 [tool.ruff]
 target-version = "py312"

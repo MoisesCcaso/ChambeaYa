@@ -1329,22 +1329,16 @@ repositorio.
 
 # 10. Pruebas
 
-Ejecutar todas las pruebas desde PowerShell:
+El comando oficial usa pytest y descubre tanto las clases `unittest.TestCase`
+como las pruebas pytest. Desde PowerShell, Ubuntu/Linux o macOS:
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```sh
+poetry run pytest -v
 ```
 
-En Linux o macOS:
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-El conjunto de pruebas incluye 8 casos de integración que cubren el flujo
-completo de negocio: registro, activación, perfiles, convocatorias, matching,
-postulaciones, prácticas, entregables, evaluaciones, certificados y
-notificaciones.
+La suite actual contiene 12 métodos de integración que cubren el flujo de
+negocio. Los reportes globales y unitarios se generan en `reports/`; consulta
+los comandos exactos en [Reportes y entrega](.docs/11-reportes-y-entrega.md).
 
 ---
 
