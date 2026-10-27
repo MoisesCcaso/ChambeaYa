@@ -7,16 +7,15 @@ prácticas, entregables, evaluaciones, notificaciones y certificados.
 ## Preparación en Windows (PowerShell)
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+poetry install
 Copy-Item .env.example .env
-.\.venv\Scripts\python.exe -m flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
 ```
 
 Para ejecutar:
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
 Para ejecutar todas las pruebas con el comando oficial (PowerShell, Ubuntu/Linux

@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Código: `domain/perfil/{practicante,empresa,ruc,nombre_completo}.py`; `infrastructure/sqlalchemy_perfil_repository.py`; `application/perfil_application_service.py`. Crear solo `tests/domain/test_perfil_domain.py`, `tests/infrastructure/test_perfil_repository.py`, `tests/application/test_perfil_service.py`. No tomar auth ajeno, conftest/config ni otros archivos.
+Código: `src/main/domain/perfil/{practicante,empresa,ruc,nombre_completo}.py`; `src/main/infrastructure/sqlalchemy_perfil_repository.py`; `src/main/application/perfil_application_service.py`. Crear solo `src/test/domain/test_perfil_domain.py`, `src/test/infrastructure/test_perfil_repository.py`, `src/test/application/test_perfil_service.py`. No tomar auth ajeno, conftest/config ni otros archivos.
 
 Rama(s): `lab5/domain-perfil`, `lab5/infrastructure-perfil`, `lab5/application-perfil`. Commits sugeridos `test(domain-perfil): cubrir identidad y score` + `fix #n`; `test(infrastructure-perfil): verificar mapeo de perfiles` + `fix #n`; `test(application-perfil): cubrir actualización de perfil` + `fix #n`.
 
@@ -43,7 +43,7 @@ DoD: pruebas de dominio/ORM/aplicación en rutas exclusivas; R8 sin doubles; R9 
 
 ## Verificado
 
-- `domain/perfil/practicante.py:29-99` (DNI 8, carnet longitud mínima 4, score 5 por habilidad hasta 10, formación hasta 5, identidad 25, tope 100); `empresa.py:19-24`; `ruc.py:8-35` (11 dígitos, prefijos 10/15/17/20 y módulo 11); `nombre_completo.py:9-19`.
-- `infrastructure/sqlalchemy_perfil_repository.py:15-115` (save, mapeo y JSON).
-- `application/perfil_application_service.py:181-327` (constructores, update y guardas).
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48`.
+- `src/main/domain/perfil/practicante.py:29-99` (DNI 8, carnet longitud mínima 4, score 5 por habilidad hasta 10, formación hasta 5, identidad 25, tope 100); `empresa.py:19-24`; `ruc.py:8-35` (11 dígitos, prefijos 10/15/17/20 y módulo 11); `nombre_completo.py:9-19`.
+- `src/main/infrastructure/sqlalchemy_perfil_repository.py:15-115` (save, mapeo y JSON).
+- `src/main/application/perfil_application_service.py:181-327` (constructores, update y guardas).
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48`.

@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Dominio `domain/practica_evaluacion/{practica,practica_fabrica,entregable,evaluacion}.py`; repos `infrastructure/sqlalchemy_practica_repository.py`, `sqlalchemy_certificado_repository.py`; servicio `application/practica_application_service.py`. Tests: `tests/domain/test_practica_evaluacion_domain.py`, `tests/infrastructure/test_practica_repository.py`, `tests/infrastructure/test_certificado_repository.py`, `tests/application/test_practica_service.py`. No editar dominio certificación ni servicio certificación.
+Dominio `src/main/domain/practica_evaluacion/{practica,practica_fabrica,entregable,evaluacion}.py`; repos `src/main/infrastructure/sqlalchemy_practica_repository.py`, `sqlalchemy_certificado_repository.py`; servicio `src/main/application/practica_application_service.py`. Tests: `src/test/domain/test_practica_evaluacion_domain.py`, `src/test/infrastructure/test_practica_repository.py`, `src/test/infrastructure/test_certificado_repository.py`, `src/test/application/test_practica_service.py`. No editar dominio certificación ni servicio certificación.
 
 Ramas: `lab5/domain-practica`, `lab5/infrastructure-practica`, `lab5/application-practica`. Commits `test(domain-practica): cubrir finalización y evaluación` + `fix #n`; `test(infrastructure-practica): persistir agregado e hijos` + `fix #n`; `test(application-practica): aislar ciclo de práctica` + `fix #n`.
 
@@ -41,8 +41,8 @@ DoD: casos de límites correctos, fecha determinista con patch módulo-local, R8
 
 ## Verificado
 
-- `domain/practica_evaluacion/evaluacion.py:6-36` (60.0, 0–100 inclusivo); `practica.py:8-78` (finalización requiere entregable/evaluación aprobada); `entregable.py:7-23`; `practica_fabrica.py:7-16`.
-- `infrastructure/sqlalchemy_practica_repository.py:14-100`; `sqlalchemy_certificado_repository.py:12-72` (persistencia/lookup); interfaces `domain/practica_evaluacion/i_practica_repository.py:7-22` y `domain/certificacion/i_certificado_repository.py:4-20`.
-- `application/practica_application_service.py:12-178` (constructor y métodos públicos); interfaces de dependencias en `domain/perfil/i_perfil_repository.py`, `domain/convocatorias/i_postulacion_repository.py`, `i_convocatoria_repository.py`.
+- `src/main/domain/practica_evaluacion/evaluacion.py:6-36` (60.0, 0–100 inclusivo); `practica.py:8-78` (finalización requiere entregable/evaluación aprobada); `entregable.py:7-23`; `practica_fabrica.py:7-16`.
+- `src/main/infrastructure/sqlalchemy_practica_repository.py:14-100`; `sqlalchemy_certificado_repository.py:12-72` (persistencia/lookup); interfaces `src/main/domain/practica_evaluacion/i_practica_repository.py:7-22` y `src/main/domain/certificacion/i_certificado_repository.py:4-20`.
+- `src/main/application/practica_application_service.py:12-178` (constructor y métodos públicos); interfaces de dependencias en `src/main/domain/perfil/i_perfil_repository.py`, `src/main/domain/convocatorias/i_postulacion_repository.py`, `i_convocatoria_repository.py`.
 - Patch fecha: `domain.practica_evaluacion.evaluacion.datetime`; `Entregable.crear` tiene misma dependencia local en `domain.practica_evaluacion.entregable.datetime`.
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48`.
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48`.

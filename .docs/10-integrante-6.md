@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Dominio `domain/certificacion/{certificado,archivo_pdf,codigo_qr,certificacion_dominio_servicio}.py`; repo `infrastructure/sqlalchemy_notificacion_repository.py`; servicios `application/certificacion_application_service.py`, `application/notificacion_application_service.py`. Tests: `tests/domain/test_certificacion_domain.py`, `tests/infrastructure/test_notificacion_repository.py`, `tests/application/test_certificacion_service.py`, `tests/application/test_notificacion_service.py`. Postulación se asigna a Integrante 3. Carga estimada: 1.5 h.
+Dominio `src/main/domain/certificacion/{certificado,archivo_pdf,codigo_qr,certificacion_dominio_servicio}.py`; repo `src/main/infrastructure/sqlalchemy_notificacion_repository.py`; servicios `src/main/application/certificacion_application_service.py`, `src/main/application/notificacion_application_service.py`. Tests: `src/test/domain/test_certificacion_domain.py`, `src/test/infrastructure/test_notificacion_repository.py`, `src/test/application/test_certificacion_service.py`, `src/test/application/test_notificacion_service.py`. Postulación se asigna a Integrante 3. Carga estimada: 1.5 h.
 
 Ramas: `lab5/domain-certificacion`, `lab5/infrastructure-notificacion`, `lab5/application-certificacion`, `lab5/application-notificacion`. Commits `test(domain-certificacion): validar contenido y QR` + `fix #n`; `test(infrastructure-notificacion): consultar y marcar lecturas` + `fix #n`; `test(application-certificacion): cubrir emisión` + `fix #n`; `test(application-notificacion): validar guardas de lectura` + `fix #n`.
 
@@ -40,8 +40,8 @@ DoD: casos del dominio con UUID controlado, repo SQLite sin doubles, dos servici
 
 ## Verificado
 
-- `domain/certificacion/certificacion_dominio_servicio.py:7-29`; `certificado.py:5-19`; `archivo_pdf.py:4-28`; `codigo_qr.py:4-22` (importa `uuid4`, usa SHA-256).
-- `infrastructure/sqlalchemy_notificacion_repository.py:12-99`; interfaces `domain/notificaciones/i_notificacion_reader.py:6-18`, `i_notificacion_writer.py:6-18`.
-- Servicios: `application/certificacion_application_service.py:5-78` (constructor, emisión/verificación) y `application/notificacion_application_service.py:6-43` (writer/reader y 5 métodos). Postulación se verifica en la guía de Integrante 3.
-- Interfaces asignadas: certificado `domain/certificacion/i_certificado_repository.py:4-20`; práctica `domain/practica_evaluacion/i_practica_repository.py:7-22`; notificación `domain/notificaciones/i_notificacion_reader.py:6-18` e `i_notificacion_writer.py:6-18`.
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48`.
+- `src/main/domain/certificacion/certificacion_dominio_servicio.py:7-29`; `certificado.py:5-19`; `archivo_pdf.py:4-28`; `codigo_qr.py:4-22` (importa `uuid4`, usa SHA-256).
+- `src/main/infrastructure/sqlalchemy_notificacion_repository.py:12-99`; interfaces `src/main/domain/notificaciones/i_notificacion_reader.py:6-18`, `i_notificacion_writer.py:6-18`.
+- Servicios: `src/main/application/certificacion_application_service.py:5-78` (constructor, emisión/verificación) y `src/main/application/notificacion_application_service.py:6-43` (writer/reader y 5 métodos). Postulación se verifica en la guía de Integrante 3.
+- Interfaces asignadas: certificado `src/main/domain/certificacion/i_certificado_repository.py:4-20`; práctica `src/main/domain/practica_evaluacion/i_practica_repository.py:7-22`; notificación `src/main/domain/notificaciones/i_notificacion_reader.py:6-18` e `i_notificacion_writer.py:6-18`.
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48`.

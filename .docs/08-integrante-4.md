@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Código: `domain/matching/{sugerencia,resultado_matching,matching_dominio_servicio}.py`; `infrastructure/sqlalchemy_matching_repository.py`; `application/matching_application_service.py`. Tests exclusivos: `tests/domain/test_matching_domain.py`, `tests/infrastructure/test_matching_repository.py`, `tests/application/test_matching_service.py`. No agregar el servicio/Repositorio de notificaciones, asignado a Integrante 6.
+Código: `src/main/domain/matching/{sugerencia,resultado_matching,matching_dominio_servicio}.py`; `src/main/infrastructure/sqlalchemy_matching_repository.py`; `src/main/application/matching_application_service.py`. Tests exclusivos: `src/test/domain/test_matching_domain.py`, `src/test/infrastructure/test_matching_repository.py`, `src/test/application/test_matching_service.py`. No agregar el servicio/Repositorio de notificaciones, asignado a Integrante 6.
 
 Ramas: `lab5/domain-matching`, `lab5/infrastructure-matching`, `lab5/application-matching`. Commits `test(domain-matching): cubrir compatibilidad` + `fix #n`; `test(infrastructure-matching): persistir sugerencias` + `fix #n`; `test(application-matching): aislar cálculo de sugerencias` + `fix #n`.
 
@@ -19,7 +19,7 @@ TDD rojo-verde-refactor.
 | Servicio `calculate_for_practicante` | perfiles/convocatorias fake de dominio y repositorios autospec; devuelve cálculo y guarda sugerencias según flujo | `create_autospec(IPerfilRepository/IConvocatoriaRepository/ISugerenciaRepository, instance=True, spec_set=True)`; verificar llamadas y filtros |
 | Servicio `suggest_convocatorias` | configuración de repositorios devuelve sugerencias del practicante | mismos autospec; verificar ID pasado |
 
-El código puntúa coincidencias sobre requisitos y usa umbral inclusivo 50.0 por defecto; verificar también la lista requerida vacía. Las tres interfaces existen bajo `domain/perfil/i_perfil_repository.py`, `domain/convocatorias/i_convocatoria_repository.py` y `domain/matching/i_sugerencia_repository.py`. R8 importa ORM real y usa TestingConfig. Sin fechas ni UUID relevantes, no usar patch.
+El código puntúa coincidencias sobre requisitos y usa umbral inclusivo 50.0 por defecto; verificar también la lista requerida vacía. Las tres interfaces existen bajo `src/main/domain/perfil/i_perfil_repository.py`, `src/main/domain/convocatorias/i_convocatoria_repository.py` y `src/main/domain/matching/i_sugerencia_repository.py`. R8 importa ORM real y usa TestingConfig. Sin fechas ni UUID relevantes, no usar patch.
 
 Meta: al menos 80 % de líneas ejecutables por archivo. Priorizar los dos métodos del repositorio y los casos de listas vacías del dominio; anotar numerador y denominador medidos.
 
@@ -40,7 +40,7 @@ DoD: fórmula comprobada línea por línea, seis rutas propias sin colisiones, r
 
 ## Verificado
 
-- `domain/matching/sugerencia.py:1-33` (casefold, score es intersección/requeridos), `resultado_matching.py:1-11` (default umbral 50 inclusivo), `matching_dominio_servicio.py:6-37`.
-- `infrastructure/sqlalchemy_matching_repository.py:9-65` (save/upsert, find, conversión JSON); interface `domain/matching/i_sugerencia_repository.py:7-17`.
-- `application/matching_application_service.py:4-43` (constructor y dos operaciones); interfaces: `domain/perfil/i_perfil_repository.py:7-26`, `domain/convocatorias/i_convocatoria_repository.py:7-30`, `domain/matching/i_sugerencia_repository.py:7-17`.
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48`.
+- `src/main/domain/matching/sugerencia.py:1-33` (casefold, score es intersección/requeridos), `resultado_matching.py:1-11` (default umbral 50 inclusivo), `matching_dominio_servicio.py:6-37`.
+- `src/main/infrastructure/sqlalchemy_matching_repository.py:9-65` (save/upsert, find, conversión JSON); interface `src/main/domain/matching/i_sugerencia_repository.py:7-17`.
+- `src/main/application/matching_application_service.py:4-43` (constructor y dos operaciones); interfaces: `src/main/domain/perfil/i_perfil_repository.py:7-26`, `src/main/domain/convocatorias/i_convocatoria_repository.py:7-30`, `src/main/domain/matching/i_sugerencia_repository.py:7-17`.
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48`.

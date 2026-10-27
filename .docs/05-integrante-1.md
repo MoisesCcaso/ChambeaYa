@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Dominio: `domain/auth/usuario.py`, `token_recuperacion.py`, `autenticacion_dominio_servicio.py`. Repositorio: `infrastructure/sqlalchemy_usuario_repository.py`. Servicio: `application/usuario_application_service.py`. Pruebas propias: `tests/domain/test_auth_domain.py`, `tests/infrastructure/test_usuario_repository.py`, `tests/application/test_usuario_service.py`. No tomar ownership de interfaces, fixture, integración, configuración, correo SMTP concreto ni pruebas de otro integrante.
+Dominio: `src/main/domain/auth/usuario.py`, `token_recuperacion.py`, `autenticacion_dominio_servicio.py`. Repositorio: `src/main/infrastructure/sqlalchemy_usuario_repository.py`. Servicio: `src/main/application/usuario_application_service.py`. Pruebas propias: `src/test/domain/test_auth_domain.py`, `src/test/infrastructure/test_usuario_repository.py`, `src/test/application/test_usuario_service.py`. No tomar ownership de interfaces, fixture, integración, configuración, correo SMTP concreto ni pruebas de otro integrante.
 
 Rama: `lab5/domain-auth`, `lab5/infrastructure-usuario`, `lab5/application-usuario` (puede usar una sola rama si respeta el scope). Commits: prueba roja `test(domain-auth): cubrir login pendiente` + `fix #n`; verde/repositorio `test(infrastructure-usuario): persistir tokens` + `fix #n`; aplicación `test(application-usuario): verificar activación aislada` + `fix #n`.
 
@@ -20,7 +20,7 @@ Aplicar TDD rojo-verde-refactor. Casos recomendados (casos unitarios construible
 | Servicio `register_user` | email con espacios/mayúsculas, contraseñas coincidentes; guarda usuario normalizado pendiente y llama `send_activation(email, token)` una vez | `create_autospec(IUsuarioRepository, instance=True, spec_set=True)`; autospec `IAuthEmailSender`; dominio auth real o autospec con hash/token deterministas; verificar argumentos |
 | Servicio `recover_password` | usuario inexistente → `None`, sin guardar ni enviar; usuario existente → token de 2 horas, guarda y envía | mismos autospec; verificar `find_by_email`, `save`, `send_password_reset` |
 
-Las interfaces existen en `domain/auth/i_usuario_repository.py` (`save`, búsquedas por email/id/tokens) y `domain/auth/i_auth_email_sender.py` (send_activation/send_password_reset); verificar nombres completos antes de crear autospec. Para `generate_token`, no afirmar token fijo; comprobar expiración y forma. Parche de tiempo exacto: el token consulta `datetime` en `domain.auth.token_recuperacion.datetime`; servicio auth usa `domain.auth.autenticacion_dominio_servicio.datetime`. No hay `uuid4` asignado a este contexto.
+Las interfaces existen en `src/main/domain/auth/i_usuario_repository.py` (`save`, búsquedas por email/id/tokens) y `src/main/domain/auth/i_auth_email_sender.py` (send_activation/send_password_reset); verificar nombres completos antes de crear autospec. Para `generate_token`, no afirmar token fijo; comprobar expiración y forma. Parche de tiempo exacto: el token consulta `datetime` en `domain.auth.token_recuperacion.datetime`; servicio auth usa `domain.auth.autenticacion_dominio_servicio.datetime`. No hay `uuid4` asignado a este contexto.
 
 Meta por archivo: 80 % de líneas ejecutables; anotar covered/total medido en el baseline de Fase 0 y al cerrar el PR.
 
@@ -41,7 +41,7 @@ DoD: tres archivos exclusivos, reglas/casos descritos, SQLite para repositorio s
 
 ## Verificado
 
-- `domain/auth/usuario.py:32-71`; `token_recuperacion.py:7-20`; `autenticacion_dominio_servicio.py:11-41`.
-- `application/usuario_application_service.py:18-172` (inyección, registro, recuperación y activación).
-- `infrastructure/sqlalchemy_usuario_repository.py:10-62`; interfaces `domain/auth/i_usuario_repository.py`, `domain/auth/i_auth_email_sender.py`.
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48` (`create_app`, selección config, modelos importados); la suite actual gestiona `db.create_all/drop_all` en `tests/integration/test_backend_integration.py:21-28`.
+- `src/main/domain/auth/usuario.py:32-71`; `token_recuperacion.py:7-20`; `autenticacion_dominio_servicio.py:11-41`.
+- `src/main/application/usuario_application_service.py:18-172` (inyección, registro, recuperación y activación).
+- `src/main/infrastructure/sqlalchemy_usuario_repository.py:10-62`; interfaces `src/main/domain/auth/i_usuario_repository.py`, `src/main/domain/auth/i_auth_email_sender.py`.
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48` (`create_app`, selección config, modelos importados); la suite actual gestiona `db.create_all/drop_all` en `src/test/integration/test_backend_integration.py:21-28`.

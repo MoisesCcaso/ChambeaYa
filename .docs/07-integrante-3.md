@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Código dominio `domain/convocatorias/{convocatoria,convocatoria_fabrica,postulacion}.py`; repos `infrastructure/sqlalchemy_convocatoria_repository.py`, `sqlalchemy_postulacion_repository.py`; servicios `application/convocatoria_application_service.py` y `application/postulacion_application_service.py`. Pruebas: `tests/domain/test_convocatorias_domain.py`, `tests/infrastructure/test_convocatoria_repository.py`, `tests/infrastructure/test_postulacion_repository.py`, `tests/application/test_convocatoria_service.py`, `tests/application/test_postulacion_service.py`. Postulación se asigna aquí por afinidad de contexto y repositorio.
+Código dominio `src/main/domain/convocatorias/{convocatoria,convocatoria_fabrica,postulacion}.py`; repos `src/main/infrastructure/sqlalchemy_convocatoria_repository.py`, `sqlalchemy_postulacion_repository.py`; servicios `src/main/application/convocatoria_application_service.py` y `src/main/application/postulacion_application_service.py`. Pruebas: `src/test/domain/test_convocatorias_domain.py`, `src/test/infrastructure/test_convocatoria_repository.py`, `src/test/infrastructure/test_postulacion_repository.py`, `src/test/application/test_convocatoria_service.py`, `src/test/application/test_postulacion_service.py`. Postulación se asigna aquí por afinidad de contexto y repositorio.
 
 Ramas: `lab5/domain-convocatorias`, `lab5/infrastructure-convocatorias`, `lab5/application-convocatoria`, `lab5/application-postulacion`. Commits `test(domain-convocatorias): cubrir cambios de estado` + `fix #n`; `test(infrastructure-convocatorias): persistir convocatorias y postulaciones` + `fix #n`; `test(application-convocatoria): aislar ciclo de publicación` + `fix #n`; `test(application-postulacion): probar selección de candidato` + `fix #n`.
 
@@ -21,7 +21,7 @@ TDD rojo-verde-refactor.
 | Servicio `search`/`find_by_id` | `search("Python", "publicada")` delega ambos argumentos y retorna la lista del repo; `find_by_id(99)` retorna el None que entrega el repo | autospec de `IConvocatoriaRepository`; verificar llamadas/argumentos |
 | Servicio Postulación `select_candidate` | candidato pendiente de convocatoria propia queda seleccionado; otras postulaciones pendientes quedan rechazadas y guardadas | autospec `IPostulacionRepository`, `IConvocatoriaRepository`, `IPerfilRepository`, `IPracticaRepository`; verificar saves e IDs |
 
-Las interfaces concretas son `domain/convocatorias/i_convocatoria_repository.py` e `i_postulacion_repository.py`. No confundir `aceptar()` alias con `seleccionar()`: ambos existen, y servicio opera sus propias reglas. `Convocatoria.datetime` está importado directamente como `datetime`; patch exacto `domain.convocatorias.convocatoria.datetime`. No hay UUID en asignación.
+Las interfaces concretas son `src/main/domain/convocatorias/i_convocatoria_repository.py` e `i_postulacion_repository.py`. No confundir `aceptar()` alias con `seleccionar()`: ambos existen, y servicio opera sus propias reglas. `Convocatoria.datetime` está importado directamente como `datetime`; patch exacto `domain.convocatorias.convocatoria.datetime`. No hay UUID en asignación.
 
 Meta de cobertura: al menos 80 % de líneas ejecutables por archivo. Registrar numerador y denominador medidos al inicio y al cierre del PR.
 
@@ -42,7 +42,7 @@ DoD: dominio determinista, dos repos con SQLite, servicio aislado con autospec, 
 
 ## Verificado
 
-- `domain/convocatorias/convocatoria.py:34-108` (estados y fecha UTC); `convocatoria_fabrica.py:5-30`; `postulacion.py:4-54` (estados y métodos, incluye `aceptar`).
-- `infrastructure/sqlalchemy_convocatoria_repository.py:12-101` (save/search/delete); `sqlalchemy_postulacion_repository.py:9-56` (save y búsquedas); interfaces en `domain/convocatorias/i_convocatoria_repository.py:7-30` e `i_postulacion_repository.py:7-26`.
-- `application/convocatoria_application_service.py:5-103` (constructor, publish/update/delete/search y guardas); `application/postulacion_application_service.py:5-166` (constructor, `select_candidate` 79-114 y guardas).
-- `config.py:48-52`; `frameworks/flask_mvc/app.py:14-48`.
+- `src/main/domain/convocatorias/convocatoria.py:34-108` (estados y fecha UTC); `convocatoria_fabrica.py:5-30`; `postulacion.py:4-54` (estados y métodos, incluye `aceptar`).
+- `src/main/infrastructure/sqlalchemy_convocatoria_repository.py:12-101` (save/search/delete); `sqlalchemy_postulacion_repository.py:9-56` (save y búsquedas); interfaces en `src/main/domain/convocatorias/i_convocatoria_repository.py:7-30` e `i_postulacion_repository.py:7-26`.
+- `src/main/application/convocatoria_application_service.py:5-103` (constructor, publish/update/delete/search y guardas); `src/main/application/postulacion_application_service.py:5-166` (constructor, `select_candidate` 79-114 y guardas).
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48`.

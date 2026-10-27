@@ -40,7 +40,7 @@ Desde la raíz, con Poetry instalado y dependencias del grupo dev (`poetry insta
 ```bash
 mkdir -p reports
 poetry run pytest -v --junitxml=reports/junit.xml --cov --cov-report=term-missing --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml
-poetry run pytest -v tests/domain tests/infrastructure tests/application --junitxml=reports/junit-unit.xml --cov --cov-report=term-missing --cov-report=html:reports/unit-htmlcov --cov-report=xml:reports/unit-coverage.xml
+poetry run pytest -v src/test/domain src/test/infrastructure src/test/application --junitxml=reports/junit-unit.xml --cov --cov-report=term-missing --cov-report=html:reports/unit-htmlcov --cov-report=xml:reports/unit-coverage.xml
 ```
 
 PowerShell:
@@ -48,7 +48,7 @@ PowerShell:
 ```powershell
 New-Item -ItemType Directory -Force reports | Out-Null
 poetry run pytest -v --junitxml=reports/junit.xml --cov --cov-report=term-missing --cov-report=html:reports/htmlcov --cov-report=xml:reports/coverage.xml
-poetry run pytest -v tests/domain tests/infrastructure tests/application --junitxml=reports/junit-unit.xml --cov --cov-report=term-missing --cov-report=html:reports/unit-htmlcov --cov-report=xml:reports/unit-coverage.xml
+poetry run pytest -v src/test/domain src/test/infrastructure src/test/application --junitxml=reports/junit-unit.xml --cov --cov-report=term-missing --cov-report=html:reports/unit-htmlcov --cov-report=xml:reports/unit-coverage.xml
 ```
 
 La primera ejecución incluye integración + unitarias: `reports/junit.xml`, `reports/coverage.xml`, `reports/htmlcov/`. La segunda limita tests unitarios por ruta: `reports/junit-unit.xml`, `reports/unit-coverage.xml`, `reports/unit-htmlcov/`. Coverage.py crea un `reports/htmlcov/.gitignore` que oculta su HTML; al versionar los reportes finales, fuerza la inclusión de esas carpetas:
@@ -66,7 +66,7 @@ Cada integrante entrega en su PR: nombre/ruta de los tests, salida de pytest, l�
 
 - [ ] R1 `main` + `development`; ramas de laboratorio desde `development` actualizado. Responsable: Integrante 1.
 - [ ] R2 Poetry declara pytest y pytest-cov; `unittest.mock` estándar. Responsable: Integrante 1.
-- [ ] R3 pruebas separadas por domain/infrastructure/application/integration. Responsable: Integrante 1.
+- [ ] R3 implementación en `src/main/` y pruebas en `src/test/`, con pruebas organizadas por domain/infrastructure/application/integration. Responsable: Integrante 1.
 - [ ] R4 Project KANBAN con cinco columnas exactas. Responsable: coordinador autorizado.
 - [ ] R5 Issues con descripción, responsable, etiqueta, duración y criterios. Responsable: coordinador + equipo.
 - [ ] R6 commits a `development` vía PR con Conventional Commits y footer `fix #n`. Responsable: cada integrante.
