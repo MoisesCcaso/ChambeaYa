@@ -1,0 +1,46 @@
+# Reparto del equipo
+
+R7 pide seis módulos de dominio; R8 seis repositorios; R9 seis servicios. El código contiene siete módulos de dominio, ocho repositorios y ocho servicios. Se asignan seis contextos verticales. Se deja el dominio de notificaciones fuera de R7: `Notificacion.marcar_como_leida` es un comportamiento mínimo y no justifica otra asignación de dominio en un equipo de seis; su repositorio y servicio sí se cubren como extensiones. Para repartir los módulos restantes sin un séptimo integrante, el repositorio de Postulación y su servicio van con Convocatorias (Integrante 3), mientras que el repositorio de Certificado va con Práctica (Integrante 5). Así se cubren los ocho repositorios y los ocho servicios; nadie recibe más de dos servicios.
+
+## Métrica de carga reproducible
+
+La métrica es la suma de horas estimadas en la tabla de issues de [03-tablero-kanban.md](03-tablero-kanban.md). Totales de todas las fases: I1=3 h (incluye preparación Fase 0), I2=1.5 h, I3=3 h, I4=1.5 h, I5=2 h, I6=1.5 h. Diferencia máxima aceptable entre personas: 2 h; diferencia observada=1.5 h. En la Fase 1 paralela, las cargas son I1=1.5 h, I2=1.5 h, I3=3 h, I4=1.5 h, I5=2 h, I6=1.5 h (máxima diferencia=1.5 h). Los repositorios y servicios adicionales aparecen como issues separados y quedan contados en la suma. Todas las cargas individuales quedan por debajo de las 4 h. Recalcular sumando duraciones si se edita el tablero.
+
+## Matriz exclusiva de archivos de prueba
+
+| Persona | Dominio — archivo nuevo | Repositorio — archivo nuevo | Servicio(s) aplicación — archivo nuevo(s) |
+|---|---|---|---|
+| Integrante 1 | `tests/domain/test_auth_domain.py` | `tests/infrastructure/test_usuario_repository.py` | `tests/application/test_usuario_service.py` |
+| Integrante 2 | `tests/domain/test_perfil_domain.py` | `tests/infrastructure/test_perfil_repository.py` | `tests/application/test_perfil_service.py` |
+| Integrante 3 | `tests/domain/test_convocatorias_domain.py` | `tests/infrastructure/test_convocatoria_repository.py`, `tests/infrastructure/test_postulacion_repository.py` | `tests/application/test_convocatoria_service.py`, `tests/application/test_postulacion_service.py` |
+| Integrante 4 | `tests/domain/test_matching_domain.py` | `tests/infrastructure/test_matching_repository.py` | `tests/application/test_matching_service.py` |
+| Integrante 5 | `tests/domain/test_practica_evaluacion_domain.py` | `tests/infrastructure/test_practica_repository.py`, `tests/infrastructure/test_certificado_repository.py` | `tests/application/test_practica_service.py` |
+| Integrante 6 | `tests/domain/test_certificacion_domain.py` | `tests/infrastructure/test_notificacion_repository.py` | `tests/application/test_certificacion_service.py`, `tests/application/test_notificacion_service.py` |
+
+Cada ruta aparece una sola vez. `tests/integration/test_backend_integration.py` es responsabilidad exclusiva del preparador Fase 0; ningún integrante la edita. `tests/conftest.py` es de Fase 0.
+
+## Módulos de código (rutas exactas)
+
+| Persona | Dominio | Repositorio | Servicios de aplicación |
+|---|---|---|---|
+| 1 | `domain/auth/{usuario,token_recuperacion,autenticacion_dominio_servicio}.py` | `infrastructure/sqlalchemy_usuario_repository.py` | `application/usuario_application_service.py` |
+| 2 | `domain/perfil/{practicante,empresa,ruc,nombre_completo}.py` | `infrastructure/sqlalchemy_perfil_repository.py` | `application/perfil_application_service.py` |
+| 3 | `domain/convocatorias/{convocatoria,convocatoria_fabrica,postulacion}.py` | `infrastructure/sqlalchemy_convocatoria_repository.py`; `infrastructure/sqlalchemy_postulacion_repository.py` | `application/convocatoria_application_service.py`; `application/postulacion_application_service.py` |
+| 4 | `domain/matching/{sugerencia,resultado_matching,matching_dominio_servicio}.py` | `infrastructure/sqlalchemy_matching_repository.py` | `application/matching_application_service.py` |
+| 5 | `domain/practica_evaluacion/{practica,practica_fabrica,entregable,evaluacion}.py` | `infrastructure/sqlalchemy_practica_repository.py`; `infrastructure/sqlalchemy_certificado_repository.py` | `application/practica_application_service.py` |
+| 6 | `domain/certificacion/{certificado,archivo_pdf,codigo_qr,certificacion_dominio_servicio}.py` | `infrastructure/sqlalchemy_notificacion_repository.py` | `application/certificacion_application_service.py`, `application/notificacion_application_service.py` |
+
+## Dependencias y cómo no bloquearse
+
+- Auth (`IUsuarioRepository`) es consumido por perfil, postulación y certificación; esos servicios usan autospec local de la interfaz, nunca importan pruebas/clases de Integrante 1.
+- Perfil es consumido por convocatorias, postulación y matching (`IPerfilRepository`); sus pruebas de aplicación construyen doubles locales.
+- Convocatoria/Postulación se conectan en los servicios de postulación y práctica. Integrante 3 cubre el servicio de Postulación junto con Convocatorias; Integrante 5 lo aísla dentro de Práctica y usa autospec de la interfaz, sin depender de tests ajenos.
+- Práctica es consumida por certificación; Integrante 6 usa fake/autospec `IPracticaRepository` para su servicio. `IPracticaRepository` está en `domain/practica_evaluacion/`.
+- Matching usa perfil, convocatoria y sugerencia; simular cada interfaz.
+- `SqlAlchemyNotificacionRepository` implementa `INotificacionWriter` y `INotificacionReader`; Integrante 6 cubre escritura/lectura sin mocks.
+
+R8 siempre usa SQLite en memoria y ORM/modelos existentes; sin mocks. R9 siempre usa doubles de repositorio (`create_autospec(Interfaz, instance=True, spec_set=True)`); verificar método, argumentos y retorno. Para correo usar autospec `IAuthEmailSender`. No mockear modelos SQLAlchemy en R8.
+
+### Criterio para meta de cobertura
+
+Meta por archivo: al menos 80 % de líneas ejecutables, usando como base el reporte generado al inicio de Fase 0. Cada guía individual enumera las reglas que deben cubrirse; registrar numerador/denominador al inicio y al cierre del PR.
