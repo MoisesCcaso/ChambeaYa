@@ -24,7 +24,7 @@ Aplicar TDD rojo-verde-refactor. Casos recomendados (casos unitarios construible
 
 Las interfaces existen en `src/main/domain/auth/i_usuario_repository.py` (`save`, búsquedas por email/id/tokens) y `src/main/domain/auth/i_auth_email_sender.py` (send_activation/send_password_reset); verificar nombres completos antes de crear autospec. Para `generate_token`, no afirmar token fijo; comprobar expiración y forma. Parche de tiempo exacto: el token consulta `datetime` en `domain.auth.token_recuperacion.datetime`; servicio auth usa `domain.auth.autenticacion_dominio_servicio.datetime`. No hay `uuid4` asignado a este contexto.
 
-Meta por archivo: 80 % de líneas ejecutables; anotar covered/total medido en el baseline de Fase 0 y al cerrar el PR.
+Meta por archivo: 80 % de líneas ejecutables; anotar covered/total medido al inicio del trabajo y al cerrar el PR.
 
 Riesgo: envío de correo puede lanzar `EmailDeliveryError`; aislar sender y cubrir traducción de error si cabe. Dependencia: ningún bloqueo, Perfil usa su propio autospec de `IUsuarioRepository`.
 
@@ -36,7 +36,7 @@ Puedes conservar localmente los reportes de tus ejecuciones para informar result
 
 ## Checklist para retomar el trabajo
 
-- [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.
+- [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
 - [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.

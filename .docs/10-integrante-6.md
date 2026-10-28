@@ -16,10 +16,10 @@ TDD rojo-verde-refactor.
 | Dominio `ArchivoPDF.verificar_integridad` | contenido idéntico verifica, cambiado/None o hash vacío falla | equivalencia; sin doble |
 | Dominio `CodigoQR.generar/verificar` | valor generado verifica solo valor correcto; valor alterado falla | equivalencia; patch `domain.certificacion.codigo_qr.uuid4` con objeto `.hex` controlado |
 | Repo notificaciones | guardar, listar por usuario, unread y count; `mark_as_read` de otro usuario lanza ValueError; mark-all cambia solo pendientes del usuario | SQLite memoria; sin mocks |
-| Servicio certificación | práctica finalizada+aprobada devuelve existente o guarda nuevo certificado según camino; verificar ID | `create_autospec(ICertificadoRepository, instance=True, spec_set=True)` y `IPracticaRepository`; verificar llamadas y argumentos |
+| Servicio certificación `issue_certificate` | con dependencias válidas, devuelve `(certificado_existente, False)` si ya existe; si no, genera y guarda uno nuevo y devuelve `(certificado_guardado, True)` | Crear autospecs separados para los cinco contratos requeridos por el constructor: `ICertificadoRepository`, `IPracticaRepository`, `IPostulacionRepository`, `IConvocatoriaRepository` e `IPerfilRepository`. Configurar las búsquedas y `save`; verificar llamadas, argumentos y la tupla devuelta. Para el camino nuevo, usar dominio real y parchear `domain.certificacion.codigo_qr.uuid4` si se necesita un QR determinista |
 | Servicio notificación | `list_notifications`, `mark_as_read`, `mark_all_as_read`, unread count; delega IDs y verifica guardas | autospec `INotificacionReader` y `INotificacionWriter`; interfaces segregadas |
 
-El UUID es parcheable en domain.certificacion.codigo_qr.uuid4. Para servicios R9 no usar SQLite. Probar las llamadas directas de los servicios; los efectos disparados por las rutas corresponden a integración.
+El UUID es parcheable en `domain.certificacion.codigo_qr.uuid4`. `CertificacionApplicationService` requiere los cinco repositorios indicados en la tabla, aunque una ruta use solo algunos. Para servicios R9 no usar SQLite. Probar las llamadas directas de los servicios; los efectos disparados por las rutas corresponden a integración.
 
 Meta: al menos 80 % de líneas ejecutables por archivo. Registrar las métricas observadas en el reporte de cobertura del PR.
 
@@ -33,7 +33,7 @@ Puedes conservar localmente los reportes de tus ejecuciones para informar result
 
 ## Checklist para retomar el trabajo
 
-- [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.
+- [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
 - [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.

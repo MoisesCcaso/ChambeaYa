@@ -27,6 +27,6 @@ Antes del primer commit, configurar identidad propia con `git config user.name "
 
 ## Prevención de conflictos
 
-Después de Fase 0, cada integrante crea/modifica solo sus seis archivos de prueba asignados. No editar `conftest.py`, `pyproject.toml`, README, archivo monolítico integrado ni archivos de otras personas. Si surge una necesidad común, abrir/solicitar issue al responsable de integración; acordar el cambio antes de implementarlo.
+Con `development` actualizado y la estructura `src/main/` + `src/test/` disponible, cada integrante crea/modifica solo sus archivos de prueba asignados. No editar `conftest.py`, `pyproject.toml`, README, archivo monolítico integrado ni archivos de otras personas. Si surge una necesidad común, abrir/solicitar issue al responsable de integración; acordar el cambio antes de implementarlo.
 
 Convención: `src/test/domain/test_<contexto>_domain.py`, `src/test/infrastructure/test_<contexto>_repository.py`, `src/test/application/test_<contexto>_service.py`; clases `TestNombreDeClase`, métodos `test_<regla>_<escenario>`. Mantener `unittest.TestCase`; ejecutar pytest.

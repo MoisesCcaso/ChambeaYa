@@ -36,7 +36,7 @@ Puedes conservar localmente los reportes de tus ejecuciones para informar result
 
 ## Checklist para retomar el trabajo
 
-- [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.
+- [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
 - [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.

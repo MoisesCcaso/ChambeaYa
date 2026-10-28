@@ -10,7 +10,7 @@ Estas guías son la referencia compartida del equipo. El GitHub Project refleja 
 
 ## Checklist maestro
 
-- [x] Fase 0: separar implementación en `src/main/` y pruebas en `src/test/`, revisar rutas dependientes y validar la suite: 12 pasaron, 80 % de cobertura global (3 328 sentencias, 674 no cubiertas). Los commits de Fase 0 ya se subieron a `development`.
+- [x] Preparación del repositorio completada: implementación en `src/main/`, pruebas en `src/test/`, rutas dependientes revisadas y suite validada (12 pasaron, 80 % de cobertura global: 3 328 sentencias, 674 no cubiertas). Los cambios están en `development`.
 - [ ] Fase 1: Integrante 1 completó issues y PR.
 - [ ] Fase 1: Integrante 2 completó issues y PR.
 - [ ] Fase 1: Integrante 3 completó issues y PR.
@@ -20,4 +20,4 @@ Estas guías son la referencia compartida del equipo. El GitHub Project refleja 
 - [ ] Fase 2: suite completa y suite unitaria pasan; reportes finales versionados en `reports/`.
 - [ ] Fase 2: checklist R1–R11 completado en [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-El Project refleja el estado compartido del trabajo; estas casillas sirven de resumen. La preparación técnica previa la coordina una sola persona antes de iniciar la Fase 1.
+El Project refleja el estado compartido del trabajo; estas casillas sirven de resumen. El repositorio está preparado para iniciar el trabajo de los seis integrantes.

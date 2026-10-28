@@ -14,7 +14,7 @@ Etiquetas que se crearán: `unit test` para los issues I-01–I-22 de pruebas R7
 
 ## Issues propuestos
 
-Los IDs son provisionales; anota el número real de cada issue en la guía del integrante para usarlo en los footers `fix #n`. La separación de carpetas y la fixture compartida de R3 se completaron en Fase 0, por eso no aparecen como issues pendientes. Los issues I-01–I-22 cubren las pruebas R7–R9. I-23 integra y versiona los reportes R10–R11 después de que se integren las pruebas. Inicio: `TO-DO`.
+Los IDs son provisionales; anota el número real de cada issue en la guía del integrante para usarlo en los footers `fix #n`. El repositorio ya tiene la implementación en `src/main/`, las pruebas en `src/test/` y la fixture compartida de R3; esos trabajos no son issues pendientes. Los issues I-01–I-22 cubren las pruebas R7–R9. I-23 integra y versiona los reportes R10–R11 después de que se integren las pruebas. Inicio: `TO-DO`.
 
 ### I-01 — Pruebas de dominio auth
 
@@ -340,10 +340,11 @@ Los IDs son provisionales; anota el número real de cada issue en la guía del i
 
 **Título:** `[R9] Probar servicio certificación con doble`
 
-**Descripción:** Probar el servicio de certificación aislado con dobles de certificado y práctica; verificar interacciones y resultados. Crear `src/test/application/test_certificacion_service.py`.
+**Descripción:** Probar `issue_certificate` con dobles separados de los cinco repositorios requeridos: certificado, práctica, postulación, convocatoria y perfil. Cubrir el retorno del certificado existente y el camino que genera y guarda uno nuevo; verificar llamadas, argumentos y la tupla resultado. Crear `src/test/application/test_certificacion_service.py` según la guía del Integrante 6.
 
 **Criterios de aceptación:**
-- Probar con dobles de certificado y práctica.
+- Crear autospecs independientes de `ICertificadoRepository`, `IPracticaRepository`, `IPostulacionRepository`, `IConvocatoriaRepository` e `IPerfilRepository`.
+- Cubrir certificado existente y certificado nuevo guardado; comprobar la tupla devuelta y las interacciones.
 - Verificar interacciones y resultados.
 - Pasar pytest y registrar la cobertura.
 

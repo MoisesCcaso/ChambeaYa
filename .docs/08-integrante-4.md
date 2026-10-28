@@ -16,8 +16,8 @@ TDD rojo-verde-refactor.
 | Dominio `ResultadoMatching.es_compatible` | 50 con umbral 50 devuelve True; 49.99 devuelve False | valor límite; sin doble |
 | Dominio `MatchingDominioServicio.calcular_match/filtrar_convocatorias` | None retorna None; filtrar omite no publicadas, exige score >= umbral 50 y ordena descendente | partición/límite; sin doble |
 | Repositorio `save/find_by_practicante_id` | guardar sugerencia y recargar campos/JSON; sin filas devuelve `[]`; guardar dos veces misma pareja verifica upsert | SQLite memoria; sin mocks |
-| Servicio `calculate_for_practicante` | perfiles/convocatorias fake de dominio y repositorios autospec; devuelve cálculo y guarda sugerencias según flujo | `create_autospec(IPerfilRepository/IConvocatoriaRepository/ISugerenciaRepository, instance=True, spec_set=True)`; verificar llamadas y filtros |
-| Servicio `suggest_convocatorias` | configuración de repositorios devuelve sugerencias del practicante | mismos autospec; verificar ID pasado |
+| Servicio `calculate_for_practicante` | repositorios devuelven practicante y convocatorias; el servicio de dominio calcula resultados y se guardan sus sugerencias | Crear tres dobles independientes con `create_autospec(IPerfilRepository, instance=True, spec_set=True)`, `create_autospec(IConvocatoriaRepository, instance=True, spec_set=True)` y `create_autospec(ISugerenciaRepository, instance=True, spec_set=True)`. Configurar `find_practicante_by_user_id`, `find_all` y `save`; verificar argumentos y resultados |
+| Servicio `suggest_convocatorias` | perfil y convocatorias devueltos por repositorios se pasan al servicio de dominio; retorna sus resultados | Reutilizar dobles separados de las tres interfaces anteriores; verificar ID de usuario y umbral delegado. El servicio de dominio real se usa por defecto |
 
 El código puntúa coincidencias sobre requisitos y usa umbral inclusivo 50.0 por defecto; verificar también la lista requerida vacía. Las tres interfaces existen bajo `src/main/domain/perfil/i_perfil_repository.py`, `src/main/domain/convocatorias/i_convocatoria_repository.py` y `src/main/domain/matching/i_sugerencia_repository.py`. R8 importa ORM real y usa TestingConfig. Sin fechas ni UUID relevantes, no usar patch.
 
@@ -33,7 +33,7 @@ Puedes conservar localmente los reportes de tus ejecuciones para informar result
 
 ## Checklist para retomar el trabajo
 
-- [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.
+- [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
 - [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.

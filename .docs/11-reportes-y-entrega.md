@@ -33,7 +33,7 @@ poetry run python --version
 poetry run pytest -v
 ```
 
-`poetry install` lee `poetry.lock` y el grupo no opcional `dev`, que contiene pytest y pytest-cov. `poetry run` ejecuta herramientas dentro de `.venv`. El resultado de `poetry --version` debe ser 2.4.3 y `poetry run python --version` debe ser 3.12 o posterior. En Ubuntu, usa la ruta `~/.local/bin/poetry` en todos los comandos si `/usr/bin/poetry` apunta a una versión anterior. La suite existente usa `unittest.TestCase`, que pytest descubre; después de Fase 0, las rutas unitarias por capa se pueden ejecutar con el segundo comando de reportes de abajo.
+`poetry install` lee `poetry.lock` y el grupo no opcional `dev`, que contiene pytest y pytest-cov. `poetry run` ejecuta herramientas dentro de `.venv`. El resultado de `poetry --version` debe ser 2.4.3 y `poetry run python --version` debe ser 3.12 o posterior. En Ubuntu, usa la ruta `~/.local/bin/poetry` en todos los comandos si `/usr/bin/poetry` apunta a una versión anterior. Las pruebas usan `unittest.TestCase`, que pytest descubre; la estructura actual permite ejecutar las pruebas unitarias por capa con el segundo comando de reportes de abajo.
 
 Desde la raíz, con Poetry instalado y dependencias del grupo dev (`poetry install`). Bash/macOS:
 

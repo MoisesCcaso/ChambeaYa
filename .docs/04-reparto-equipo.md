@@ -17,7 +17,7 @@ La métrica es la suma de horas estimadas en la tabla de issues de [03-tablero-k
 | Integrante 5 | `src/test/domain/test_practica_evaluacion_domain.py` | `src/test/infrastructure/test_practica_repository.py`, `src/test/infrastructure/test_certificado_repository.py` | `src/test/application/test_practica_service.py` |
 | Integrante 6 | `src/test/domain/test_certificacion_domain.py` | `src/test/infrastructure/test_notificacion_repository.py` | `src/test/application/test_certificacion_service.py`, `src/test/application/test_notificacion_service.py` |
 
-Cada ruta aparece una sola vez. `src/test/integration/test_backend_integration.py` es responsabilidad exclusiva del preparador Fase 0; ningún integrante la edita. `src/test/conftest.py` es de Fase 0.
+Cada ruta aparece una sola vez. `src/test/integration/test_backend_integration.py` y `src/test/conftest.py` son archivos compartidos ya preparados; ningún integrante los edita.
 
 ## Módulos de código (rutas exactas)
 
@@ -43,4 +43,4 @@ R8 siempre usa SQLite en memoria y ORM/modelos existentes; sin mocks. R9 siempre
 
 ### Criterio para meta de cobertura
 
-Meta por archivo: al menos 80 % de líneas ejecutables, usando como base el reporte generado al inicio de Fase 0. Cada guía individual enumera las reglas que deben cubrirse; registrar numerador/denominador al inicio y al cierre del PR.
+Meta por archivo: al menos 80 % de líneas ejecutables. Medir el baseline antes de escribir pruebas y registrar numerador/denominador al inicio y al cierre del PR. Cada guía individual enumera las reglas que deben cubrirse.
