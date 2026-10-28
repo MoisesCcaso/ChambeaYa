@@ -1,6 +1,6 @@
 # Laboratorio 05 — tablero de preparación y avance
 
-Estas guías son la referencia compartida del equipo. El GitHub Project refleja el estado de cada tarea. Para retomar en cualquier momento, mira el estado del Project, este checklist y después la guía del integrante.
+Estas guías son la referencia compartida del equipo. El GitHub Project refleja el estado de cada tarea. Para empezar o continuar, consulta el estado del Project, este checklist y la guía del integrante correspondiente.
 
 ## Orden de trabajo
 
