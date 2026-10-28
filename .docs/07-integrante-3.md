@@ -29,6 +29,10 @@ Riesgo: selección coordina varios repositorios y rechaza postulaciones pendient
 
 DoD: dominio determinista, dos repos con SQLite, servicio aislado con autospec, archivos únicos y cobertura anotada.
 
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-07–I-10 ni I-21. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
 ## Checklist para retomar el trabajo
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.

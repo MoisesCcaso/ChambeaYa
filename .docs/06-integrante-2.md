@@ -30,6 +30,10 @@ Riesgo: el módulo `NombreCompleto` no se usa en flujos (análisis: 0 %); probar
 DoD: pruebas de dominio/ORM/aplicación en rutas exclusivas; R8 sin doubles; R9 doubles con métodos reales; TDD y evidencia de cobertura; PR integrado.
 
 
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-04–I-06. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
 ## Checklist para retomar el trabajo
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.

@@ -27,6 +27,10 @@ Riesgo: el servicio usa varios contextos y puede tentar a probar rutas externas;
 
 DoD: fórmula comprobada línea por línea, seis rutas propias sin colisiones, repository sin doubles, service con doubles y reporte de cobertura.
 
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-11–I-13. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
 ## Checklist para retomar el trabajo
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.

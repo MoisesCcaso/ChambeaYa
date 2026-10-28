@@ -27,6 +27,10 @@ Riesgo: Certificación usa cinco repositorios por inyección y Notificación sep
 
 DoD: casos del dominio con UUID controlado, repo SQLite sin doubles, dos servicios autospec, no dependencias sobre tests ajenos, tiempo y cobertura informados, PR integrado.
 
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-18–I-20 ni I-22. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
 ## Checklist para retomar el trabajo
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.

@@ -391,12 +391,13 @@ Los IDs son provisionales; anota el número real de cada issue en la guía del i
 
 **Título:** `[R10–R11] Consolidar reportes globales y unitarios en reports/`
 
-**Descripción:** Tras integrar I-01–I-22, ejecutar las suites global y unitaria; generar JUnit y cobertura XML/HTML, revisar los resultados y versionar los artefactos finales en `reports/`.
+**Descripción:** Después de integrar I-01–I-22 en `development`, ejecuta las suites global y unitaria según `11-reportes-y-entrega.md`. Revisa los resultados y genera los reportes JUnit y de cobertura XML/HTML finales en `reports/`. Las rutas están temporalmente en `.gitignore`; inclúyelas forzando Git con `git add -f` y crea un commit con los artefactos finales. No versionar reportes intermedios de I-01–I-22.
 
 **Criterios de aceptación:**
 - Las suites global y unitaria pasan.
-- Los reportes JUnit y de cobertura XML/HTML se generan y revisan en `reports/`.
+- Los reportes JUnit y de cobertura XML/HTML finales se generan y revisan en `reports/` después de integrar I-01–I-22.
 - Si la cobertura global es menor al 80 %, explicar la diferencia frente al baseline.
+- Los reportes intermedios no se versionan; los finales se agregan con `git add -f` porque sus rutas están en `.gitignore`.
 - Los reportes finales quedan versionados y el commit enlazado al issue.
 
 **Responsable:** Integrante 1  

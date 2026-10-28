@@ -54,11 +54,11 @@ poetry run pytest -v src/test/domain src/test/infrastructure src/test/applicatio
 La primera ejecución incluye integración + unitarias: `reports/junit.xml`, `reports/coverage.xml`, `reports/htmlcov/`. La segunda limita tests unitarios por ruta: `reports/junit-unit.xml`, `reports/unit-coverage.xml`, `reports/unit-htmlcov/`. Coverage.py crea un `reports/htmlcov/.gitignore` que oculta su HTML; al versionar los reportes finales, fuerza la inclusión de esas carpetas:
 
 ```bash
-git add reports/junit.xml reports/coverage.xml reports/junit-unit.xml reports/unit-coverage.xml
+git add -f reports/junit.xml reports/coverage.xml reports/junit-unit.xml reports/unit-coverage.xml
 git add -f reports/htmlcov reports/unit-htmlcov
 ```
 
-En PowerShell se usan los mismos comandos Git. Versionar los reportes después de la ejecución final; `.coverage` y cachés no. Los informes de cobertura calculan cobertura de código de producción; el filtro selecciona qué pruebas la ejercitan. No publicar como “cobertura unitaria” un informe obtenido con la suite global.
+En PowerShell se usan los mismos comandos Git. Durante I-01–I-22, conserva los reportes locales que necesites para informar resultados en issues y PR, pero no los incluyas en commits: las rutas de salida en `reports/` están en `.gitignore`. Solo después de integrar I-01–I-22, I-23 vuelve a generar los reportes globales y unitarios finales y los incluye forzando las rutas ignoradas con `git add -f`. `.coverage` y las cachés no se versionan. Los informes de cobertura calculan cobertura de código de producción; el filtro selecciona qué pruebas la ejercitan. No publicar como “cobertura unitaria” un informe obtenido con la suite global.
 
 Cada integrante entrega en su PR: nombre/ruta de los tests, salida de pytest, líneas ejecutables/cubiertas de los archivos asignados, observaciones de fallos y enlace al issue. Tras integrar los seis PR, la persona integradora ejecuta ambos comandos desde `development`, revisa los reportes XML/HTML y versiona los artefactos finales en `reports/`.
 

@@ -30,6 +30,10 @@ Riesgo: envío de correo puede lanzar `EmailDeliveryError`; aislar sender y cubr
 
 DoD: tres archivos exclusivos, reglas/casos descritos, SQLite para repositorio sin mocks, dobles con `spec_set`, suite pasa, reporte con líneas por archivo, PR integrado a development. Ver [11](11-reportes-y-entrega.md).
 
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-01–I-03. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
 ## Checklist para retomar el trabajo
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar la rama de `development` con la Fase 0 integrada.
