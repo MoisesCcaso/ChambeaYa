@@ -23,7 +23,7 @@ En R9 importar interfaces reales `IPerfilRepository` y `IUsuarioRepository` desd
 
 Meta: objetivo de 80 % por archivo tras medir líneas ejecutables; incluir sus validaciones locales sin asumir que se usan en otros flujos. Priorizar `Practicante`, `RUC` y el VO aislado.
 
-Riesgo: el módulo `NombreCompleto` no se usa en flujos (análisis: 0 %); probar aislado sin afirmar que el servicio lo consume. Dependencia con Integrante 1 solo conceptual; autospec propio.
+Riesgo: `NombreCompleto` no está importado ni usado por los demás módulos de `src/main/`; probarlo aislado sin afirmar que el servicio lo consume. Dependencia con Integrante 1 solo conceptual; autospec propio.
 
 DoD: pruebas de dominio/ORM/aplicación en rutas exclusivas; R8 sin doubles; R9 doubles con métodos reales; TDD y evidencia de cobertura; PR integrado.
 

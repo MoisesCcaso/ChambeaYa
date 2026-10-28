@@ -6,16 +6,17 @@ Relacionado: [tablero](03-tablero-kanban.md), [reparto](04-reparto-equipo.md).
 
 Formato: `tipo(scope): verbo y objeto` en imperativo, breve. Tipos permitidos: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `build`, `ci`, `style`. Scope identifica capa/módulo: `domain-auth`, `infrastructure-matching`, `application-perfil`, `tests-config`.
 
-Usar cuerpo para motivación/decisiones y footer `fix #<n>` con el issue asignado (la guía exige esta referencia). Para cerrar el issue automáticamente, usar `Closes #<n>` si el equipo confirma que acepta el formato GitHub; no sustituir el footer obligatorio.
+Usar el cuerpo para explicar motivación o decisiones y el footer `fix #<n>`, reemplazando `<n>` por el número real del issue asignado.
 
 Ejemplos:
 
-- `test(domain-auth): cubrir límites de contraseña` + footer `fix #12`
-- `test(infrastructure-perfil): probar persistencia en SQLite` + footer `fix #13`
-- `test(application-convocatorias): aislar repositorios` + footer `fix #14`
-- `docs(lab5): aclarar casos de expiración` + footer `fix #15`
-- `refactor(tests-config): centralizar fixture de base temporal` + footer `fix #16`
-- `chore(reports): guardar XML de JUnit y cobertura` + footer `fix #17`
+- `test(domain-auth): cubrir tokens de recuperación` + footer `fix #<n>`
+- `test(infrastructure-perfil): probar persistencia en SQLite` + footer `fix #<n>`
+- `test(application-postulacion): verificar selección de candidato` + footer `fix #<n>`
+- `test(domain-matching): cubrir compatibilidad de habilidades` + footer `fix #<n>`
+- `test(infrastructure-practica): persistir entregables y evaluaciones` + footer `fix #<n>`
+- `test(application-certificacion): verificar emisión de certificado` + footer `fix #<n>`
+- `chore(reports): guardar reportes finales` + footer `fix #<n>`
 
 No usar: `update`, `cambios`, `final`, `test: cosas`, `feat(all): ...`, ni número de PR como sustituto de `fix #<n>`. No afirmar `fix` si el commit solo agrega pruebas; preferir `test` y conservar el footer exigido.
 
