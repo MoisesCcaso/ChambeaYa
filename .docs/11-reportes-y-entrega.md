@@ -73,5 +73,5 @@ Cada integrante entrega en su PR: nombre/ruta de los tests, salida de pytest, l�
 - [ ] R7 seis módulos de dominio con TDD y casos BDD. Responsable: Integrantes 1–6.
 - [ ] R8 seis repositorios SQLite en memoria sin dobles. Responsable: Integrantes 1–6.
 - [ ] R9 servicios de aplicación aislados con dobles de repositorios. Responsable: Integrantes 1–6.
-- [ ] R10 JUnit XML refleja ejecución global y unitaria. Responsable: Integrante 1 al integrar.
-- [ ] R11 cobertura global y unitaria en XML/HTML; cobertura global al menos 80 % o variación explicada frente a baseline reproducible. Responsable: Integrante 1 al integrar.
+- [ ] R10 JUnit XML refleja ejecución global y unitaria. Responsable: Integrante 1 mediante el issue I-23.
+- [ ] R11 cobertura global y unitaria en XML/HTML; cobertura global al menos 80 % o variación explicada frente a baseline reproducible. Responsable: Integrante 1 mediante el issue I-23.

@@ -382,6 +382,10 @@ El proyecto sigue una arquitectura en 5 capas con la regla de dependencia hacia 
 
 ## 5.2 Estructura del Proyecto
 
+El código de implementación está en `src/main/` y las pruebas en `src/test/`,
+separados según la estructura solicitada para el laboratorio. La suite se divide
+por dominio, infraestructura, aplicación e integración.
+
 ```text
 ChambeaYa/
 ├── requirements.txt

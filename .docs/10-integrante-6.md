@@ -4,7 +4,7 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 ## Alcance
 
-Dominio `src/main/domain/certificacion/{certificado,archivo_pdf,codigo_qr,certificacion_dominio_servicio}.py`; repo `src/main/infrastructure/sqlalchemy_notificacion_repository.py`; servicios `src/main/application/certificacion_application_service.py`, `src/main/application/notificacion_application_service.py`. Tests: `src/test/domain/test_certificacion_domain.py`, `src/test/infrastructure/test_notificacion_repository.py`, `src/test/application/test_certificacion_service.py`, `src/test/application/test_notificacion_service.py`. Postulación se asigna a Integrante 3. Carga estimada: 1.5 h.
+Dominio `src/main/domain/certificacion/{certificado,archivo_pdf,codigo_qr,certificacion_dominio_servicio}.py`; repo `src/main/infrastructure/sqlalchemy_notificacion_repository.py`; servicios `src/main/application/certificacion_application_service.py`, `src/main/application/notificacion_application_service.py`. Tests: `src/test/domain/test_certificacion_domain.py`, `src/test/infrastructure/test_notificacion_repository.py`, `src/test/application/test_certificacion_service.py`, `src/test/application/test_notificacion_service.py`. Postulación se asigna a Integrante 3. Carga estimada de sus cuatro issues: 2 h (0.5 h cada uno).
 
 Ramas: `lab5/domain-certificacion`, `lab5/infrastructure-notificacion`, `lab5/application-certificacion`, `lab5/application-notificacion`. Commits `test(domain-certificacion): validar contenido y QR` + `fix #n`; `test(infrastructure-notificacion): consultar y marcar lecturas` + `fix #n`; `test(application-certificacion): cubrir emisión` + `fix #n`; `test(application-notificacion): validar guardas de lectura` + `fix #n`.
 

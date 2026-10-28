@@ -6,6 +6,8 @@ Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md)
 
 Dominio: `src/main/domain/auth/usuario.py`, `token_recuperacion.py`, `autenticacion_dominio_servicio.py`. Repositorio: `src/main/infrastructure/sqlalchemy_usuario_repository.py`. Servicio: `src/main/application/usuario_application_service.py`. Pruebas propias: `src/test/domain/test_auth_domain.py`, `src/test/infrastructure/test_usuario_repository.py`, `src/test/application/test_usuario_service.py`. No tomar ownership de interfaces, fixture, integración, configuración, correo SMTP concreto ni pruebas de otro integrante.
 
+Issues de pruebas: I-01–I-03 (1.5 h estimadas). Además, Integrante 1 coordina I-23 (R10–R11, 1 h estimada en Fase 2), después de integrar las pruebas de los seis integrantes.
+
 Rama: `lab5/domain-auth`, `lab5/infrastructure-usuario`, `lab5/application-usuario` (puede usar una sola rama si respeta el scope). Commits: prueba roja `test(domain-auth): cubrir login pendiente` + `fix #n`; verde/repositorio `test(infrastructure-usuario): persistir tokens` + `fix #n`; aplicación `test(application-usuario): verificar activación aislada` + `fix #n`.
 
 Aplicar TDD rojo-verde-refactor. Casos recomendados (casos unitarios construibles sin módulos ajenos):

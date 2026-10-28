@@ -4,7 +4,7 @@ R7 pide seis módulos de dominio; R8 seis repositorios; R9 seis servicios. El c�
 
 ## Métrica de carga reproducible
 
-La métrica es la suma de horas estimadas en la tabla de issues de [03-tablero-kanban.md](03-tablero-kanban.md). Totales de todas las fases: I1=3 h (incluye preparación Fase 0), I2=1.5 h, I3=3 h, I4=1.5 h, I5=2 h, I6=1.5 h. Diferencia máxima aceptable entre personas: 2 h; diferencia observada=1.5 h. En la Fase 1 paralela, las cargas son I1=1.5 h, I2=1.5 h, I3=3 h, I4=1.5 h, I5=2 h, I6=1.5 h (máxima diferencia=1.5 h). Los repositorios y servicios adicionales aparecen como issues separados y quedan contados en la suma. Todas las cargas individuales quedan por debajo de las 4 h. Recalcular sumando duraciones si se edita el tablero.
+La métrica es la suma de horas estimadas en la tabla de issues de [03-tablero-kanban.md](03-tablero-kanban.md). Las pruebas R7–R9 de Fase 1 suman: Integrante 1 = 1.5 h, Integrante 2 = 1.5 h, Integrante 3 = 3 h, Integrante 4 = 1.5 h, Integrante 5 = 2 h e Integrante 6 = 2 h. En Fase 2, el issue de reportes añade 1 h a Integrante 1, para un total de 2.5 h en sus issues. Totales Fase 1–2: I1=2.5 h, I2=1.5 h, I3=3 h, I4=1.5 h, I5=2 h, I6=2 h. Suma total: 12.5 h; diferencia máxima aceptable: 2 h; diferencia observada: 1.5 h. Todas las cargas individuales quedan por debajo de las 4 h. Recalcular sumando duraciones si se edita el tablero.
 
 ## Matriz exclusiva de archivos de prueba
 
