@@ -8,8 +8,6 @@ Código: `src/main/domain/perfil/{practicante,empresa,ruc,nombre_completo}.py`; 
 
 Rama(s): `lab5/domain-perfil`, `lab5/infrastructure-perfil`, `lab5/application-perfil`. Commits sugeridos `test(domain-perfil): cubrir identidad y score` + `fix #n`; `test(infrastructure-perfil): verificar mapeo de perfiles` + `fix #n`; `test(application-perfil): cubrir actualización de perfil` + `fix #n`.
 
-TDD rojo-verde-refactor.
-
 | Capa / regla | Dado / Cuando / Entonces; entrada y expectativa | Técnica / doble |
 |---|---|---|
 | Dominio `Practicante.verificar_identidad` | DNI `12345678` válido; 7/9 caracteres o no dígitos lanza ValueError; carnet con trim de longitud >=4 es aceptado | límites/equivalencia; sin doble |
@@ -34,11 +32,11 @@ DoD: pruebas de dominio/ORM/aplicación en rutas exclusivas; R8 sin doubles; R9 
 
 Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-04–I-06. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-## Checklist para retomar el trabajo
+## Pasos para completar los issues
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
-- [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
+- [ ] Completar los casos de prueba asignados en esta guía.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
 - [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
 - [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.

@@ -8,9 +8,9 @@ Dominio: `src/main/domain/auth/usuario.py`, `token_recuperacion.py`, `autenticac
 
 Issues de pruebas: I-01–I-03 (1.5 h estimadas). Además, Integrante 1 coordina I-23 (R10–R11, 1 h estimada en Fase 2), después de integrar las pruebas de los seis integrantes.
 
-Rama: `lab5/domain-auth`, `lab5/infrastructure-usuario`, `lab5/application-usuario` (puede usar una sola rama si respeta el scope). Commits: prueba roja `test(domain-auth): cubrir login pendiente` + `fix #n`; verde/repositorio `test(infrastructure-usuario): persistir tokens` + `fix #n`; aplicación `test(application-usuario): verificar activación aislada` + `fix #n`.
+Rama: `lab5/domain-auth`, `lab5/infrastructure-usuario`, `lab5/application-usuario` (puede usar una sola rama si respeta el scope). Commits sugeridos: `test(domain-auth): cubrir validación de usuario` + `fix #n`; `test(infrastructure-usuario): persistir tokens` + `fix #n`; `test(application-usuario): verificar registro y recuperación` + `fix #n`.
 
-Aplicar TDD rojo-verde-refactor. Casos recomendados (casos unitarios construibles sin módulos ajenos):
+Casos recomendados (casos unitarios construibles sin módulos ajenos):
 
 | Capa / caso | Dado / Cuando / Entonces; entrada y expectativa | Técnica / doble |
 |---|---|---|
@@ -34,11 +34,11 @@ DoD: tres archivos exclusivos, reglas/casos descritos, SQLite para repositorio s
 
 Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-01–I-03. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-## Checklist para retomar el trabajo
+## Pasos para completar los issues
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
-- [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
+- [ ] Completar los casos de prueba asignados en esta guía.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
 - [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
 - [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.

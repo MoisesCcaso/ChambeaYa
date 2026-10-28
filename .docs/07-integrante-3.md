@@ -8,8 +8,6 @@ Código dominio `src/main/domain/convocatorias/{convocatoria,convocatoria_fabric
 
 Ramas: `lab5/domain-convocatorias`, `lab5/infrastructure-convocatorias`, `lab5/application-convocatoria`, `lab5/application-postulacion`. Commits `test(domain-convocatorias): cubrir cambios de estado` + `fix #n`; `test(infrastructure-convocatorias): persistir convocatorias y postulaciones` + `fix #n`; `test(application-convocatoria): aislar ciclo de publicación` + `fix #n`; `test(application-postulacion): probar selección de candidato` + `fix #n`.
 
-TDD rojo-verde-refactor.
-
 | Capa / regla | Dado / Cuando / Entonces | Técnica / doble |
 |---|---|---|
 | Dominio `Convocatoria.publicar/cerrar/reabrir` | borrador→publicada→cerrada→publicada; publicar desde estado distinto lanza ValueError | transición; patch `domain.convocatorias.convocatoria.datetime` para fecha fija |
@@ -33,11 +31,11 @@ DoD: dominio determinista, dos repos con SQLite, servicio aislado con autospec, 
 
 Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-07–I-10 ni I-21. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-## Checklist para retomar el trabajo
+## Pasos para completar los issues
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
-- [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
+- [ ] Completar los casos de prueba asignados en esta guía.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
 - [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
 - [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.

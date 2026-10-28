@@ -8,8 +8,6 @@ Dominio `src/main/domain/practica_evaluacion/{practica,practica_fabrica,entregab
 
 Ramas: `lab5/domain-practica`, `lab5/infrastructure-practica`, `lab5/application-practica`. Commits `test(domain-practica): cubrir finalización y evaluación` + `fix #n`; `test(infrastructure-practica): persistir agregado e hijos` + `fix #n`; `test(application-practica): aislar ciclo de práctica` + `fix #n`.
 
-TDD rojo-verde-refactor.
-
 | Capa / regla | Dado / Cuando / Entonces | Técnica / doble |
 |---|---|---|
 | Dominio `Evaluacion.crear/esta_aprobada` | puntajes 0 y 100 aceptados, -0.01/100.01 rechazados; 59.99 falla aprobación, 60 aprueba | límite; patch `domain.practica_evaluacion.evaluacion.datetime` |
@@ -32,11 +30,11 @@ DoD: casos de límites correctos, fecha determinista con patch módulo-local, R8
 
 Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-14–I-17. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-## Checklist para retomar el trabajo
+## Pasos para completar los issues
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
-- [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
+- [ ] Completar los casos de prueba asignados en esta guía.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
 - [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
 - [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.

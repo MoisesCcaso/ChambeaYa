@@ -8,8 +8,6 @@ Dominio `src/main/domain/certificacion/{certificado,archivo_pdf,codigo_qr,certif
 
 Ramas: `lab5/domain-certificacion`, `lab5/infrastructure-notificacion`, `lab5/application-certificacion`, `lab5/application-notificacion`. Commits `test(domain-certificacion): validar contenido y QR` + `fix #n`; `test(infrastructure-notificacion): consultar y marcar lecturas` + `fix #n`; `test(application-certificacion): cubrir emisión` + `fix #n`; `test(application-notificacion): validar guardas de lectura` + `fix #n`.
 
-TDD rojo-verde-refactor.
-
 | Capa / regla | Dado / Cuando / Entonces | Técnica / doble |
 |---|---|---|
 | Dominio `CertificacionDominioServicio.generar_certificado` | práctica no finalizada o sin evaluación aprobada → ValueError; finalizada/aprobada → certificado PDF/QR | partición; fake simple de objetos dominio; patch `domain.certificacion.codigo_qr.uuid4` para UUID determinista |
@@ -31,11 +29,11 @@ DoD: casos del dominio con UUID controlado, repo SQLite sin doubles, dos servici
 
 Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-18–I-20 ni I-22. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
 
-## Checklist para retomar el trabajo
+## Pasos para completar los issues
 
 - [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
 - [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
-- [ ] Completar primero los casos de dominio con TDD: rojo, verde, refactor.
+- [ ] Completar los casos de prueba asignados en esta guía.
 - [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
 - [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
 - [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.
