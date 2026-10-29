@@ -8,7 +8,7 @@ $pythonPath = Join-Path $projectRoot ".venv\Scripts\python.exe"
 $demoDatabase = Join-Path $projectRoot "instance\chambeaya-demo.db"
 
 if (-not (Test-Path -LiteralPath $pythonPath)) {
-    throw "No se encontró .venv. Crea el entorno e instala requirements.txt primero."
+    throw "No se encontró .venv. Ejecuta poetry install para crear el entorno e instalar el proyecto."
 }
 
 Set-Location -LiteralPath $projectRoot

@@ -36,14 +36,14 @@ tableta y móvil.
 
 Los archivos principales son:
 
-- `frameworks/flask_mvc/templates/`: estructura de las vistas.
-- `frameworks/flask_mvc/static/css/app.css`: sistema visual y responsive.
-- `frameworks/flask_mvc/static/icons.svg`: iconografía SVG reutilizable.
-- `frameworks/flask_mvc/static/img/`: logos horizontal y cuadrado.
-- `frameworks/flask_mvc/static/js/common.js`: utilidades y cliente HTTP.
-- `frameworks/flask_mvc/static/js/app.js`: interacción de la aplicación.
-- `frameworks/flask_mvc/static/js/auth.js`: flujos de autenticación.
-- `frameworks/flask_mvc/static/js/verify.js`: validación de certificados.
+- `src/main/frameworks/flask_mvc/templates/`: estructura de las vistas.
+- `src/main/frameworks/flask_mvc/static/css/app.css`: sistema visual y responsive.
+- `src/main/frameworks/flask_mvc/static/icons.svg`: iconografía SVG reutilizable.
+- `src/main/frameworks/flask_mvc/static/img/`: logos horizontal y cuadrado.
+- `src/main/frameworks/flask_mvc/static/js/common.js`: utilidades y cliente HTTP.
+- `src/main/frameworks/flask_mvc/static/js/app.js`: interacción de la aplicación.
+- `src/main/frameworks/flask_mvc/static/js/auth.js`: flujos de autenticación.
+- `src/main/frameworks/flask_mvc/static/js/verify.js`: validación de certificados.
 
 ## Ejecución
 

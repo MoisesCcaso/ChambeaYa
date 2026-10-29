@@ -7,23 +7,30 @@ prácticas, entregables, evaluaciones, notificaciones y certificados.
 ## Preparación en Windows (PowerShell)
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+poetry install
 Copy-Item .env.example .env
-.\.venv\Scripts\python.exe -m flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
 ```
 
 Para ejecutar:
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
-Para ejecutar las pruebas integrales:
+Para ejecutar todas las pruebas con el comando oficial (PowerShell, Ubuntu/Linux
+y macOS):
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```sh
+poetry --version
+poetry install
+poetry run pytest -v
 ```
+
+El proyecto requiere Poetry 2.4.3 y Python 3.12 o superior. Poetry administra
+el entorno virtual `.venv`; el archivo `.env` contiene la configuración local
+de Flask. En Ubuntu, si la versión del sistema no coincide, consulta los pasos
+con pipx en la sección de pruebas del [README](README.md#10-pruebas).
 
 ## Autenticación
 

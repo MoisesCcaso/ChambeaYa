@@ -1,0 +1,53 @@
+# Integrante 1 — Auth
+
+Relacionado: [reparto](04-reparto-equipo.md), [convenciones](02-convenciones.md), [reportes](11-reportes-y-entrega.md). Sin nombres propios: elijan su identidad Git.
+
+## Alcance
+
+Dominio: `src/main/domain/auth/usuario.py`, `token_recuperacion.py`, `autenticacion_dominio_servicio.py`. Repositorio: `src/main/infrastructure/sqlalchemy_usuario_repository.py`. Servicio: `src/main/application/usuario_application_service.py`. Pruebas propias: `src/test/domain/test_auth_domain.py`, `src/test/infrastructure/test_usuario_repository.py`, `src/test/application/test_usuario_service.py`. No tomar ownership de interfaces, fixture, integración, configuración, correo SMTP concreto ni pruebas de otro integrante.
+
+Issues de pruebas: I-01–I-03 (1.5 h estimadas). Además, Integrante 1 coordina I-23 (R10–R11, 1 h estimada en Fase 2), después de integrar las pruebas de los seis integrantes.
+
+Rama: `lab5/domain-auth`, `lab5/infrastructure-usuario`, `lab5/application-usuario` (puede usar una sola rama si respeta el scope). Commits sugeridos: `test(domain-auth): cubrir validación de usuario` + `fix #n`; `test(infrastructure-usuario): persistir tokens` + `fix #n`; `test(application-usuario): verificar registro y recuperación` + `fix #n`.
+
+Casos recomendados (casos unitarios construibles sin módulos ajenos):
+
+| Capa / caso | Dado / Cuando / Entonces; entrada y expectativa | Técnica / doble |
+|---|---|---|
+| Dominio `Usuario.registrar` | email, hash y tipo `practicante` → retorna mismo objeto; tipo inválido → `ValueError` | partición de equivalencia; sin doble |
+| Dominio `AutenticacionDominioServicio.generar_password_hash` | `Aa123456` pasa; 7 caracteres, 129, o sin mayúscula/minúscula/dígito falla | valores límite: 8/128; sin doble |
+| Dominio `TokenRecuperacion.esta_vigente` | expiración futura verdadera; expirada, valor vacío o expiración None falsa | transición/límite; `patch("domain.auth.token_recuperacion.datetime")` con `datetime.now.return_value` y timezone UTC |
+| Repositorio `save/find_by_email` | instancia app TestingConfig, crear/guardar `Usuario`; buscar email devuelve campos y tipo; desconocido devuelve `None` | integración SQLite memoria; sin dobles |
+| Repositorio tokens | persistir activation/reset token y consultar por cada valor; token ausente devuelve `None` | equivalencia; sin dobles |
+| Servicio `register_user` | email con espacios/mayúsculas, contraseñas coincidentes; guarda usuario normalizado pendiente y llama `send_activation(email, token)` una vez | `create_autospec(IUsuarioRepository, instance=True, spec_set=True)`; autospec `IAuthEmailSender`; dominio auth real o autospec con hash/token deterministas; verificar argumentos |
+| Servicio `recover_password` | usuario inexistente → `None`, sin guardar ni enviar; usuario existente → token de 2 horas, guarda y envía | mismos autospec; verificar `find_by_email`, `save`, `send_password_reset` |
+
+Las interfaces existen en `src/main/domain/auth/i_usuario_repository.py` (`save`, búsquedas por email/id/tokens) y `src/main/domain/auth/i_auth_email_sender.py` (send_activation/send_password_reset); verificar nombres completos antes de crear autospec. Para `generate_token`, no afirmar token fijo; comprobar expiración y forma. Parche de tiempo exacto: el token consulta `datetime` en `domain.auth.token_recuperacion.datetime`; servicio auth usa `domain.auth.autenticacion_dominio_servicio.datetime`. No hay `uuid4` asignado a este contexto.
+
+Meta por archivo: 80 % de líneas ejecutables; anotar covered/total medido al inicio del trabajo y al cerrar el PR.
+
+Riesgo: envío de correo puede lanzar `EmailDeliveryError`; aislar sender y cubrir traducción de error si cabe. Dependencia: ningún bloqueo, Perfil usa su propio autospec de `IUsuarioRepository`.
+
+DoD: tres archivos exclusivos, reglas/casos descritos, SQLite para repositorio sin mocks, dobles con `spec_set`, suite pasa, reporte con líneas por archivo, PR integrado a development. Ver [11](11-reportes-y-entrega.md).
+
+## Reportes durante Fase 1
+
+Puedes conservar localmente los reportes de tus ejecuciones para informar resultados en el issue o PR. Los artefactos dentro de `reports/` están en `.gitignore`: no los incluyas en tus commits de I-01–I-03. Se regenerarán y versionarán como reportes finales en I-23, después de integrar I-01–I-22; consulta [11-reportes-y-entrega.md](11-reportes-y-entrega.md).
+
+## Pasos para completar los issues
+
+- [ ] Leer el estado de la tarjeta/issue asignado y confirmar que `development` está actualizado, con implementación en `src/main/` y pruebas en `src/test/`.
+- [ ] Crear/actualizar la rama propia según [02-convenciones.md](02-convenciones.md); anotar el issue y el siguiente caso pendiente.
+- [ ] Completar los casos de prueba asignados en esta guía.
+- [ ] Probar el repositorio contra SQLite en memoria, sin dobles.
+- [ ] Probar el servicio asignado con autospec/dobles y comprobar retornos, llamadas y argumentos.
+- [ ] Ejecutar los archivos propios y la suite unitaria; registrar el siguiente paso pendiente en el issue.
+- [ ] Medir y anotar cobertura de los archivos asignados; no copiar porcentajes de reportes anteriores sin reproducirlos.
+- [ ] Confirmar el DoD de esta guía, crear commits con `fix #<n>`, abrir PR a `development` y mover la tarjeta en el Project.
+
+## Verificado
+
+- `src/main/domain/auth/usuario.py:32-71`; `token_recuperacion.py:7-20`; `autenticacion_dominio_servicio.py:11-41`.
+- `src/main/application/usuario_application_service.py:18-172` (inyección, registro, recuperación y activación).
+- `src/main/infrastructure/sqlalchemy_usuario_repository.py:10-62`; interfaces `src/main/domain/auth/i_usuario_repository.py`, `src/main/domain/auth/i_auth_email_sender.py`.
+- `src/main/config.py:48-52`; `src/main/frameworks/flask_mvc/app.py:14-48` (`create_app`, selección config, modelos importados); la suite actual gestiona `db.create_all/drop_all` en `src/test/integration/test_backend_integration.py:21-28`.

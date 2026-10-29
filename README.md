@@ -168,7 +168,7 @@ Son objetos inmutables con validación encapsulada, sin identidad propia.
 **Fragmento — RUC con validación SUNAT:**
 
 ```python
-# domain/perfil/ruc.py
+# src/main/domain/perfil/ruc.py
 class RUC:
     def __init__(self, numero=None):
         self.numero = numero
@@ -202,7 +202,7 @@ Son clases sin estado que implementan lógica de negocio que no pertenece a una 
 **Fragmento — MatchingDominioServicio:**
 
 ```python
-# domain/matching/matching_dominio_servicio.py
+# src/main/domain/matching/matching_dominio_servicio.py
 class MatchingDominioServicio:
     def calcular_match(self, practicante, convocatoria):
         sugerencia = Sugerencia(
@@ -258,7 +258,7 @@ Son objetos que encapsulan la creación de entidades complejas, asegurando que n
 **Fragmento — ConvocatoriaFabrica:**
 
 ```python
-# domain/convocatorias/convocatoria_fabrica.py
+# src/main/domain/convocatorias/convocatoria_fabrica.py
 class ConvocatoriaFabrica:
     def crear_convocatoria(self, empresa_id, titulo, habilidades_requeridas=None,
                            descripcion=None, beneficios=None):
@@ -312,7 +312,7 @@ Cada repositorio tiene una interfaz en la capa de dominio (contrato abstracto) y
 **Fragmento — Contrato + implementación:**
 
 ```python
-# domain/practica_evaluacion/i_practica_repository.py — Interfaz (dominio)
+# src/main/domain/practica_evaluacion/i_practica_repository.py — Interfaz (dominio)
 class IPracticaRepository(ABC):
     @abstractmethod
     def save(self, practica): ...
@@ -321,7 +321,7 @@ class IPracticaRepository(ABC):
     @abstractmethod
     def find_by_practicante_id(self, practicante_id): ...
 
-# infrastructure/sqlalchemy_practica_repository.py — Implementación
+# src/main/infrastructure/sqlalchemy_practica_repository.py — Implementación
 class SqlAlchemyPracticaRepository(IPracticaRepository):
     def save(self, practica):
         model = None
@@ -354,19 +354,19 @@ El proyecto sigue una arquitectura en 5 capas con la regla de dependencia hacia 
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  frameworks/  (Flask, SQLAlchemy, Alembic)            │
+│  frameworks  (Flask, SQLAlchemy, Alembic)             │
 │  ┌──────────────────────────────────────────────────┐ │
-│  │  presentation/  (Controllers — adaptadores HTTP) │ │
+│  │  presentation  (Controllers — adaptadores HTTP) │ │
 │  │  ┌──────────────────────────────────────────────┐ │ │
-│  │  │  application/  (Servicios de caso de uso)    │ │ │
+│  │  │  application  (Servicios de caso de uso)     │ │ │
 │  │  │  ┌──────────────────────────────────────────┐ │ │ │
-│  │  │  │  domain/  (Entidades, Value Objects,     │ │ │ │
+│  │  │  │  domain  (Entidades, Value Objects,      │ │ │ │
 │  │  │  │            Interfaces de repositorio,    │ │ │ │
 │  │  │  │            Servicios de dominio)          │ │ │ │
 │  │  │  └──────────────────────────────────────────┘ │ │ │
 │  │  └──────────────────────────────────────────────┘ │ │
 │  └──────────────────────────────────────────────────┘ │
-│  infrastructure/  (Repositorios SQLAlchemy, Email)     │
+│  infrastructure  (Repositorios SQLAlchemy, Email)      │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -382,64 +382,35 @@ El proyecto sigue una arquitectura en 5 capas con la regla de dependencia hacia 
 
 ## 5.2 Estructura del Proyecto
 
+El código de implementación está en `src/main/` y las pruebas en `src/test/`,
+separados según la estructura solicitada para el laboratorio. La suite se divide
+por dominio, infraestructura, aplicación e integración.
+
 ```text
 ChambeaYa/
-├── config.py
 ├── requirements.txt
-├── run.py
-├── application/
-│   ├── __init__.py
-│   ├── certificacion_application_service.py
-│   ├── convocatoria_application_service.py
-│   ├── email_delivery_error.py
-│   ├── matching_application_service.py
-│   ├── notificacion_application_service.py
-│   ├── perfil_application_service.py
-│   ├── postulacion_application_service.py
-│   ├── practica_application_service.py
-│   └── usuario_application_service.py
-├── domain/
-│   ├── __init__.py
-│   ├── auth/
-│   ├── certificacion/
-│   ├── convocatorias/
-│   ├── matching/
-│   ├── notificaciones/
-│   ├── perfil/
-│   └── practica_evaluacion/
-├── frameworks/
-│   ├── __init__.py
-│   ├── flask_mvc/
-│   │   ├── app.py
-│   │   ├── routes/
-│   │   ├── static/
-│   │   └── templates/
-│   ├── migrations/
-│   ├── schemas/
-│   └── sqlalchemy_orm/
-│       ├── database.py
-│       └── models/
-├── infrastructure/
-│   ├── __init__.py
-│   ├── smtp_auth_email_sender.py
-│   ├── sqlalchemy_certificado_repository.py
-│   ├── sqlalchemy_convocatoria_repository.py
-│   ├── sqlalchemy_matching_repository.py
-│   ├── sqlalchemy_notificacion_repository.py
-│   ├── sqlalchemy_perfil_repository.py
-│   ├── sqlalchemy_postulacion_repository.py
-│   ├── sqlalchemy_practica_repository.py
-│   └── sqlalchemy_usuario_repository.py
-└── presentation/
-    ├── __init__.py
-    ├── certificado_controller.py
-    ├── convocatoria_controller.py
-    ├── matching_controller.py
-    ├── notificacion_controller.py
-    ├── perfil_controller.py
-    ├── postulacion_controller.py
-    ├── practica_controller.py
-    └── usuario_controller.py
+└── src/
+    ├── main/
+    │   ├── config.py
+    │   ├── run.py
+    │   ├── application/
+    │   ├── domain/
+    │   ├── frameworks/
+    │   │   ├── flask_mvc/
+    │   │   │   ├── routes/
+    │   │   │   ├── static/
+    │   │   │   └── templates/
+    │   │   ├── migrations/
+    │   │   ├── schemas/
+    │   │   └── sqlalchemy_orm/
+    │   ├── infrastructure/
+    │   └── presentation/
+    └── test/
+        ├── conftest.py
+        ├── application/
+        ├── domain/
+        ├── infrastructure/
+        └── integration/
 ```
 
 ## 5.3 Clean Architecture / DDD
@@ -465,7 +436,7 @@ La inyección de dependencias ocurre en las **rutas** (frameworks), que construy
 Las entidades de dominio encapsulan estado y comportamiento juntos. No son DTOs anémicos — contienen las reglas de negocio que protegen sus invariantes. `Practica` gestiona su ciclo de vida (`EN_CURSO` → `FINALIZADA`) y solo permite transiciones válidas.
 
 ```python
-# domain/practica_evaluacion/practica.py
+# src/main/domain/practica_evaluacion/practica.py
 class Practica:
     ESTADO_EN_CURSO = "EN_CURSO"
     ESTADO_FINALIZADA = "FINALIZADA"
@@ -500,11 +471,11 @@ class Practica:
 Cada capa lanza excepciones específicas. La capa de routes captura y mapea a códigos HTTP semánticos: `ValueError` → 400, `EmailDeliveryError` → 503, `IntegrityError` → 409. En el dominio se usan guard clauses con `raise ValueError` para fallar rápido ante estados inválidos.
 
 ```python
-# application/email_delivery_error.py
+# src/main/application/email_delivery_error.py
 class EmailDeliveryError(RuntimeError):
     """Error controlado al entregar un correo transaccional."""
 
-# frameworks/flask_mvc/routes/auth_routes.py
+# src/main/frameworks/flask_mvc/routes/auth_routes.py
 @auth_bp.post("/register")
 def register():
     payload = request.get_json(silent=True) or {}
@@ -516,7 +487,7 @@ def register():
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-# frameworks/flask_mvc/app.py — error global
+# src/main/frameworks/flask_mvc/app.py — error global
 @app.errorhandler(IntegrityError)
 def handle_integrity_error(_error):
     db.session.rollback()
@@ -528,7 +499,7 @@ def handle_integrity_error(_error):
 Cada modelo ORM hereda de `db.Model` y mapea directamente a una tabla SQL. Las columnas usan tipos explícitos, claves foráneas, unicidad y defaults. Los campos no escalares (listas) se serializan como JSON text.
 
 ```python
-# frameworks/sqlalchemy_orm/models/practicante_model.py
+# src/main/frameworks/sqlalchemy_orm/models/practicante_model.py
 from frameworks.sqlalchemy_orm.database import db
 
 class PracticanteModel(db.Model):
@@ -551,7 +522,7 @@ class PracticanteModel(db.Model):
 Cada petición cruza tres capas estrictas. **Route** (framework) construye dependencias y recibe HTTP. **Controller** (presentation) serializa/deserializa. **Application Service** orquesta usando servicios de dominio e interfaces de repositorio. Cada capa solo conoce a la inmediata inferior.
 
 ```python
-# frameworks/flask_mvc/routes/matching_routes.py — Route
+# src/main/frameworks/flask_mvc/routes/matching_routes.py — Route
 @matching_bp.get("/sugerencias")
 def suggest_convocatorias():
     usuario_id = session.get("usuario_id")
@@ -570,14 +541,14 @@ def build_matching_controller():
     )
     return MatchingController(app_service)
 
-# presentation/matching_controller.py — Controller
+# src/main/presentation/matching_controller.py — Controller
 class MatchingController:
     def suggest_convocatorias(self, usuario_id):
         self._require_service()
         resultados = self.matching_application_service.suggest_convocatorias(usuario_id)
         return [self._serialize_resultado(r) for r in resultados], 200
 
-# application/matching_application_service.py — Application Service
+# src/main/application/matching_application_service.py — Application Service
 class MatchingApplicationService:
     def suggest_convocatorias(self, usuario_id, umbral=50.0):
         self._require_repositories()
@@ -587,7 +558,7 @@ class MatchingApplicationService:
         convocatorias = self.convocatoria_repository.find_all()
         return self.matching_servicio.filtrar_convocatorias(practicante, convocatorias, umbral)
 
-# domain/matching/matching_dominio_servicio.py — Domain Service
+# src/main/domain/matching/matching_dominio_servicio.py — Domain Service
 class MatchingDominioServicio:
     def filtrar_convocatorias(self, practicante, convocatorias, umbral=50.0):
         resultados = []
@@ -605,7 +576,7 @@ class MatchingDominioServicio:
 La API usa URLs semánticas con sustantivos en plural, verbos HTTP según su propósito (POST=crear 201, GET=consultar 200, PUT=actualizar 200) y códigos de estado para cada resultado. Los errores de validación retornan 400, no autenticado 401, no encontrado 404, conflicto 409.
 
 ```python
-# frameworks/flask_mvc/routes/practica_routes.py
+# src/main/frameworks/flask_mvc/routes/practica_routes.py
 @practica_bp.post("")
 def start_practica():
     """POST /practicas — 201: Iniciar práctica"""
@@ -643,7 +614,7 @@ return jsonify({"error": "..."}), 503   # error de infraestructura (email)
 ### snake_case para funciones, métodos y variables
 
 ```python
-# domain/perfil/practicante.py
+# src/main/domain/perfil/practicante.py
 def agregar_habilidad(self, habilidad):
     habilidad_normalizada = self._normalizar_texto(habilidad)
     if habilidad_normalizada and habilidad_normalizada not in self.habilidades:
@@ -654,20 +625,20 @@ def agregar_habilidad(self, habilidad):
 ### PascalCase para clases
 
 ```python
-# domain/practica_evaluacion/practica.py
+# src/main/domain/practica_evaluacion/practica.py
 class Practica: ...
 
-# domain/practica_evaluacion/evaluacion.py
+# src/main/domain/practica_evaluacion/evaluacion.py
 class Evaluacion: ...
 ```
 
 ### UPPER_CASE para constantes de dominio
 
 ```python
-# domain/practica_evaluacion/evaluacion.py
+# src/main/domain/practica_evaluacion/evaluacion.py
 PUNTAJE_APROBACION = 60.0
 
-# domain/notificaciones/notificacion.py
+# src/main/domain/notificaciones/notificacion.py
 class Notificacion:
     TIPO_POSTULACION_SELECCIONADA = "POSTULACION_SELECCIONADA"
     TIPO_EVALUACION_DISPONIBLE = "EVALUACION_DISPONIBLE"
@@ -678,7 +649,7 @@ class Notificacion:
 ### Prefijo `_` para métodos privados
 
 ```python
-# infrastructure/sqlalchemy_convocatoria_repository.py
+# src/main/infrastructure/sqlalchemy_convocatoria_repository.py
 def _to_convocatoria_domain(self, model): ...
 def _dump_list(self, values): ...
 def _load_list(self, value): ...
@@ -687,7 +658,7 @@ def _load_list(self, value): ...
 ### Imports ordenados por capa arquitectónica
 
 ```python
-# frameworks/flask_mvc/routes/certificado_routes.py
+# src/main/frameworks/flask_mvc/routes/certificado_routes.py
 from flask import Blueprint, jsonify, session         # framework
 
 from application.certificacion_application_service import ...  # application
@@ -710,7 +681,7 @@ from presentation.certificado_controller import ...     # presentation
 Los nombres comunican intención sin requerir comentarios adicionales. El método `calcular_compatibilidad` describe exactamente qué hace: recibe dos listas de habilidades y calcula un score.
 
 ```python
-# domain/matching/sugerencia.py
+# src/main/domain/matching/sugerencia.py
 def calcular_compatibilidad(self, habilidades_practicante, habilidades_requeridas):
     if not habilidades_requeridas:
         self.puntaje_match = 0.0
@@ -728,7 +699,7 @@ def calcular_compatibilidad(self, habilidades_practicante, habilidades_requerida
 Cada función hace una sola cosa. `issue()` del controller solo orquesta; `_serialize()` solo transforma a dict.
 
 ```python
-# presentation/certificado_controller.py
+# src/main/presentation/certificado_controller.py
 def issue(self, empresa_id, practica_id):
     self._require_service()
     certificado, creado = self.certificacion_application_service.issue_certificate(
@@ -750,7 +721,7 @@ def _serialize_certificado(self, certificado):
 Los endpoints REST llevan docstring describiendo el método HTTP y la operación que realizan.
 
 ```python
-# frameworks/flask_mvc/routes/matching_routes.py
+# src/main/frameworks/flask_mvc/routes/matching_routes.py
 @matching_bp.get("/sugerencias")
 def suggest_convocatorias():
     """GET /matching/sugerencias — Obtener convocatorias sugeridas para el practicante."""
@@ -767,7 +738,7 @@ def calculate_match():
 Los imports se organizan según la dependencia entre capas: framework → domain → application → infrastructure → presentation.
 
 ```python
-# frameworks/flask_mvc/routes/postulacion_routes.py
+# src/main/frameworks/flask_mvc/routes/postulacion_routes.py
 from flask import Blueprint, jsonify, session              # framework
 
 from application.notificacion_application_service import ...  # application
@@ -780,7 +751,7 @@ from presentation.postulacion_controller import ...          # presentation
 Las entidades no son simples contenedores de datos; encapsulan validación y lógica de negocio.
 
 ```python
-# domain/certificacion/archivo_pdf.py
+# src/main/domain/certificacion/archivo_pdf.py
 class ArchivoPDF:
     @staticmethod
     def crear(practica_id, contenido):
@@ -803,7 +774,7 @@ class ArchivoPDF:
 Validar primero, ejecutar después. Las precondiciones se verifican al inicio del método con guard clauses cortas.
 
 ```python
-# domain/practica_evaluacion/practica.py
+# src/main/domain/practica_evaluacion/practica.py
 def finalizar(self):
     if self.estado != self.ESTADO_EN_CURSO:
         raise ValueError("La práctica ya está finalizada")
@@ -812,7 +783,7 @@ def finalizar(self):
     self.estado = self.ESTADO_FINALIZADA
     return self
 
-# domain/convocatorias/postulacion.py
+# src/main/domain/convocatorias/postulacion.py
 def cancelar(self):
     if self.estado != self.ESTADO_PENDIENTE:
         raise ValueError("Solo una postulación pendiente puede retirarse")
@@ -825,7 +796,7 @@ def cancelar(self):
 Interfaces pequeñas y específicas; cada cliente depende solo de los métodos que realmente usa.
 
 ```python
-# domain/notificaciones/i_notificacion_writer.py
+# src/main/domain/notificaciones/i_notificacion_writer.py
 class INotificacionWriter(ABC):
     @abstractmethod
     def save(self, notificacion): ...
@@ -834,7 +805,7 @@ class INotificacionWriter(ABC):
     @abstractmethod
     def mark_all_as_read(self, usuario_id): ...
 
-# domain/notificaciones/i_notificacion_reader.py
+# src/main/domain/notificaciones/i_notificacion_reader.py
 class INotificacionReader(ABC):
     @abstractmethod
     def find_by_usuario_id(self, usuario_id): ...
@@ -857,7 +828,7 @@ class INotificacionReader(ABC):
 Cada clase tiene una única razón de cambiar. `Notificacion` solo conoce su estado de dominio; `NotificacionController` solo serializa HTTP; `SqlAlchemyNotificacionRepository` solo persiste.
 
 ```python
-# domain/notificaciones/notificacion.py — Solo dominio
+# src/main/domain/notificaciones/notificacion.py — Solo dominio
 class Notificacion:
     def __init__(self, id=None, usuario_destino_id=None, tipo=None, mensaje=None,
                  metadata=None, leida=False, created_at=None):
@@ -872,7 +843,7 @@ class Notificacion:
     def marcar_como_leida(self):
         self.leida = True
 
-# presentation/notificacion_controller.py — Solo HTTP
+# src/main/presentation/notificacion_controller.py — Solo HTTP
 class NotificacionController:
     def list_notifications(self, usuario_id):
         self._require_service()
@@ -896,14 +867,14 @@ class NotificacionController:
 Para agregar un nuevo tipo de notificación solo se crea una constante en `Notificacion` y se invoca `create_notification()` desde un hook. No se modifica el ApplicationService, Controller ni Repository del módulo de notificaciones.
 
 ```python
-# domain/notificaciones/notificacion.py — Abierto a extensión
+# src/main/domain/notificaciones/notificacion.py — Abierto a extensión
 class Notificacion:
     TIPO_POSTULACION_SELECCIONADA = "POSTULACION_SELECCIONADA"
     TIPO_EVALUACION_DISPONIBLE = "EVALUACION_DISPONIBLE"
     TIPO_CERTIFICADO_EMITIDO = "CERTIFICADO_EMITIDO"
     TIPO_NUEVAS_SUGERENCIAS = "NUEVAS_SUGERENCIAS"
 
-# application/notificacion_application_service.py — Cerrado a modificación
+# src/main/application/notificacion_application_service.py — Cerrado a modificación
 class NotificacionApplicationService:
     def create_notification(self, usuario_destino_id, tipo, mensaje, metadata=None):
         notificacion = Notificacion(
@@ -927,14 +898,14 @@ notif_service.create_notification(
 `SqlAlchemyNotificacionRepository` implementa tanto `INotificacionWriter` como `INotificacionReader`. La misma instancia puede inyectarse en ambos roles sin alterar el comportamiento esperado. Si se creara un `PostgresNotificacionRepository` con las mismas interfaces, podría sustituir al actual sin cambiar el ApplicationService ni el Controller.
 
 ```python
-# infrastructure/sqlalchemy_notificacion_repository.py
+# src/main/infrastructure/sqlalchemy_notificacion_repository.py
 class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader):
     def save(self, notificacion): ...              # INotificacionWriter
     def mark_as_read(self, usuario_id, notificacion_id): ...  # INotificacionWriter
     def find_by_usuario_id(self, usuario_id): ...  # INotificacionReader
     def count_unread(self, usuario_id): ...         # INotificacionReader
 
-# frameworks/flask_mvc/routes/notificacion_routes.py
+# src/main/frameworks/flask_mvc/routes/notificacion_routes.py
 def build_notificacion_controller():
     repo = SqlAlchemyNotificacionRepository()
     service = NotificacionApplicationService(writer=repo, reader=repo)
@@ -946,7 +917,7 @@ def build_notificacion_controller():
 En lugar de un `INotificacionRepository` con 6 métodos, se segregaron dos interfaces especializadas. El ApplicationService las recibe como dependencias separadas; `create_notification` solo usa `writer`, `list_notifications` solo usa `reader`.
 
 ```python
-# domain/notificaciones/i_notificacion_writer.py — Solo escritura
+# src/main/domain/notificaciones/i_notificacion_writer.py — Solo escritura
 class INotificacionWriter(ABC):
     @abstractmethod
     def save(self, notificacion): ...
@@ -955,7 +926,7 @@ class INotificacionWriter(ABC):
     @abstractmethod
     def mark_all_as_read(self, usuario_id): ...
 
-# domain/notificaciones/i_notificacion_reader.py — Solo lectura
+# src/main/domain/notificaciones/i_notificacion_reader.py — Solo lectura
 class INotificacionReader(ABC):
     @abstractmethod
     def find_by_usuario_id(self, usuario_id): ...
@@ -964,7 +935,7 @@ class INotificacionReader(ABC):
     @abstractmethod
     def count_unread(self, usuario_id): ...
 
-# application/notificacion_application_service.py
+# src/main/application/notificacion_application_service.py
 class NotificacionApplicationService:
     def __init__(self, writer=None, reader=None):
         self.writer = writer    # solo INotificacionWriter
@@ -984,12 +955,12 @@ class NotificacionApplicationService:
 `NotificacionApplicationService` (alta capa) depende de las abstracciones `INotificacionWriter`/`INotificacionReader` definidas en la capa de dominio. `SqlAlchemyNotificacionRepository` (baja capa) también depende de esas mismas abstracciones al implementarlas. La inyección ocurre en las rutas.
 
 ```python
-# domain/notificaciones/i_notificacion_writer.py — Abstracción en dominio
+# src/main/domain/notificaciones/i_notificacion_writer.py — Abstracción en dominio
 class INotificacionWriter(ABC):
     @abstractmethod
     def save(self, notificacion): ...
 
-# application/notificacion_application_service.py — Alta capa
+# src/main/application/notificacion_application_service.py — Alta capa
 class NotificacionApplicationService:
     def __init__(self, writer=None, reader=None):
         self.writer = writer  # depende de abstracción, no de concreción
@@ -999,7 +970,7 @@ class NotificacionApplicationService:
         self._require_writer()
         return self.writer.save(notificacion)
 
-# infrastructure/sqlalchemy_notificacion_repository.py — Baja capa
+# src/main/infrastructure/sqlalchemy_notificacion_repository.py — Baja capa
 class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader):
     def save(self, notificacion):
         model = NotificacionModel(
@@ -1011,7 +982,7 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
         db.session.commit()
         return self._to_domain(model)
 
-# frameworks/flask_mvc/routes/notificacion_routes.py — Inyección
+# src/main/frameworks/flask_mvc/routes/notificacion_routes.py — Inyección
 def build_notificacion_controller():
     repo = SqlAlchemyNotificacionRepository()                     # concreción
     service = NotificacionApplicationService(writer=repo, reader=repo)  # como abstracción
@@ -1025,7 +996,7 @@ def build_notificacion_controller():
 Objetos con identidad propia (`id`) y ciclo de vida. Son mutables y encapsulan reglas de negocio.
 
 ```python
-# domain/practica_evaluacion/practica.py
+# src/main/domain/practica_evaluacion/practica.py
 class Practica:
     ESTADO_EN_CURSO = "en_curso"
     ESTADO_FINALIZADA = "finalizada"
@@ -1049,7 +1020,7 @@ class Practica:
 Inmutables, sin identidad, se comparan por su contenido. Encapsulan conceptos pequeños del dominio.
 
 ```python
-# domain/perfil/nombre_completo.py
+# src/main/domain/perfil/nombre_completo.py
 class NombreCompleto:
     def __init__(self, nombres=None, apellidos=None):
         self.nombres = nombres
@@ -1062,7 +1033,7 @@ class NombreCompleto:
     def __str__(self):
         return f"{self.nombres} {self.apellidos}".strip()
 
-# domain/perfil/ruc.py
+# src/main/domain/perfil/ruc.py
 class RUC:
     def __init__(self, numero=None):
         self.numero = numero
@@ -1077,7 +1048,7 @@ class RUC:
 Operaciones que no pertenecen naturalmente a una sola entidad. Son stateless y coordinant varias entidades o value objects.
 
 ```python
-# domain/auth/autenticacion_dominio_servicio.py
+# src/main/domain/auth/autenticacion_dominio_servicio.py
 class AutenticacionDominioServicio:
     def autenticar(self, usuario, password):
         if not usuario or not usuario.esta_activo():
@@ -1095,7 +1066,7 @@ class AutenticacionDominioServicio:
 El agregado raíz `Practica` encapsula `Entregable` y `Evaluacion` como hijos, garantizando invariantes. Los módulos agrupan conceptos por contexto acotado.
 
 ```python
-# domain/practica_evaluacion/practica.py
+# src/main/domain/practica_evaluacion/practica.py
 def subir_entregable(self, archivo):
     entregable = Entregable.crear(practica_id=self.id, archivo=archivo)
     self.entregables.append(entregable)
@@ -1108,7 +1079,7 @@ def registrar_evaluacion(self, puntaje):
 ```
 
 ```
-domain/                  ← Módulos por contexto
+src/main/domain/          ← Módulos por contexto
 ├── auth/                ← Autenticación y usuarios
 ├── convocatorias/       ← Convocatorias y postulaciones
 ├── perfil/              ← Perfiles de practicante y empresa
@@ -1123,7 +1094,7 @@ domain/                  ← Módulos por contexto
 Encapsulan la creación de objetos complejos. Pueden ser clases dedicadas o métodos estáticos.
 
 ```python
-# domain/convocatorias/convocatoria_fabrica.py
+# src/main/domain/convocatorias/convocatoria_fabrica.py
 class ConvocatoriaFabrica:
     def crear_convocatoria(self, empresa_id, titulo, descripcion=None):
         if not empresa_id:
@@ -1137,7 +1108,7 @@ class ConvocatoriaFabrica:
         convocatoria.estado = Convocatoria.ESTADO_BORRADOR
         return convocatoria
 
-# domain/practica_evaluacion/entregable.py — fábrica estática
+# src/main/domain/practica_evaluacion/entregable.py — fábrica estática
 @staticmethod
 def crear(practica_id, archivo):
     if not archivo or not str(archivo).strip():
@@ -1150,7 +1121,7 @@ def crear(practica_id, archivo):
 Interfaces en el dominio que definen el contrato de persistencia; implementaciones concretas en infraestructura.
 
 ```python
-# domain/auth/i_usuario_repository.py
+# src/main/domain/auth/i_usuario_repository.py
 class IUsuarioRepository(ABC):
     @abstractmethod
     def save(self, usuario): ...
@@ -1161,7 +1132,7 @@ class IUsuarioRepository(ABC):
     @abstractmethod
     def find_by_id(self, usuario_id): ...
 
-# infrastructure/sqlalchemy_usuario_repository.py
+# src/main/infrastructure/sqlalchemy_usuario_repository.py
 class SqlAlchemyUsuarioRepository(IUsuarioRepository):
     def save(self, usuario):
         model = UsuarioModel.query.get(usuario.id) if usuario.id else None
@@ -1179,11 +1150,11 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
 Cinco capas con dependencias hacia adentro: el dominio no conoce infraestructura ni frameworks.
 
 ```
-frameworks/    ← Flask, SQLAlchemy, Alembic (configuración, rutas)
-presentation/  ← Controllers (serialización HTTP)
-application/   ← Application Services (orquestación de casos de uso)
-infrastructure/← Repositorios concretos, email sender
-domain/        ← Entidades, VO, servicios de dominio, interfaces de repositorio
+src/main/frameworks/    ← Flask, SQLAlchemy, Alembic (configuración, rutas)
+src/main/presentation/  ← Controllers (serialización HTTP)
+src/main/application/   ← Application Services (orquestación de casos de uso)
+src/main/infrastructure/← Repositorios concretos, email sender
+src/main/domain/        ← Entidades, VO, servicios de dominio, interfaces de repositorio
 ```
 
 Flujo de ejemplo para registrar un usuario:
@@ -1227,7 +1198,7 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 
 # 8. Tecnologías
 
-- Python 3.10 o superior
+- Python 3.12 o superior
 - Flask 3
 - SQLAlchemy y Flask-SQLAlchemy
 - Alembic y Flask-Migrate
@@ -1238,20 +1209,24 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 
 # 9. Ejecución local
 
+`.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del
+repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
+`.env` es un archivo distinto: contiene configuración local de Flask, como la
+clave secreta y los datos SMTP.
+
 ### Windows (PowerShell)
 
-Crear el entorno, instalar las dependencias y copiar la configuración local:
+Instalar las dependencias en el entorno `.venv` de Poetry y copiar la configuración local:
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+poetry install
 Copy-Item .env.example .env
 ```
 
 Crear o actualizar la base de datos:
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask `
+poetry run flask `
   --app frameworks.flask_mvc.app:create_app `
   db upgrade
 ```
@@ -1259,7 +1234,7 @@ Crear o actualizar la base de datos:
 Iniciar la aplicación:
 
 ```powershell
-.\.venv\Scripts\python.exe -m flask `
+poetry run flask `
   --app frameworks.flask_mvc.app:create_app `
   run --debug
 ```
@@ -1269,12 +1244,10 @@ Iniciar la aplicación:
 Crear y activar el entorno:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+poetry install
 cp .env.example .env
-python -m flask --app frameworks.flask_mvc.app:create_app db upgrade
-python -m flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
 La aplicación estará disponible en `http://127.0.0.1:5000`. Para comprobarla:
@@ -1319,7 +1292,7 @@ envían correos reales.
 Para comprobar la conexión después de configurar SMTP:
 
 ```bash
-python -m flask --app frameworks.flask_mvc.app:create_app test-email --to tu_correo@gmail.com
+poetry run flask --app frameworks.flask_mvc.app:create_app test-email --to tu_correo@gmail.com
 ```
 
 No utilices la contraseña normal de Gmail ni subas el archivo `.env` al
@@ -1329,45 +1302,62 @@ repositorio.
 
 # 10. Pruebas
 
-Ejecutar todas las pruebas desde PowerShell:
+El comando oficial usa pytest y descubre tanto las clases `unittest.TestCase`
+como las pruebas pytest. Desde PowerShell, Ubuntu/Linux o macOS:
 
-```powershell
-.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```sh
+poetry --version
+poetry install
+poetry run pytest -v
 ```
 
-En Linux o macOS:
+Este repositorio usa Poetry 2.4.3, la versión registrada en `poetry.lock`.
+Comprueba que `poetry --version` muestre exactamente `2.4.3` antes de instalar
+las dependencias. En Ubuntu, si la versión del sistema es antigua, instala la
+versión requerida con pipx y usa su ruta explícita para evitar seleccionar la
+versión de `/usr/bin/poetry`:
 
 ```bash
-python -m unittest discover -s tests -v
+# El sudo se usa solo para instalar pipx desde los paquetes de Ubuntu.
+sudo apt install pipx
+pipx ensurepath
+pipx install "poetry==2.4.3"
+~/.local/bin/poetry --version
+~/.local/bin/poetry install
+~/.local/bin/poetry run pytest -v
 ```
 
-El conjunto de pruebas incluye 8 casos de integración que cubren el flujo
-completo de negocio: registro, activación, perfiles, convocatorias, matching,
-postulaciones, prácticas, entregables, evaluaciones, certificados y
-notificaciones.
+En Windows y macOS, instala Poetry 2.4.3 siguiendo la
+[guía oficial de instalación](https://python-poetry.org/docs/#installation),
+y comprueba su versión antes de ejecutar `poetry install`.
+
+La suite actual contiene 12 métodos de integración que cubren el flujo de
+negocio. Los reportes globales y unitarios se generan en `reports/`; consulta
+los comandos exactos en [Reportes y entrega](.docs/11-reportes-y-entrega.md).
 
 ---
 
 # 11. Migraciones
 
-El entorno de migraciones ya está inicializado en `frameworks/migrations`.
+El entorno de migraciones ya está inicializado en `src/main/frameworks/migrations`.
+Ejecuta los comandos desde el entorno Poetry del proyecto.
 
 Crear una nueva migración después de modificar modelos:
 
 ```bash
-python -m flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
+poetry run flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
 ```
 
 Aplicar migraciones:
 
 ```bash
-python -m flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
 ```
 
 Revertir la última migración:
 
 ```bash
-python -m flask --app frameworks.flask_mvc.app:create_app db downgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app db downgrade
 ```
 
 La base SQLite de desarrollo se guarda en `instance/chambeaya.db`. Para
