@@ -1,6 +1,7 @@
 """Page Object para crear y consultar convocatorias de empresa."""
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 from .base_page import BasePage
 
@@ -95,11 +96,7 @@ class ConvocatoriaPage(BasePage):
         publish_button = row.find_element(
             By.CSS_SELECTOR, "[data-publish-opening]"
         )
-        self.driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
-            publish_button,
-        )
-        publish_button.click()
+        publish_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
             (
                 By.XPATH,
@@ -126,11 +123,7 @@ class ConvocatoriaPage(BasePage):
         self._dismiss_toasts()
         row = self.convocatoria_row(titulo)
         close_button = row.find_element(By.CSS_SELECTOR, "[data-close-opening]")
-        self.driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
-            close_button,
-        )
-        close_button.click()
+        close_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
             (
                 By.XPATH,
