@@ -38,3 +38,25 @@ def test_per_01_guardar_datos_validos_perfil_practicante(driver, base_url):
         or "éxito" in status.lower()
         or status != ""
     )
+
+
+def test_per_02_agregar_habilidad_perfil_practicante(driver, base_url):
+    """PER-02: Agregar habilidad en perfil practicante."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("practicante@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Practicante"
+
+    profile_page = ProfilePage(driver, base_url)
+    profile_page.open_profile()
+
+    habilidad = "Python"
+    # Si ya existe, la removemos primero para garantizar la prueba
+    profile_page.remove_skill_if_present(habilidad)
+    profile_page.add_skill(habilidad)
+
+    skills = profile_page.get_skills()
+    assert any(habilidad.lower() in s.lower() for s in skills), (
+        f"'{habilidad}' no aparece en skills-list: {skills}"
+    )
