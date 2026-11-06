@@ -86,3 +86,26 @@ class ConvocatoriaPage(BasePage):
     def convocatoria_is_borrador(self, titulo: str) -> bool:
         """Indica si la fila de la convocatoria muestra el estado borrador."""
         return "borrador" in self.convocatoria_row(titulo).text.casefold()
+
+    def publish_convocatoria(self, titulo: str) -> None:
+        """Publica el borrador identificado por su título y espera la actualización."""
+        row = self.convocatoria_row(titulo)
+        publish_button = row.find_element(
+            By.CSS_SELECTOR, "[data-publish-opening]"
+        )
+        publish_button.click()
+        self.wait_until_visible(
+            (
+                By.XPATH,
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-publicada")]',
+            )
+        )
+
+    def convocatoria_is_publicada(self, titulo: str) -> bool:
+        """Indica si la tabla muestra la convocatoria como publicada."""
+        return self.wait_until_visible(
+            (
+                By.XPATH,
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-publicada")]',
+            )
+        ).is_displayed()
