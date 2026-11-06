@@ -182,3 +182,8 @@ class ProfilePage(BasePage):
         """Devuelve el mensaje de validación nativo del navegador para RUC."""
         ruc_el = self.driver.find_element(*self.COMPANY_RUC)
         return self.driver.execute_script("return arguments[0].validationMessage;", ruc_el)
+
+    def get_company_ruc_value(self) -> str:
+        """Devuelve el valor actual del campo RUC."""
+        ruc_el = self.driver.find_element(*self.COMPANY_RUC)
+        return ruc_el.get_attribute("value")
