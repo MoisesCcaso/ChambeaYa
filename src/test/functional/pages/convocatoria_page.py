@@ -1,6 +1,7 @@
 """Page Object para crear y consultar convocatorias de empresa."""
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 from .base_page import BasePage
 
@@ -19,6 +20,7 @@ class ConvocatoriaPage(BasePage):
     BENEFITS = (By.NAME, "beneficios")
     SAVE_BUTTON = (By.CSS_SELECTOR, '#opening-form button[type="submit"]')
     TABLE = (By.ID, "openings-table")
+    TOAST_CLOSE_BUTTONS = (By.CSS_SELECTOR, '#toast-region .toast button[aria-label="Cerrar"]')
 
     def open_convocatorias(self) -> "ConvocatoriaPage":
         """Abre la sección de convocatorias desde el menú de empresa."""
@@ -89,11 +91,12 @@ class ConvocatoriaPage(BasePage):
 
     def publish_convocatoria(self, titulo: str) -> None:
         """Publica el borrador identificado por su título y espera la actualización."""
+        self._dismiss_toasts()
         row = self.convocatoria_row(titulo)
         publish_button = row.find_element(
             By.CSS_SELECTOR, "[data-publish-opening]"
         )
-        publish_button.click()
+        publish_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
             (
                 By.XPATH,
@@ -117,8 +120,10 @@ class ConvocatoriaPage(BasePage):
 
     def close_convocatoria(self, titulo: str) -> None:
         """Cierra una convocatoria publicada y espera el estado actualizado."""
+        self._dismiss_toasts()
         row = self.convocatoria_row(titulo)
-        row.find_element(By.CSS_SELECTOR, "[data-close-opening]").click()
+        close_button = row.find_element(By.CSS_SELECTOR, "[data-close-opening]")
+        close_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
             (
                 By.XPATH,
@@ -159,3 +164,8 @@ class ConvocatoriaPage(BasePage):
     def candidate_is_listed(self, nombre: str) -> bool:
         """Indica si el nombre indicado aparece entre los candidatos."""
         return nombre in self.candidate_names()
+
+    def _dismiss_toasts(self) -> None:
+        """Cierra avisos flotantes que podrían cubrir los controles de la tabla."""
+        for button in self.driver.find_elements(*self.TOAST_CLOSE_BUTTONS):
+            button.click()
