@@ -22,6 +22,10 @@ class LoginPage(BasePage):
             (By.CSS_SELECTOR, "#auth-form button[type='submit']")
         ).click()
 
+    def wait_for_path(self, path: str) -> None:
+        """Espera hasta que el navegador llegue a la ruta indicada."""
+        self.wait_for(lambda _driver: self.current_path == path)
+
     @property
     def current_path(self) -> str:
         """Ruta actual del navegador, sin dominio ni query string."""

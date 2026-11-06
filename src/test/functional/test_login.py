@@ -11,6 +11,7 @@ def test_log_01_login_valido_practicante(driver, base_url):
     page = LoginPage(driver, base_url)
     page.open_login()
     page.login("practicante@demo.local", "Demo1234")
+    page.wait_for_path("/app")
 
     assert page.current_path == "/app"
     assert page.role_label == "Practicante"
@@ -21,6 +22,7 @@ def test_log_02_login_valido_empresa(driver, base_url):
     page = LoginPage(driver, base_url)
     page.open_login()
     page.login("empresa@demo.local", "Demo1234")
+    page.wait_for_path("/app")
 
     assert page.current_path == "/app"
     assert page.role_label == "Empresa"
