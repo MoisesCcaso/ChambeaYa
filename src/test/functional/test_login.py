@@ -1,6 +1,9 @@
 """Pruebas funcionales de login/logout asignadas a I2."""
 
-from .pages.login_page import LoginPage
+if __package__:
+    from .pages.login_page import LoginPage
+else:
+    from pages.login_page import LoginPage
 
 
 def test_log_01_login_valido_practicante(driver, base_url):
