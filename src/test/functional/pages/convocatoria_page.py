@@ -114,3 +114,23 @@ class ConvocatoriaPage(BasePage):
         """Indica si la fila de la convocatoria ofrece la acción Publicar."""
         row = self.convocatoria_row(titulo)
         return bool(row.find_elements(By.CSS_SELECTOR, "[data-publish-opening]"))
+
+    def close_convocatoria(self, titulo: str) -> None:
+        """Cierra una convocatoria publicada y espera el estado actualizado."""
+        row = self.convocatoria_row(titulo)
+        row.find_element(By.CSS_SELECTOR, "[data-close-opening]").click()
+        self.wait_until_visible(
+            (
+                By.XPATH,
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-cerrada")]',
+            )
+        )
+
+    def convocatoria_is_cerrada(self, titulo: str) -> bool:
+        """Indica si la tabla muestra la convocatoria como cerrada."""
+        return self.wait_until_visible(
+            (
+                By.XPATH,
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-cerrada")]',
+            )
+        ).is_displayed()
