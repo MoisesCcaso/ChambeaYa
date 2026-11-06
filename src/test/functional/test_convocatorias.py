@@ -135,3 +135,18 @@ def test_con_05_cierra_convocatoria_publicada(driver, base_url):
     page.close_convocatoria(titulo)
 
     assert page.convocatoria_is_cerrada(titulo)
+
+
+def test_con_06_muestra_candidatos_de_convocatoria(driver, base_url):
+    """La empresa puede ver al practicante postulado a una convocatoria demo."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("empresa@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Empresa"
+
+    page = ConvocatoriaPage(driver, base_url)
+    page.open_convocatorias()
+    page.open_candidates("Practicante de aseguramiento de calidad")
+
+    assert page.candidate_is_listed("Andrea Quispe")
