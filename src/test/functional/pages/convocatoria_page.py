@@ -134,3 +134,28 @@ class ConvocatoriaPage(BasePage):
                 f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-cerrada")]',
             )
         ).is_displayed()
+
+    def open_candidates(self, titulo: str) -> None:
+        """Abre la lista de candidatos de una convocatoria publicada o cerrada."""
+        row = self.convocatoria_row(titulo)
+        row.find_element(By.CSS_SELECTOR, "[data-candidates-opening]").click()
+        self.wait_until_visible((By.ID, "candidates-dialog"))
+        self.wait_for(
+            lambda browser: browser.find_elements(
+                By.CSS_SELECTOR,
+                "#candidate-list .candidate-row, #candidate-list .empty-state",
+            )
+        )
+
+    def candidate_names(self) -> list[str]:
+        """Devuelve los nombres visibles en la lista de candidatos."""
+        return [
+            heading.text.strip()
+            for heading in self.driver.find_elements(
+                By.CSS_SELECTOR, "#candidate-list .candidate-row h3"
+            )
+        ]
+
+    def candidate_is_listed(self, nombre: str) -> bool:
+        """Indica si el nombre indicado aparece entre los candidatos."""
+        return nombre in self.candidate_names()
