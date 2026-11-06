@@ -47,3 +47,11 @@ def test_log_04_rechaza_correo_inexistente(driver, base_url):
 
     assert page.current_path == "/ingresar"
     assert page.error_message
+
+
+def test_log_05_redirige_app_sin_sesion(driver, base_url):
+    """Una visita sin sesión a /app redirige al formulario de ingreso."""
+    page = LoginPage(driver, base_url)
+    page.open("/app")
+
+    assert page.current_path == "/ingresar"
