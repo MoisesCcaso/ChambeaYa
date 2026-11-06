@@ -99,6 +99,17 @@ class ProfilePage(BasePage):
         toast = self.wait_until_visible(self.TOAST)
         return toast.text.strip()
 
+    def remove_skill_if_present(self, skill_name: str) -> "ProfilePage":
+        """Elimina una habilidad de la lista si ya se encuentra presente."""
+        skills_container = self.wait_until_visible(self.SKILLS_LIST)
+        tags = skills_container.find_elements(By.CSS_SELECTOR, ".tag")
+        for tag in tags:
+            if skill_name.lower() in tag.text.lower():
+                remove_btn = tag.find_element(By.CSS_SELECTOR, "button[data-remove-skill]")
+                self._click(remove_btn)
+                break
+        return self
+
     def add_skill(self, skill_name: str) -> "ProfilePage":
         """Añade una habilidad en el perfil de practicante."""
         self._set_input(self.SKILL_INPUT, skill_name)
