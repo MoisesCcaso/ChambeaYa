@@ -26,6 +26,11 @@ class LoginPage(BasePage):
         """Espera hasta que el navegador llegue a la ruta indicada."""
         self.wait_for(lambda _driver: self.current_path == path)
 
+    def logout(self) -> None:
+        """Cierra la sesión desde el panel y espera el formulario de ingreso."""
+        self.wait_until_clickable((By.ID, "logout-button")).click()
+        self.wait_for_path("/ingresar")
+
     @property
     def current_path(self) -> str:
         """Ruta actual del navegador, sin dominio ni query string."""

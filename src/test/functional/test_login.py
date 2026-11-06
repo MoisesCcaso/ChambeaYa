@@ -55,3 +55,18 @@ def test_log_05_redirige_app_sin_sesion(driver, base_url):
     page.open("/app")
 
     assert page.current_path == "/ingresar"
+
+
+def test_log_06_logout_invalida_acceso_a_app(driver, base_url):
+    """Tras cerrar sesión, una nueva visita a /app vuelve a /ingresar."""
+    page = LoginPage(driver, base_url)
+    page.open_login()
+    page.login("practicante@demo.local", "Demo1234")
+    page.wait_for_path("/app")
+    assert page.role_label == "Practicante"
+
+    page.logout()
+    assert page.current_path == "/ingresar"
+
+    page.open("/app")
+    assert page.current_path == "/ingresar"
