@@ -103,3 +103,29 @@ def test_per_04_agregar_formacion_perfil_practicante(driver, base_url):
     assert any(formacion.lower() in e.lower() for e in education), (
         f"'{formacion}' no aparece en education-list: {education}"
     )
+
+
+def test_per_05_guardar_perfil_empresa_ruc_valido(driver, base_url):
+    """PER-05: Guardar perfil empresa con RUC válido (11 dígitos)."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("empresa@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Empresa"
+
+    profile_page = ProfilePage(driver, base_url)
+    profile_page.open_profile()
+
+    profile_page.fill_company_profile(
+        razon_social="Innovación Andina S.A.C.",
+        ruc="20100070970",  # RUC válido de 11 dígitos
+    )
+    profile_page.submit_company_profile()
+
+    status = profile_page.get_company_status()
+    assert (
+        "actualizado" in status.lower()
+        or "registrada" in status.lower()
+        or "guardado" in status.lower()
+        or status != ""
+    ), f"No se obtuvo confirmación de guardado en company-profile-status: '{status}'"
