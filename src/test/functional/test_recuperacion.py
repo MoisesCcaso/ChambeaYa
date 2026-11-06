@@ -46,3 +46,51 @@ def test_rec_03_login_con_cuenta_sin_activar(driver, base_url):
 
     assert login.error_message == "La cuenta no está activa"
     assert login.current_path == "/ingresar"
+
+
+def test_rec_04_solicitud_de_recuperacion_con_email_existente(driver, base_url):
+    """La solicitud con un correo existente lleva al restablecimiento."""
+    page = RecoveryPage(driver, base_url)
+    page.open_recovery()
+    page.request_recovery("practicante@demo.local")
+
+    assert "Solicitud procesada" in page.feedback
+    page.wait_for_path("/restablecer")
+    assert page.current_token != ""
+
+
+def test_rec_05_restablecer_con_contrasena_valida(driver, base_url):
+    """La nueva contraseña reemplaza a la anterior y permite ingresar."""
+    user = auth_data.register_active_user(base_url)
+    page = RecoveryPage(driver, base_url)
+    page.open_recovery()
+    page.request_recovery(user["email"])
+    page.wait_for_path("/restablecer")
+    page.reset_password(NEW_PASSWORD)
+
+    assert "Contraseña actualizada" in page.feedback
+    page.wait_for_path("/ingresar")
+
+    login = LoginPage(driver, base_url)
+    login.login(user["email"], NEW_PASSWORD)
+    page.wait_for_path("/app")
+    assert login.role_label == "Practicante"
+
+
+def test_rec_06_restablecer_con_contrasena_invalida(driver, base_url):
+    """Una contraseña de menos de 8 caracteres es rechazada."""
+    user = auth_data.register_active_user(base_url)
+    page = RecoveryPage(driver, base_url)
+    page.open_recovery()
+    page.request_recovery(user["email"])
+    page.wait_for_path("/restablecer")
+    page.reset_password_skipping_browser_validation("corta")
+
+    assert page.password_field_is_too_short()
+    assert page.feedback == "La contraseña debe tener al menos 8 caracteres"
+    assert page.current_path == "/restablecer"
+
+    login = LoginPage(driver, base_url)
+    login.open_login()
+    login.login(user["email"], user["password"])
+    page.wait_for_path("/app")
