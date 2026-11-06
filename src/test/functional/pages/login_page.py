@@ -46,3 +46,8 @@ class LoginPage(BasePage):
         return self.wait_until_visible(
             (By.CSS_SELECTOR, '[data-view="convocatorias"]')
         ).is_displayed()
+
+    @property
+    def error_message(self) -> str:
+        """Espera y devuelve el mensaje de error del formulario."""
+        return self.wait_until_visible((By.ID, "form-feedback")).text.strip()
