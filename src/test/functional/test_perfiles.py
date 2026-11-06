@@ -129,3 +129,34 @@ def test_per_05_guardar_perfil_empresa_ruc_valido(driver, base_url):
         or "guardado" in status.lower()
         or status != ""
     ), f"No se obtuvo confirmación de guardado en company-profile-status: '{status}'"
+
+
+def test_per_06_ruc_invalido_genera_error_de_validacion(driver, base_url):
+    """PER-06: RUC inválido (10 y 12 dígitos) genera error de validación."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("empresa@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Empresa"
+
+    profile_page = ProfilePage(driver, base_url)
+    profile_page.open_profile()
+
+    # Caso 1: RUC de 10 dígitos → el campo pattern="[0-9]{11}" lo marca inválido
+    profile_page.fill_company_profile(
+        razon_social="Empresa Test S.A.C.",
+        ruc="1234567890",  # 10 dígitos
+    )
+    assert not profile_page.is_company_ruc_valid(), (
+        "Se esperaba que el RUC de 10 dígitos fuera inválido"
+    )
+    assert profile_page.company_ruc_validation_message() != "", (
+        "Se esperaba mensaje de validación para RUC de 10 dígitos"
+    )
+
+    # Caso 2: RUC de 12 dígitos → maxlength="11" impide ingresar más de 11 chars
+    profile_page.fill_company_profile(ruc="123456789012")  # intenta 12 dígitos
+    valor_real = profile_page.get_company_ruc_value()
+    assert len(valor_real) <= 11, (
+        f"El campo RUC debería limitar a 11 caracteres, pero contiene: '{valor_real}'"
+    )
