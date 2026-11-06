@@ -62,3 +62,26 @@ def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
         len(driver.find_element(*page.TABLE).find_elements(By.TAG_NAME, "tr"))
         == filas_antes
     )
+
+
+def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
+    """Una empresa puede publicar una convocatoria que está en borrador."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("empresa@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Empresa"
+
+    page = ConvocatoriaPage(driver, base_url)
+    page.open_convocatorias()
+    titulo = f"Practicante QA publicación {uuid4().hex[:8]}"
+    page.create_draft(
+        titulo=titulo,
+        descripcion="Convocatoria creada para probar su publicación.",
+        habilidades="Python, Selenium",
+    )
+
+    assert page.convocatoria_is_borrador(titulo)
+    page.publish_convocatoria(titulo)
+
+    assert page.convocatoria_is_publicada(titulo)
