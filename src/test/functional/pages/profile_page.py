@@ -123,6 +123,17 @@ class ProfilePage(BasePage):
         tags = skills_container.find_elements(By.CSS_SELECTOR, ".tag")
         return [tag.text.strip() for tag in tags if tag.text.strip()]
 
+    def remove_education_if_present(self, education_name: str) -> "ProfilePage":
+        """Elimina una formación de la lista si ya se encuentra presente."""
+        edu_container = self.wait_until_visible(self.EDUCATION_LIST)
+        tags = edu_container.find_elements(By.CSS_SELECTOR, ".tag")
+        for tag in tags:
+            if education_name.lower() in tag.text.lower():
+                remove_btn = tag.find_element(By.CSS_SELECTOR, "button[data-remove-education]")
+                self._click(remove_btn)
+                break
+        return self
+
     def add_education(self, education_name: str) -> "ProfilePage":
         """Añade una formación en el perfil de practicante."""
         self._set_input(self.EDUCATION_INPUT, education_name)

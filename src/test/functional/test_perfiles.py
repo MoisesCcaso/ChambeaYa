@@ -81,3 +81,25 @@ def test_per_03_habilidad_vacia_no_se_agrega(driver, base_url):
     assert len(skills_despues) == len(skills_antes), (
         f"La lista de habilidades cambió tras intentar agregar cadena vacía: {skills_despues}"
     )
+
+
+def test_per_04_agregar_formacion_perfil_practicante(driver, base_url):
+    """PER-04: Agregar formación educativa en perfil practicante."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("practicante@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Practicante"
+
+    profile_page = ProfilePage(driver, base_url)
+    profile_page.open_profile()
+
+    formacion = "Ing. de Sistemas"
+    # Si ya existe, la removemos primero para garantizar la prueba
+    profile_page.remove_education_if_present(formacion)
+    profile_page.add_education(formacion)
+
+    education = profile_page.get_education()
+    assert any(formacion.lower() in e.lower() for e in education), (
+        f"'{formacion}' no aparece en education-list: {education}"
+    )
