@@ -109,3 +109,8 @@ class ConvocatoriaPage(BasePage):
                 f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-publicada")]',
             )
         ).is_displayed()
+
+    def can_publish_convocatoria(self, titulo: str) -> bool:
+        """Indica si la fila de la convocatoria ofrece la acción Publicar."""
+        row = self.convocatoria_row(titulo)
+        return bool(row.find_elements(By.CSS_SELECTOR, "[data-publish-opening]"))

@@ -85,3 +85,27 @@ def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
     page.publish_convocatoria(titulo)
 
     assert page.convocatoria_is_publicada(titulo)
+
+
+def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
+    """Una convocatoria publicada deja de ofrecer la acción Publicar."""
+    login_page = LoginPage(driver, base_url)
+    login_page.open_login()
+    login_page.login("empresa@demo.local", "Demo1234")
+    login_page.wait_for_path("/app")
+    assert login_page.role_label == "Empresa"
+
+    page = ConvocatoriaPage(driver, base_url)
+    page.open_convocatorias()
+    titulo = f"Practicante QA publicación única {uuid4().hex[:8]}"
+    page.create_draft(
+        titulo=titulo,
+        descripcion="Convocatoria para verificar que publicar no se repita.",
+        habilidades="Python, Selenium",
+    )
+
+    assert page.convocatoria_is_borrador(titulo)
+    page.publish_convocatoria(titulo)
+
+    assert page.convocatoria_is_publicada(titulo)
+    assert not page.can_publish_convocatoria(titulo)
