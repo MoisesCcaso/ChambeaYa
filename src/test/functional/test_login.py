@@ -32,3 +32,13 @@ def test_log_03_rechaza_contrasena_incorrecta(driver, base_url):
 
     assert page.current_path == "/ingresar"
     assert page.error_message
+
+
+def test_log_04_rechaza_correo_inexistente(driver, base_url):
+    """Un correo sin cuenta muestra un error y conserva el formulario."""
+    page = LoginPage(driver, base_url)
+    page.open_login()
+    page.login("nadie@demo.local", "Demo1234")
+
+    assert page.current_path == "/ingresar"
+    assert page.error_message
