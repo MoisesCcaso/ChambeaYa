@@ -40,6 +40,8 @@ pip-delete-this-directory.txt
 /htmlcov/
 /reports/junit.xml
 /reports/junit-unit.xml
+/reports/functional.xml
+/reports/functional.html
 /reports/coverage.xml
 /reports/unit-coverage.xml
 /reports/htmlcov/
