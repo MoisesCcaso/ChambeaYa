@@ -238,3 +238,6 @@ Desktop.ini
 
 # Local agent workspace
 .agents/
+
+# SonarQube
+/.scannerwork/
