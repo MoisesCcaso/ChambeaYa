@@ -36,16 +36,11 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit test / coverage reports: generados, no se versionan.
+# La carpeta se conserva via .gitkeep para que exista en un clon nuevo.
 /htmlcov/
-/reports/junit.xml
-/reports/junit-unit.xml
-/reports/functional.xml
-/reports/functional.html
-/reports/coverage.xml
-/reports/unit-coverage.xml
-/reports/htmlcov/
-/reports/unit-htmlcov/
+/reports/*
+!/reports/.gitkeep
 .tox/
 .nox/
 .coverage
