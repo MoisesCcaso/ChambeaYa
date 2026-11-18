@@ -1,8 +1,12 @@
-# Auditoría manual de código - ChambeaYa
+# Issues por resolver — ChambeaYa
 
-Generado el 2026-11-18 11:09. Hallazgos que **no** aparecen en el reporte de SonarQube (34 incidencias, ver `sonar-reporte.md`).
+Lista consolidada de los issues que el equipo va a solucionar. Reúne tres fuentes:
 
-## Resumen
+1. **Auditoría manual** — 35 hallazgos que SonarQube no detecta, con IDs `S` (seguridad), `B` (bugs), `R` (rendimiento) y `D` (diseño).
+2. **Catálogo de 24 code smells de diseño y arquitectura** — sección *Catálogo de los 24 Code Smells*, con su estrategia de refactoring.
+3. **Catálogo de 12 incidencias de SonarQube** — sección *Catálogo de las 12 Incidencias*, priorizadas a partir de `sonar-reporte.md` (34 incidencias en 9 reglas, IDs `SQ1`–`SQ9`).
+
+## Resumen de la auditoría manual
 
 - **35 hallazgos**: 2 de gravedad crítica, 5 de gravedad alta, 9 de gravedad media, 19 de gravedad baja
 - **3 verificados ejecutando la app** en una base de datos en memoria (marcados con *Sí*).
