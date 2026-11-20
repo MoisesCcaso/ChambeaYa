@@ -3,7 +3,10 @@
 import unittest
 from unittest.mock import MagicMock, create_autospec
 
-from application.postulacion_application_service import PostulacionApplicationService
+from application.postulacion_application_service import (
+    NOT_FOUND_PRACTICANTE,
+    PostulacionApplicationService,
+)
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
@@ -61,12 +64,15 @@ class TestPostulacionApplicationService(unittest.TestCase):
 
     # ------------------- Tests de apply -------------------
 
+    def test_constante_not_found_practicante(self):
+        self.assertEqual(NOT_FOUND_PRACTICANTE, "Perfil de practicante no encontrado")
+
     def test_apply_perfil_practicante_no_encontrado(self):
         self.mock_perfil_repo.find_practicante_by_user_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(usuario_id=1, convocatoria_id=10)
-        self.assertIn("Perfil de practicante no encontrado", str(ctx.exception))
+        self.assertEqual(str(ctx.exception), NOT_FOUND_PRACTICANTE)
 
     def test_apply_perfil_incompleto_sin_nombres_o_apellidos(self):
         practicante_sin_nombres = MagicMock(nombres="", apellidos="Perez")
