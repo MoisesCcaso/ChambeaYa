@@ -458,7 +458,7 @@ Esta sección consolida y prioriza las 12 incidencias automáticas más relevant
 
 | N° | Incidencia / Regla | Clasificación (Dimensión - Regla) | Dónde | Gravedad | Dimensión | Verificado |
 |---|---|---|---|---|---|---|
-| 1 | Contraseña en código fuente comprometida | Seguridad - python:S6437 | `frameworks/flask_mvc/demo.py:69` | Alta | Security | Sí |
+| 1 | Literal duplicado "Perfil de practicante no encontrado" | Mantenibilidad - python:S1192 | `application/postulacion_application_service.py:22` | Alta | Maintainability | Sí |
 | 2 | Validación de certificado SSL/TLS en conexión SMTP | Seguridad - python:S4830 | `infrastructure/smtp_auth_email_sender.py:176` | Alta | Security | Sí |
 | 3 | Complejidad cognitiva alta en autenticación frontend | Mantenibilidad - javascript:S3776 | `frameworks/flask_mvc/static/js/auth.js:87` | Alta | Maintainability | Sí |
 | 4 | Complejidad cognitiva alta en renderizado de vistas | Mantenibilidad - javascript:S3776 | `frameworks/flask_mvc/static/js/app.js:299` | Alta | Maintainability | Sí |
@@ -473,9 +473,9 @@ Esta sección consolida y prioriza las 12 incidencias automáticas más relevant
 
 ### Detalle de las 12 Incidencias
 
-**1. Contraseña en código fuente comprometida (Seguridad-python:S6437)**: La constante `DEMO_PASSWORD = "Demo1234"` se encuentra escrita en texto plano dentro del código fuente de demostración y se utiliza para hashear credenciales predeterminadas en `demo.py`. Aunque esté destinada a entornos de prueba, si el comando de seed se ejecuta en entornos de despliegue real, genera cuentas con contraseñas públicas y predecibles.
-**Módulo o Componente**: `src/main/frameworks/flask_mvc/demo.py`, constante `DEMO_PASSWORD` (línea 24) y función `seed_demo_data` (línea 69)
-**Estrategia de Refactoring**: Extract Variable / Replace Magic Number with Symbolic Constant: revocar la contraseña expuesta y cargarla obligatoriamente desde variables de entorno protegidas (`os.getenv("DEMO_PASSWORD")`) o restringir la ejecución del script mediante validación estricta de entorno (`app.config["ENV"] == "development"`).
+**1. Literal duplicado "Perfil de practicante no encontrado" en aplicación (Mantenibilidad-python:S1192)**: El mensaje de error literal `"Perfil de practicante no encontrado"` se encuentra duplicado 3 veces en `postulacion_application_service.py` (líneas 22, 52 y 129) dentro de las validaciones de postulación, listado y cancelación, aumentando el riesgo de inconsistencias tipográficas en validaciones y mensajes propagados hacia la capa de presentación.
+**Módulo o Componente**: `src/main/application/postulacion_application_service.py`, métodos `apply`, `list_for_practicante` y `cancel` (líneas 22, 52, 129)
+**Estrategia de Refactoring**: Replace Magic Number with Symbolic Constant / Replace Error Code with Exception: definir una constante a nivel de módulo `NOT_FOUND_PRACTICANTE = "Perfil de practicante no encontrado"` o implementar una excepción especializada de dominio (`PerfilPracticanteNoEncontradoError`).
 
 **2. Validación de certificado SSL/TLS en conexión SMTP (Seguridad-python:S4830)**: Al inicializar el transporte seguro SMTP mediante `smtp.starttls(context=ssl.create_default_context())`, SonarQube alerta sobre la configuración de contexto para garantizar que la verificación de nombres de host y la cadena de confianza de certificados del servidor no sean omitidas. Si bien `create_default_context()` aplica validación por defecto, la falta de parámetros explícitos de validación en configuraciones personalizadas puede provocar conexiones vulnerables a ataques Man-in-the-Middle (MitM).
 **Módulo o Componente**: `src/main/infrastructure/smtp_auth_email_sender.py`, método `_send` (líneas 175-177)
@@ -521,4 +521,4 @@ Esta sección consolida y prioriza las 12 incidencias automáticas más relevant
 **Módulo o Componente**: `src/main/application/postulacion_application_service.py` (línea 83) y `practica_application_service.py` (línea 23)
 **Estrategia de Refactoring**: Replace Magic Number with Symbolic Constant / Replace Error Code with Exception: unificar el mensaje en una constante o crear la excepción especializada `PostulacionNoEncontradaError`.
 
-Resumen: 12 incidencias (Seguridad: 2, Mantenibilidad: 7, Accesibilidad: 3). Cobertura de las reglas más frecuentes de SonarQube en el proyecto: S6437, S4830, S3776, S3358, S5256, S6853, S5255 y S1192.
+Resumen: 12 incidencias (Seguridad: 1, Mantenibilidad: 8, Accesibilidad: 3). Cobertura de las reglas más frecuentes de SonarQube en el proyecto: S4830, S3776, S3358, S5256, S6853, S5255 y S1192.
