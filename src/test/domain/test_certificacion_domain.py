@@ -69,25 +69,6 @@ class TestCertificacionDominioServicio(unittest.TestCase):
         )
         self.assertIsNotNone(certificado)
 
-    def test_verificar_codigo_qr_con_valor_correcto(self):
-        certificado = self.servicio.generar_certificado(
-            _practica(), self.practicante, self.convocatoria
-        )
-        self.assertTrue(
-            self.servicio.verificar_codigo_qr(certificado, certificado.codigo_qr.valor)
-        )
-
-    def test_verificar_codigo_qr_rechaza_valor_alterado(self):
-        certificado = self.servicio.generar_certificado(
-            _practica(), self.practicante, self.convocatoria
-        )
-        self.assertFalse(
-            self.servicio.verificar_codigo_qr(certificado, certificado.codigo_qr.valor + "x")
-        )
-
-    def test_verificar_codigo_qr_sin_qr_devuelve_false(self):
-        self.assertFalse(self.servicio.verificar_codigo_qr(Certificado(practica_id=1), "X"))
-
 
 class TestCodigoQR(unittest.TestCase):
     @patch(UUID4_PATH)
@@ -167,6 +148,17 @@ class TestCertificado(unittest.TestCase):
         certificado.generar_pdf("texto")
         self.assertTrue(certificado.verificar_integridad("texto"))
         self.assertFalse(certificado.verificar_integridad("otro"))
+
+    def test_verificar_qr_con_valor_correcto(self):
+        certificado = Certificado(practica_id=4, codigo_qr=CodigoQR.generar(4))
+        self.assertTrue(certificado.verificar_qr(certificado.codigo_qr.valor))
+
+    def test_verificar_qr_rechaza_valor_alterado(self):
+        certificado = Certificado(practica_id=4, codigo_qr=CodigoQR.generar(4))
+        self.assertFalse(certificado.verificar_qr(certificado.codigo_qr.valor + "x"))
+
+    def test_verificar_qr_sin_qr_devuelve_false(self):
+        self.assertFalse(Certificado(practica_id=1).verificar_qr("X"))
 
 
 if __name__ == "__main__":
