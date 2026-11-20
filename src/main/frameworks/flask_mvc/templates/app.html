@@ -10,7 +10,7 @@
 </div>
 
 <div class="app-shell" id="app-shell" hidden>
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Menú lateral">
         <div class="sidebar-head">
             <a class="brand" href="/app" aria-label="ChambeaYa, resumen">
                 <img class="brand-logo" src="{{ url_for('static', filename='img/chambeaya-logo-horizontal.png') }}" alt="ChambeaYa">
@@ -112,7 +112,7 @@
                         </header>
                         <div class="plain-list" id="dashboard-activity"></div>
                     </section>
-                    <aside class="progress-panel" id="dashboard-progress"></aside>
+                    <aside class="progress-panel" id="dashboard-progress" aria-label="Progreso del perfil"></aside>
                 </div>
 
                 <section class="content-section dashboard-secondary">
@@ -135,7 +135,7 @@
                 </header>
 
                 <div class="profile-layout">
-                    <aside class="profile-summary" id="profile-summary"></aside>
+                    <aside class="profile-summary" id="profile-summary" aria-label="Resumen de perfil"></aside>
 
                     <form class="content-section form-section" id="student-profile-form" data-role="practicante">
                         <header class="section-heading"><div><h3>Información personal</h3><p>Datos visibles durante tus postulaciones.</p></div></header>
@@ -186,7 +186,7 @@
                 </header>
                 <div class="opportunity-layout">
                     <div class="result-list" id="opportunity-list"></div>
-                    <aside class="detail-panel" id="opportunity-detail">
+                    <aside class="detail-panel" id="opportunity-detail" aria-label="Detalle de convocatoria">
                         <div class="empty-state compact"><span class="empty-state-icon"><svg class="icon" aria-hidden="true"><use href="{{ url_for('static', filename='icons.svg') }}#icon-search"></use></svg></span><h3>Selecciona una convocatoria</h3><p>Consulta sus requisitos y beneficios antes de postular.</p></div>
                     </aside>
                 </div>
