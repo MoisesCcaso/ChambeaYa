@@ -435,11 +435,11 @@ A continuación se presenta el contenido estructurado de las **6 tarjetas de Tre
 - **Estrategia de Refactoring**:
   *Extract Class* (refactoring.guru): Separar la clase monolítica en dos servicios de aplicación dedicados: `PracticanteApplicationService` y `EmpresaApplicationService`.
 - **Criterios de Aceptación (Checklist)**:
-  - [ ] Crear la clase `PracticanteApplicationService` con métodos de perfil, habilidades, educación, identidad y score de reputación.
-  - [ ] Crear la clase `EmpresaApplicationService` con métodos de perfil empresarial y validación de RUC.
-  - [ ] Ajustar la inyección de repositorios segregados (`IPracticanteRepository` e `IEmpresaRepository`) en cada nuevo servicio.
-  - [ ] Actualizar `perfil_routes.py` y `perfil_controller.py` para instanciar y delegar al servicio correspondiente según la ruta.
-  - [ ] Ejecutar la suite de pruebas unitarias de aplicación para verificar que no haya regresiones.
+  - [x] Crear la clase `PracticanteApplicationService` con métodos de perfil, habilidades, educación, identidad y score de reputación.
+  - [x] Crear la clase `EmpresaApplicationService` con métodos de perfil empresarial y validación de RUC.
+  - [x] Ajustar la inyección de repositorios segregados (`IPracticanteRepository` e `IEmpresaRepository`) en cada nuevo servicio.
+  - [x] Actualizar `perfil_routes.py` y `perfil_controller.py` para instanciar y delegar al servicio correspondiente según la ruta.
+  - [x] Ejecutar la suite de pruebas unitarias de aplicación para verificar que no haya regresiones.
 
 ---
 

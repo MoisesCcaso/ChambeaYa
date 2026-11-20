@@ -2,53 +2,67 @@
 # -*- coding: utf-8 -*-
 
 class PerfilController:
-    def __init__(self, perfil_application_service=None):
+    def __init__(self, perfil_application_service=None,
+                 practicante_service=None, empresa_service=None):
         self.perfil_application_service = perfil_application_service
+        self.practicante_service = practicante_service or (
+            getattr(perfil_application_service, "practicante_service", perfil_application_service)
+        )
+        self.empresa_service = empresa_service or (
+            getattr(perfil_application_service, "empresa_service", perfil_application_service)
+        )
 
     def get_practicante(self, usuario_id):
-        self._require_service()
-        practicante = self.perfil_application_service.get_practicante_profile(usuario_id)
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
+        practicante = service.get_practicante_profile(usuario_id)
         if practicante is None:
             return None, 404
 
         return self._serialize_practicante(practicante), 200
 
     def update_practicante(self, usuario_id, payload):
-        self._require_service()
-        practicante = self.perfil_application_service.update_practicante(usuario_id, payload)
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
+        practicante = service.update_practicante(usuario_id, payload)
         return self._serialize_practicante(practicante), 200
 
     def add_habilidad(self, usuario_id, payload):
-        self._require_service()
-        practicante = self.perfil_application_service.add_habilidad(
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
+        practicante = service.add_habilidad(
             usuario_id,
             payload.get("habilidad"),
         )
         return self._serialize_practicante(practicante), 200
 
     def add_formacion(self, usuario_id, payload):
-        self._require_service()
-        practicante = self.perfil_application_service.add_formacion(
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
+        practicante = service.add_formacion(
             usuario_id,
             payload.get("formacion"),
         )
         return self._serialize_practicante(practicante), 200
 
     def update_empresa(self, usuario_id, payload):
-        self._require_service()
-        empresa = self.perfil_application_service.update_empresa(usuario_id, payload)
+        self._require_empresa_service()
+        service = self.empresa_service or self.perfil_application_service
+        empresa = service.update_empresa(usuario_id, payload)
         return self._serialize_empresa(empresa), 200
 
     def get_empresa(self, usuario_id):
-        self._require_service()
-        empresa = self.perfil_application_service.get_empresa_profile(usuario_id)
+        self._require_empresa_service()
+        service = self.empresa_service or self.perfil_application_service
+        empresa = service.get_empresa_profile(usuario_id)
         if empresa is None:
             return None, 404
         return self._serialize_empresa(empresa), 200
 
     def verify_identity(self, usuario_id, payload):
-        self._require_service()
-        practicante = self.perfil_application_service.register_identity(
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
+        practicante = service.register_identity(
             usuario_id,
             dni=payload.get("dni"),
             carnet_universitario=payload.get("carnet_universitario"),
@@ -56,13 +70,22 @@ class PerfilController:
         return self._serialize_practicante(practicante), 200
 
     def get_reputation_score(self, usuario_id):
-        self._require_service()
+        self._require_practicante_service()
+        service = self.practicante_service or self.perfil_application_service
         return {
-            "score_reputacion": self.perfil_application_service.get_reputation_score(usuario_id)
+            "score_reputacion": service.get_reputation_score(usuario_id)
         }, 200
 
     def _require_service(self):
-        if self.perfil_application_service is None:
+        if self.perfil_application_service is None and self.practicante_service is None and self.empresa_service is None:
+            raise RuntimeError("PerfilController requiere un servicio de aplicación")
+
+    def _require_practicante_service(self):
+        if self.practicante_service is None and self.perfil_application_service is None:
+            raise RuntimeError("PerfilController requiere un servicio de aplicación")
+
+    def _require_empresa_service(self):
+        if self.empresa_service is None and self.perfil_application_service is None:
             raise RuntimeError("PerfilController requiere un servicio de aplicación")
 
     def _serialize_practicante(self, practicante):

@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 
-from application.perfil_application_service import PerfilApplicationService
+from application.empresa_application_service import EmpresaApplicationService
+from application.practicante_application_service import PracticanteApplicationService
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
 from presentation.perfil_controller import PerfilController
@@ -12,8 +13,12 @@ perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
 def build_perfil_controller():
     perfil_repository = SqlAlchemyPerfilRepository()
     usuario_repository = SqlAlchemyUsuarioRepository()
-    service = PerfilApplicationService(perfil_repository, usuario_repository)
-    return PerfilController(service)
+    practicante_service = PracticanteApplicationService(perfil_repository, usuario_repository)
+    empresa_service = EmpresaApplicationService(perfil_repository, usuario_repository)
+    return PerfilController(
+        practicante_service=practicante_service,
+        empresa_service=empresa_service,
+    )
 
 
 def get_authenticated_user_id():
