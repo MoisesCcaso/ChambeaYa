@@ -8,23 +8,23 @@ from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
-from domain.perfil.i_perfil_repository import IPerfilRepository
+from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 
 
 class TestPostulacionApplicationService(unittest.TestCase):
-    """Pruebas aisladas del servicio de postulación usando autospec en sus 4 repositorios."""
+    """Pruebas aisladas del servicio de postulación usando autospec en sus repositorios segregados (ISP)."""
 
     def setUp(self):
         self.mock_postulacion_repo = create_autospec(IPostulacionRepository, instance=True)
         self.mock_convocatoria_repo = create_autospec(IConvocatoriaRepository, instance=True)
-        self.mock_perfil_repo = create_autospec(IPerfilRepository, instance=True)
+        self.mock_perfil_repo = create_autospec(IPracticanteRepository, instance=True)
         self.mock_practica_repo = create_autospec(IPracticaRepository, instance=True)
 
         self.service = PostulacionApplicationService(
             postulacion_repository=self.mock_postulacion_repo,
             convocatoria_repository=self.mock_convocatoria_repo,
-            perfil_repository=self.mock_perfil_repo,
+            practicante_repository=self.mock_perfil_repo,
             practica_repository=self.mock_practica_repo,
         )
 

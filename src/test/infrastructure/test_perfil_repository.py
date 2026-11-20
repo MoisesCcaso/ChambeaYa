@@ -191,6 +191,17 @@ class TestPerfilRepository(unittest.TestCase):
         self.assertEqual(self.repository._load_list('{"clave": "valor"}'), [])
         self.assertEqual(self.repository._load_list('["Python", "SQL"]'), ["Python", "SQL"])
 
+    def test_interfaz_segregada_implementa_ambos_contratos(self):
+        from domain.perfil.i_practicante_repository import IPracticanteRepository
+        from domain.perfil.i_empresa_repository import IEmpresaRepository
+        from domain.perfil.i_perfil_repository import IPerfilRepository
+
+        self.assertIsInstance(self.repository, IPracticanteRepository)
+        self.assertIsInstance(self.repository, IEmpresaRepository)
+        self.assertIsInstance(self.repository, IPerfilRepository)
+        self.assertTrue(issubclass(IPerfilRepository, IPracticanteRepository))
+        self.assertTrue(issubclass(IPerfilRepository, IEmpresaRepository))
+
 
 if __name__ == "__main__":
     unittest.main()
