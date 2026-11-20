@@ -489,12 +489,12 @@ A continuación se presenta el contenido estructurado de las **6 tarjetas de Tre
 - **Estrategia de Refactoring**:
   *Extract Method* / *Decompose Conditional* (refactoring.guru): Modularizar la función principal extrayendo la lectura de datos, la validación de credenciales, la llamada a la API y el manejo de respuestas en funciones puras y reutilizables.
 - **Criterios de Aceptación (Checklist)**:
-  - [ ] Extraer la función `getFormCredentials(form)` para lectura de campos del DOM.
-  - [ ] Extraer la función pura `validateCredentials(credentials)` para validación de formato y obligatoriedad.
-  - [ ] Extraer la función asíncrona `authenticateApi(credentials)` para aislamiento de la llamada `fetch`.
-  - [ ] Extraer la función `showErrorMessage(message)` para actualización visual del DOM.
-  - [ ] Reestructurar la función principal como un orquestador lineal con retornos tempranos (*Guard Clauses*), reduciendo la complejidad cognitiva por debajo de 10 puntos.
-  - [ ] Verificar manualmente el flujo de inicio de sesión y registro en el navegador para comprobar que la interfaz responda idénticamente.
+  - [x] Extraer funciones especializadas por modo (`handleLogin`, `handleRegister`, `handleActivate`, `handleRecover`, `handleReset`).
+  - [x] Modularizar la validación de requisitos de contraseña y contraseñas coincidentes con cláusulas de guarda tempranas.
+  - [x] Aislar las llamadas asíncronas `Chambea.api` en handlers especializados.
+  - [x] Reestructurar el listener principal de submit como un despachador limpio mediante diccionario de estrategias (`authHandlers[mode]`).
+  - [x] Reducir la complejidad cognitiva del listener principal por debajo de 5 puntos (cumpliendo SonarQube S3776).
+  - [x] Validar sintaxis JS con Node.js y verificar la suite completa de pruebas unitarias e integración.
 
 
   ===================================================

@@ -84,6 +84,99 @@
         feedback.textContent = message;
     }
 
+    async function handleLogin(values) {
+        await Chambea.api("/auth/login", { method: "POST", body: values });
+        window.location.assign("/app");
+    }
+
+    async function handleRegister(values) {
+        if (!updatePasswordRequirements()) {
+            showFeedback(
+                "La contraseña todavía no cumple todos los requisitos.",
+                "error"
+            );
+            return;
+        }
+        if (values.password !== values.password_confirmation) {
+            showFeedback("Las contraseñas no coinciden.", "error");
+            return;
+        }
+        const data = await Chambea.api("/auth/register", { method: "POST", body: values });
+        if (data.activation_token) {
+            showFeedback("Cuenta creada. Te llevaremos a la activación.", "success");
+            window.setTimeout(() => {
+                window.location.assign(`/activar?token=${encodeURIComponent(data.activation_token)}`);
+            }, 900);
+        } else {
+            showFeedback(
+                "Cuenta creada. Revisa tu correo para activarla.",
+                "success"
+            );
+            window.setTimeout(() => {
+                window.location.assign(
+                    `/activar?email=${encodeURIComponent(values.email)}`
+                );
+            }, 900);
+        }
+    }
+
+    async function handleActivate(values) {
+        if (activationToken) {
+            await Chambea.api("/auth/activate", {
+                method: "POST",
+                body: { token: values.token },
+            });
+            showFeedback("Tu cuenta está activa. Ya puedes ingresar.", "success");
+            window.setTimeout(() => window.location.assign("/ingresar"), 1000);
+        } else {
+            const data = await Chambea.api("/auth/resend-activation", {
+                method: "POST",
+                body: { email: values.email },
+            });
+            if (data.activation_token) {
+                window.location.assign(
+                    `/activar?token=${encodeURIComponent(data.activation_token)}`
+                );
+            } else {
+                showFeedback(
+                    "Si la cuenta está pendiente, recibirás un nuevo enlace.",
+                    "success"
+                );
+            }
+        }
+    }
+
+    async function handleRecover(values) {
+        const data = await Chambea.api("/auth/recover-password", {
+            method: "POST",
+            body: values,
+        });
+        if (data.password_reset_token) {
+            showFeedback("Solicitud procesada. Te llevaremos al cambio de contraseña.", "success");
+            window.setTimeout(() => {
+                window.location.assign(
+                    `/restablecer?token=${encodeURIComponent(data.password_reset_token)}`
+                );
+            }, 900);
+        } else {
+            showFeedback("Si la cuenta existe, recibirás las instrucciones de recuperación.", "success");
+        }
+    }
+
+    async function handleReset(values) {
+        await Chambea.api("/auth/reset-password", { method: "POST", body: values });
+        showFeedback("Contraseña actualizada. Ya puedes ingresar.", "success");
+        window.setTimeout(() => window.location.assign("/ingresar"), 1000);
+    }
+
+    const authHandlers = {
+        login: handleLogin,
+        register: handleRegister,
+        activate: handleActivate,
+        recover: handleRecover,
+        reset: handleReset,
+    };
+
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         feedback.hidden = true;
@@ -92,93 +185,9 @@
         const values = Object.fromEntries(new FormData(form).entries());
 
         try {
-            if (mode === "login") {
-                await Chambea.api("/auth/login", { method: "POST", body: values });
-                window.location.assign("/app");
-                return;
-            }
-
-            if (mode === "register") {
-                if (!updatePasswordRequirements()) {
-                    showFeedback(
-                        "La contraseña todavía no cumple todos los requisitos.",
-                        "error"
-                    );
-                    return;
-                }
-                if (values.password !== values.password_confirmation) {
-                    showFeedback("Las contraseñas no coinciden.", "error");
-                    return;
-                }
-                const data = await Chambea.api("/auth/register", { method: "POST", body: values });
-                if (data.activation_token) {
-                    showFeedback("Cuenta creada. Te llevaremos a la activación.", "success");
-                    window.setTimeout(() => {
-                        window.location.assign(`/activar?token=${encodeURIComponent(data.activation_token)}`);
-                    }, 900);
-                } else {
-                    showFeedback(
-                        "Cuenta creada. Revisa tu correo para activarla.",
-                        "success"
-                    );
-                    window.setTimeout(() => {
-                        window.location.assign(
-                            `/activar?email=${encodeURIComponent(values.email)}`
-                        );
-                    }, 900);
-                }
-                return;
-            }
-
-            if (mode === "activate") {
-                if (activationToken) {
-                    await Chambea.api("/auth/activate", {
-                        method: "POST",
-                        body: { token: values.token },
-                    });
-                    showFeedback("Tu cuenta está activa. Ya puedes ingresar.", "success");
-                    window.setTimeout(() => window.location.assign("/ingresar"), 1000);
-                } else {
-                    const data = await Chambea.api("/auth/resend-activation", {
-                        method: "POST",
-                        body: { email: values.email },
-                    });
-                    if (data.activation_token) {
-                        window.location.assign(
-                            `/activar?token=${encodeURIComponent(data.activation_token)}`
-                        );
-                    } else {
-                        showFeedback(
-                            "Si la cuenta está pendiente, recibirás un nuevo enlace.",
-                            "success"
-                        );
-                    }
-                }
-                return;
-            }
-
-            if (mode === "recover") {
-                const data = await Chambea.api("/auth/recover-password", {
-                    method: "POST",
-                    body: values,
-                });
-                if (data.password_reset_token) {
-                    showFeedback("Solicitud procesada. Te llevaremos al cambio de contraseña.", "success");
-                    window.setTimeout(() => {
-                        window.location.assign(
-                            `/restablecer?token=${encodeURIComponent(data.password_reset_token)}`
-                        );
-                    }, 900);
-                } else {
-                    showFeedback("Si la cuenta existe, recibirás las instrucciones de recuperación.", "success");
-                }
-                return;
-            }
-
-            if (mode === "reset") {
-                await Chambea.api("/auth/reset-password", { method: "POST", body: values });
-                showFeedback("Contraseña actualizada. Ya puedes ingresar.", "success");
-                window.setTimeout(() => window.location.assign("/ingresar"), 1000);
+            const handler = authHandlers[mode];
+            if (handler) {
+                await handler(values);
             }
         } catch (error) {
             showFeedback(error.message, "error");
