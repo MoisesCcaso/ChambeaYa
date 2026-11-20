@@ -4,21 +4,42 @@ from application.empresa_application_service import EmpresaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
-from presentation.perfil_controller import PerfilController
 
 
 perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
 
 
-def build_perfil_controller():
-    perfil_repository = SqlAlchemyPerfilRepository()
-    usuario_repository = SqlAlchemyUsuarioRepository()
-    practicante_service = PracticanteApplicationService(perfil_repository, usuario_repository)
-    empresa_service = EmpresaApplicationService(perfil_repository, usuario_repository)
-    return PerfilController(
-        practicante_service=practicante_service,
-        empresa_service=empresa_service,
-    )
+def build_practicante_service():
+    return PracticanteApplicationService(SqlAlchemyPerfilRepository(), SqlAlchemyUsuarioRepository())
+
+
+def build_empresa_service():
+    return EmpresaApplicationService(SqlAlchemyPerfilRepository(), SqlAlchemyUsuarioRepository())
+
+
+def serialize_practicante(practicante):
+    return {
+        "id": practicante.id,
+        "usuario_id": practicante.usuario_id,
+        "nombres": practicante.nombres,
+        "apellidos": practicante.apellidos,
+        "dni": practicante.dni,
+        "carnet_universitario": practicante.carnet_universitario,
+        "habilidades": practicante.habilidades,
+        "formacion_educativa": practicante.formacion_educativa,
+        "score_reputacion": practicante.score_reputacion,
+        "identidad_verificada": practicante.identidad_verificada,
+    }
+
+
+def serialize_empresa(empresa):
+    return {
+        "id": empresa.id,
+        "usuario_id": empresa.usuario_id,
+        "razon_social": empresa.razon_social,
+        "ruc": empresa.ruc.numero if empresa.ruc else None,
+        "verificada": empresa.verificada,
+    }
 
 
 def get_authenticated_user_id():
@@ -31,23 +52,24 @@ def get_my_profile():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_perfil_controller()
     try:
         usuario = SqlAlchemyUsuarioRepository().find_by_id(usuario_id)
         if usuario is None:
             return jsonify({"error": "Usuario no encontrado"}), 404
         if usuario.tipo == "empresa":
-            data, status_code = controller.get_empresa(usuario_id)
+            perfil = build_empresa_service().get_empresa_profile(usuario_id)
+            serialize = serialize_empresa
         else:
-            data, status_code = controller.get_practicante(usuario_id)
+            perfil = build_practicante_service().get_practicante_profile(usuario_id)
+            serialize = serialize_practicante
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    if data is None:
+    if perfil is None:
         profile_type = "empresa" if usuario.tipo == "empresa" else "practicante"
-        return jsonify({"error": f"Perfil de {profile_type} no encontrado"}), status_code
+        return jsonify({"error": f"Perfil de {profile_type} no encontrado"}), 404
 
-    return jsonify(data), status_code
+    return jsonify(serialize(perfil)), 200
 
 
 @perfil_bp.put("/me")
@@ -57,13 +79,12 @@ def update_my_profile():
         return jsonify({"error": "No autenticado"}), 401
 
     payload = request.get_json(silent=True) or {}
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.update_practicante(usuario_id, payload)
+        data = serialize_practicante(build_practicante_service().update_practicante(usuario_id, payload))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 @perfil_bp.put("/me/empresa")
 def update_my_company():
@@ -72,13 +93,12 @@ def update_my_company():
         return jsonify({"error": "No autenticado"}), 401
 
     payload = request.get_json(silent=True) or {}
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.update_empresa(usuario_id, payload)
+        data = serialize_empresa(build_empresa_service().update_empresa(usuario_id, payload))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 @perfil_bp.post("/me/habilidades")
 def add_my_skill():
@@ -87,13 +107,13 @@ def add_my_skill():
         return jsonify({"error": "No autenticado"}), 401
 
     payload = request.get_json(silent=True) or {}
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.add_habilidad(usuario_id, payload)
+        practicante = build_practicante_service().add_habilidad(usuario_id, payload.get("habilidad"))
+        data = serialize_practicante(practicante)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 
 @perfil_bp.post("/me/formacion")
@@ -103,13 +123,13 @@ def add_my_education():
         return jsonify({"error": "No autenticado"}), 401
 
     payload = request.get_json(silent=True) or {}
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.add_formacion(usuario_id, payload)
+        practicante = build_practicante_service().add_formacion(usuario_id, payload.get("formacion"))
+        data = serialize_practicante(practicante)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 
 @perfil_bp.post("/me/identidad")
@@ -119,13 +139,17 @@ def verify_my_identity():
         return jsonify({"error": "No autenticado"}), 401
 
     payload = request.get_json(silent=True) or {}
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.verify_identity(usuario_id, payload)
+        practicante = build_practicante_service().register_identity(
+            usuario_id,
+            dni=payload.get("dni"),
+            carnet_universitario=payload.get("carnet_universitario"),
+        )
+        data = serialize_practicante(practicante)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 
 @perfil_bp.get("/me/reputacion")
@@ -134,10 +158,9 @@ def get_my_reputation():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_perfil_controller()
     try:
-        data, status_code = controller.get_reputation_score(usuario_id)
+        data = {"score_reputacion": build_practicante_service().get_reputation_score(usuario_id)}
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(data), 200
