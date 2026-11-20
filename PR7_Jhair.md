@@ -454,11 +454,11 @@ A continuación se presenta el contenido estructurado de las **6 tarjetas de Tre
 - **Estrategia de Refactoring**:
   *Hide Delegate* / *Move Method* (refactoring.guru): Crear un método de consulta directo `find_by_empresa_id` en `IPracticaRepository` implementado mediante una única consulta con `JOIN` en `SqlAlchemyPracticaRepository`.
 - **Criterios de Aceptación (Checklist)**:
-  - [ ] Definir el método `find_by_empresa_id(empresa_id)` en la interfaz `IPracticaRepository`.
-  - [ ] Implementar la consulta optimizada con `JOIN` relacional entre `PracticaModel`, `PostulacionModel` y `ConvocatoriaModel` en `SqlAlchemyPracticaRepository`.
-  - [ ] Reemplazar los 3 bucles anidados en `PracticaApplicationService.list_for_user` por una única llamada a `self.practica_repository.find_by_empresa_id(empresa.id)`.
-  - [ ] Refactorizar de manera idéntica la comprobación de pertenencia en `_require_empresa_owner` (líneas 157-166).
-  - [ ] Verificar mediante pruebas unitarias de persistencia que la lista de prácticas devuelta sea idéntica y eficiente.
+  - [x] Definir el método `find_by_empresa_id(empresa_id)` en la interfaz `IPracticaRepository`.
+  - [x] Implementar la consulta optimizada con `JOIN` relacional entre `PracticaModel`, `PostulacionModel` y `ConvocatoriaModel` en `SqlAlchemyPracticaRepository`.
+  - [x] Reemplazar los 3 bucles anidados en `PracticaApplicationService.list_for_user` por una única llamada a `self.practica_repository.find_by_empresa_id(empresa.id)`.
+  - [x] Refactorizar de manera idéntica la comprobación de pertenencia en `_require_empresa_owner` (líneas 157-166).
+  - [x] Verificar mediante pruebas unitarias de persistencia que la lista de prácticas devuelta sea idéntica y eficiente.
 
 ---
 

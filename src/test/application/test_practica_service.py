@@ -304,37 +304,15 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.perfiles.find_empresa_by_user_id.assert_not_called()
 
     def test_lista_practicas_de_empresa_y_omite_postulaciones_sin_practica(self):
-        convocatoria_2 = SimpleNamespace(id=41)
-        postulacion_2 = SimpleNamespace(id=21)
-        postulacion_3 = SimpleNamespace(id=22)
         practica_2 = Practica(id=8, postulacion_id=22, practicante_id=31)
         self.perfiles.find_practicante_by_user_id.return_value = None
         self.perfiles.find_empresa_by_user_id.return_value = self.empresa
-        self.convocatorias.find_by_empresa_id.return_value = [
-            self.convocatoria,
-            convocatoria_2,
-        ]
-        self.postulaciones.find_by_convocatoria_id.side_effect = [
-            [self.postulacion],
-            [postulacion_2, postulacion_3],
-        ]
-        self.practicas.find_by_postulacion_id.side_effect = [
-            self.practica,
-            None,
-            practica_2,
-        ]
+        self.practicas.find_by_empresa_id.return_value = [self.practica, practica_2]
 
         resultado = self.service.list_for_user(USUARIO_EMPRESA_ID)
 
         self.assertEqual([self.practica, practica_2], resultado)
-        self.convocatorias.find_by_empresa_id.assert_called_once_with(EMPRESA_ID)
-        self.postulaciones.find_by_convocatoria_id.assert_has_calls(
-            [call(CONVOCATORIA_ID), call(41)]
-        )
-        self.assertEqual(
-            [call(POSTULACION_ID), call(21), call(22)],
-            self.practicas.find_by_postulacion_id.call_args_list,
-        )
+        self.practicas.find_by_empresa_id.assert_called_once_with(EMPRESA_ID)
 
     def test_listar_rechaza_usuario_sin_perfil(self):
         self.perfiles.find_practicante_by_user_id.return_value = None

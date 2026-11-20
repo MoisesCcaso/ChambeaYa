@@ -77,6 +77,19 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
         model = PracticaModel.query.filter_by(postulacion_id=postulacion_id).first()
         return self._to_practica_domain(model)
 
+    def find_by_empresa_id(self, empresa_id):
+        from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+        from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+
+        models = (
+            PracticaModel.query
+            .join(PostulacionModel, PracticaModel.postulacion_id == PostulacionModel.id)
+            .join(ConvocatoriaModel, PostulacionModel.convocatoria_id == ConvocatoriaModel.id)
+            .filter(ConvocatoriaModel.empresa_id == empresa_id)
+            .all()
+        )
+        return [self._to_practica_domain(model) for model in models]
+
     def _to_practica_domain(self, model):
         if model is None:
             return None

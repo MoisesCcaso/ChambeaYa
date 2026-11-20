@@ -20,3 +20,7 @@ class IPracticaRepository(ABC):
     @abstractmethod
     def find_by_postulacion_id(self, postulacion_id):
         pass
+
+    @abstractmethod
+    def find_by_empresa_id(self, empresa_id):
+        pass
