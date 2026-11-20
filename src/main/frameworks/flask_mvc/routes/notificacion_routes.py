@@ -2,16 +2,26 @@ from flask import Blueprint, jsonify, session
 
 from application.notificacion_application_service import NotificacionApplicationService
 from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from presentation.notificacion_controller import NotificacionController
 
 
 notificacion_bp = Blueprint("notificacion", __name__, url_prefix="/notificaciones")
 
 
-def build_notificacion_controller():
+def build_notificacion_service():
     repo = SqlAlchemyNotificacionRepository()
-    service = NotificacionApplicationService(writer=repo, reader=repo)
-    return NotificacionController(service)
+    return NotificacionApplicationService(writer=repo, reader=repo)
+
+
+def serialize_notificacion(notificacion):
+    return {
+        "id": notificacion.id,
+        "usuario_destino_id": notificacion.usuario_destino_id,
+        "tipo": notificacion.tipo,
+        "mensaje": notificacion.mensaje,
+        "metadata": notificacion.metadata,
+        "leida": notificacion.leida,
+        "created_at": notificacion.created_at.isoformat() if notificacion.created_at else None,
+    }
 
 
 def get_authenticated_user_id():
@@ -24,13 +34,12 @@ def list_notificaciones():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_notificacion_controller()
     try:
-        data, status_code = controller.list_notifications(usuario_id)
+        notificaciones = build_notificacion_service().list_notifications(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify([serialize_notificacion(n) for n in notificaciones]), 200
 
 
 @notificacion_bp.get("/no-leidas")
@@ -39,13 +48,12 @@ def count_no_leidas():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_notificacion_controller()
     try:
-        data, status_code = controller.count_unread(usuario_id)
+        cantidad = build_notificacion_service().count_unread(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify({"cantidad": cantidad}), 200
 
 
 @notificacion_bp.put("/<int:notificacion_id>/leer")
@@ -54,13 +62,12 @@ def marcar_leida(notificacion_id):
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_notificacion_controller()
     try:
-        data, status_code = controller.mark_as_read(usuario_id, notificacion_id)
+        build_notificacion_service().mark_as_read(usuario_id, notificacion_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify({"mensaje": "Notificación marcada como leída"}), 200
 
 
 @notificacion_bp.put("/leer-todas")
@@ -69,10 +76,9 @@ def marcar_todas_leidas():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    controller = build_notificacion_controller()
     try:
-        data, status_code = controller.mark_all_as_read(usuario_id)
+        build_notificacion_service().mark_all_as_read(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify({"mensaje": "Todas las notificaciones marcadas como leídas"}), 200

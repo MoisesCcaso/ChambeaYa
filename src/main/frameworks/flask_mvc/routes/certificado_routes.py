@@ -14,14 +14,13 @@ from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepo
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from presentation.certificado_controller import CertificadoController
 
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
 NO_AUTENTICADO_ERROR = "No autenticado"
 
 
-def build_certificado_controller():
+def build_certificacion_service():
     certificado_repository = SqlAlchemyCertificadoRepository()
     practica_repository = SqlAlchemyPracticaRepository()
     postulacion_repository = SqlAlchemyPostulacionRepository()
@@ -29,12 +28,26 @@ def build_certificado_controller():
     perfil_repository = SqlAlchemyPerfilRepository()
     notif_repo = SqlAlchemyNotificacionRepository()
     notificacion_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
-    service = CertificacionApplicationService(
+    return CertificacionApplicationService(
         certificado_repository, practica_repository,
         postulacion_repository, convocatoria_repository, perfil_repository,
         notificacion_service=notificacion_service,
     )
-    return CertificadoController(service)
+
+
+def serialize_certificado(certificado):
+    return {
+        "id": certificado.id,
+        "practica_id": certificado.practica_id,
+        "codigo_qr": {
+            "valor": certificado.codigo_qr.valor,
+            "url_verificacion": certificado.codigo_qr.url_verificacion,
+            "imagen_url": f"/certificados/{certificado.codigo_qr.valor}/qr",
+        } if certificado.codigo_qr else None,
+        "documento": {
+            "url": certificado.documento.url,
+        } if certificado.documento else None,
+    }
 
 
 def get_authenticated_user_id():
@@ -52,24 +65,24 @@ def issue_certificado(practica_id):
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
 
-    controller = build_certificado_controller()
     try:
-        data, status_code = controller.issue(empresa.id, practica_id)
+        certificado, creado = build_certificacion_service().issue_certificate(
+            empresa.id, practica_id
+        )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(serialize_certificado(certificado)), 201 if creado else 200
 
 
 @certificado_bp.get("/verificar/<codigo_qr_valor>")
 def verify_certificado(codigo_qr_valor):
-    controller = build_certificado_controller()
     try:
-        data, status_code = controller.verify(codigo_qr_valor)
+        es_valido = build_certificacion_service().verify_certificate(codigo_qr_valor)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify({"codigo_qr_valor": codigo_qr_valor, "valido": es_valido}), 200
 
 
 @certificado_bp.get("/practica/<int:practica_id>")
@@ -86,10 +99,12 @@ def get_certificado_by_practica(practica_id):
     )
     try:
         practica_service.get_for_user(usuario_id, practica_id)
-        data, status_code = build_certificado_controller().get_by_practica(practica_id)
+        certificado = build_certificacion_service().find_by_practica_id(practica_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
-    return jsonify(data), status_code
+    if certificado is None:
+        return jsonify({"error": "Certificado no encontrado"}), 404
+    return jsonify(serialize_certificado(certificado)), 200
 
 
 @certificado_bp.get("/practica/<int:practica_id>/pdf")
