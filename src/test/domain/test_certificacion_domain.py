@@ -72,12 +72,18 @@ class TestCertificacionDominioServicio(unittest.TestCase):
 
 class TestCodigoQR(unittest.TestCase):
     @patch(UUID4_PATH)
-    def test_generar_usa_uuid_determinista(self, uuid4_mock):
+    def test_generar_usa_uuid_determinista_sin_acoplar_url_http(self, uuid4_mock):
         uuid4_mock.return_value = MagicMock(hex="abcdef1234567890")
         qr = CodigoQR.generar(5)
         self.assertEqual("CERT-5-abcdef12", qr.valor)
-        self.assertEqual("/certificados/verificar/CERT-5-abcdef12", qr.url_verificacion)
+        self.assertIsNone(qr.url_verificacion)
         self.assertEqual(hashlib.sha256(b"CERT-5-abcdef12").hexdigest(), qr.hash_integridad)
+
+    @patch(UUID4_PATH)
+    def test_generar_acepta_url_verificacion_inyectada(self, uuid4_mock):
+        uuid4_mock.return_value = MagicMock(hex="abcdef1234567890")
+        qr = CodigoQR.generar(5, url_verificacion="https://chambeaya.pe/verify/CERT-5-abcdef12")
+        self.assertEqual("https://chambeaya.pe/verify/CERT-5-abcdef12", qr.url_verificacion)
 
     @patch(UUID4_PATH)
     def test_verificar_acepta_valor_correcto(self, uuid4_mock):
@@ -104,11 +110,15 @@ class TestArchivoPDF(unittest.TestCase):
     def setUp(self):
         self.pdf = ArchivoPDF.crear(3, "contenido original")
 
-    def test_crear_calcula_url_y_hash(self):
-        self.assertEqual("/certificados/practica/3/pdf", self.pdf.url)
+    def test_crear_calcula_hash_sin_acoplar_url_http(self):
+        self.assertIsNone(self.pdf.url)
         self.assertEqual(
             hashlib.sha256(b"contenido original").hexdigest(), self.pdf.hash_integridad
         )
+
+    def test_crear_acepta_url_inyectada(self):
+        pdf = ArchivoPDF.crear(3, "contenido original", url="https://cdn.chambeaya.pe/3.pdf")
+        self.assertEqual("https://cdn.chambeaya.pe/3.pdf", pdf.url)
 
     def test_crear_sin_contenido_lanza_error(self):
         with self.assertRaises(ValueError):
@@ -134,11 +144,11 @@ class TestArchivoPDF(unittest.TestCase):
 
 
 class TestCertificado(unittest.TestCase):
-    def test_generar_pdf_asigna_documento(self):
+    def test_generar_pdf_asigna_documento_sin_ruta_http_acoplada(self):
         certificado = Certificado(practica_id=4)
         documento = certificado.generar_pdf("texto")
         self.assertIs(documento, certificado.documento)
-        self.assertEqual("/certificados/practica/4/pdf", documento.url)
+        self.assertIsNone(documento.url)
 
     def test_verificar_integridad_sin_documento_devuelve_false(self):
         self.assertFalse(Certificado(practica_id=4).verificar_integridad("texto"))

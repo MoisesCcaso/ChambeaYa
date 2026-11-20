@@ -8,12 +8,11 @@ class ArchivoPDF:
         self.contenido = contenido
 
     @staticmethod
-    def crear(practica_id, contenido):
+    def crear(practica_id, contenido, url=None):
         if not contenido:
             raise ValueError("Debe proveerse el contenido del PDF para generar el archivo")
 
         contenido_bytes = contenido.encode() if isinstance(contenido, str) else contenido
-        url = f"/certificados/practica/{practica_id}/pdf"
         hash_integridad = hashlib.sha256(contenido_bytes).hexdigest()
         return ArchivoPDF(
             url=url,
