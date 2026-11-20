@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from application.dtos import ActualizarEmpresaDTO
 from domain.auth.usuario import Usuario
 from domain.perfil.empresa import Empresa
 from domain.perfil.ruc import RUC
@@ -16,16 +17,16 @@ class EmpresaApplicationService:
     def update_empresa(self, usuario_id, data):
         self._require_repositories()
         self._require_empresa_user(usuario_id)
+        dto = ActualizarEmpresaDTO.from_dict(data)
         empresa = self.empresa_repository.find_empresa_by_user_id(usuario_id)
         if empresa is None:
             empresa = Empresa(usuario_id=usuario_id)
 
-        numero_ruc = data.get("ruc")
-        if numero_ruc is not None:
-            empresa.ruc = RUC(numero=numero_ruc)
+        if dto.ruc is not None:
+            empresa.ruc = RUC(numero=dto.ruc)
 
-        if data.get("razon_social") is not None:
-            empresa.razon_social = str(data["razon_social"]).strip()
+        if dto.razon_social is not None:
+            empresa.razon_social = str(dto.razon_social).strip()
         if not empresa.razon_social:
             raise ValueError("La razón social es obligatoria")
         if not empresa.verificar_ruc():
