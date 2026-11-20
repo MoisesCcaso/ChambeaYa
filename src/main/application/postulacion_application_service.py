@@ -9,10 +9,12 @@ class PostulacionApplicationService:
         convocatoria_repository=None,
         perfil_repository=None,
         practica_repository=None,
+        practicante_repository=None,
     ):
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
-        self.perfil_repository = perfil_repository
+        self.practicante_repository = practicante_repository or perfil_repository
+        self.perfil_repository = self.practicante_repository
         self.practica_repository = practica_repository
 
     def apply(self, usuario_id, convocatoria_id):

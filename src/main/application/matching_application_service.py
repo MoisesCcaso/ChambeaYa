@@ -3,9 +3,11 @@ from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 
 class MatchingApplicationService:
     def __init__(self, sugerencia_repository=None, perfil_repository=None,
-                 convocatoria_repository=None, matching_servicio=None):
+                 convocatoria_repository=None, matching_servicio=None,
+                 practicante_repository=None):
         self.sugerencia_repository = sugerencia_repository
-        self.perfil_repository = perfil_repository
+        self.practicante_repository = practicante_repository or perfil_repository
+        self.perfil_repository = self.practicante_repository
         self.convocatoria_repository = convocatoria_repository
         self.matching_servicio = matching_servicio or MatchingDominioServicio()
 

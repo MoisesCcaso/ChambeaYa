@@ -418,11 +418,11 @@ A continuación se presenta el contenido estructurado de las **6 tarjetas de Tre
 - **Estrategia de Refactoring**:
   *Extract Interface* (refactoring.guru): Dividir `IPerfilRepository` en dos interfaces cohesivas e independientes: `IPracticanteRepository` e `IEmpresaRepository`.
 - **Criterios de Aceptación (Checklist)**:
-  - [ ] Crear la interfaz abstracta `IPracticanteRepository` en `domain/perfil/` con las operaciones exclusivas de practicantes.
-  - [ ] Crear la interfaz abstracta `IEmpresaRepository` en `domain/perfil/` con las operaciones exclusivas de empresas.
-  - [ ] Actualizar el adaptador `SqlAlchemyPerfilRepository` en `infrastructure/` para que implemente ambas interfaces explícitamente (`class SqlAlchemyPerfilRepository(IPracticanteRepository, IEmpresaRepository)`).
-  - [ ] Actualizar firmas y dependencias de `PostulacionApplicationService`, `MatchingApplicationService` y `PracticaApplicationService` para que dependan únicamente de `IPracticanteRepository`.
-  - [ ] Validar que todos los tests de perfiles y servicios dependientes sigan pasando exitosamente.
+  - [x] Crear la interfaz abstracta `IPracticanteRepository` en `domain/perfil/` con las operaciones exclusivas de practicantes.
+  - [x] Crear la interfaz abstracta `IEmpresaRepository` en `domain/perfil/` con las operaciones exclusivas de empresas.
+  - [x] Actualizar el adaptador `SqlAlchemyPerfilRepository` en `infrastructure/` para que implemente ambas interfaces explícitamente (`class SqlAlchemyPerfilRepository(IPracticanteRepository, IEmpresaRepository)`).
+  - [x] Actualizar firmas y dependencias de `PostulacionApplicationService`, `MatchingApplicationService` y `PracticaApplicationService` para que dependan únicamente de `IPracticanteRepository`.
+  - [x] Validar que todos los tests de perfiles y servicios dependientes sigan pasando exitosamente.
 
 ---
 

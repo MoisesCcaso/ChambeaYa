@@ -7,14 +7,14 @@ from unittest.mock import Mock, call
 from application.matching_application_service import MatchingApplicationService
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.matching.i_sugerencia_repository import ISugerenciaRepository
-from domain.perfil.i_perfil_repository import IPerfilRepository
+from domain.perfil.i_practicante_repository import IPracticanteRepository
 
 
 class TestMatchingApplicationService(TestCase):
     """Comprueba resultados e interacciones sin acceder a infraestructura real."""
 
     def setUp(self):
-        self.perfil_repository = Mock(spec=IPerfilRepository)
+        self.perfil_repository = Mock(spec=IPracticanteRepository)
         self.convocatoria_repository = Mock(spec=IConvocatoriaRepository)
         self.sugerencia_repository = Mock(spec=ISugerenciaRepository)
         self.matching_servicio = Mock()

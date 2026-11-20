@@ -1,26 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from abc import ABC, abstractmethod
+from abc import ABC
+from domain.perfil.i_practicante_repository import IPracticanteRepository
+from domain.perfil.i_empresa_repository import IEmpresaRepository
 
 
-class IPerfilRepository(ABC):
-    @abstractmethod
-    def save_practicante(self, practicante):
-        pass
+class IPerfilRepository(IPracticanteRepository, IEmpresaRepository, ABC):
+    """Interfaz consolidada de perfil mantenida para compatibilidad de contratos agregados (SOLID-ISP)."""
+    pass
 
-    @abstractmethod
-    def save_empresa(self, empresa):
-        pass
-
-    @abstractmethod
-    def find_practicante_by_user_id(self, usuario_id):
-        pass
-    @abstractmethod
-
-    def find_practicante_by_id(self, practicante_id):
-        pass
-
-    @abstractmethod
-    def find_empresa_by_user_id(self, usuario_id):
-        pass
