@@ -26,44 +26,39 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
 
         model.estado = practica.estado
 
-        ids_entregables_actuales = {
-            entregable.id
-            for entregable in practica.entregables
-            if entregable.id is not None
-        }
-        for entregable_model in list(model.entregables):
-            if entregable_model.id not in ids_entregables_actuales:
-                model.entregables.remove(entregable_model)
-
-        ids_existentes = {e.id for e in model.entregables}
-        for entregable in practica.entregables:
-            if entregable.id in ids_existentes:
-                continue
-            model.entregables.append(EntregableModel(
+        self._sync_collection(
+            model.entregables,
+            practica.entregables,
+            lambda entregable: EntregableModel(
                 archivo=entregable.archivo,
                 fecha_subida=entregable.fecha_subida,
-            ))
-
-        ids_evaluaciones_actuales = {
-            evaluacion.id
-            for evaluacion in practica.evaluaciones
-            if evaluacion.id is not None
-        }
-        for evaluacion_model in list(model.evaluaciones):
-            if evaluacion_model.id not in ids_evaluaciones_actuales:
-                model.evaluaciones.remove(evaluacion_model)
-
-        ids_evaluaciones_existentes = {e.id for e in model.evaluaciones}
-        for evaluacion in practica.evaluaciones:
-            if evaluacion.id in ids_evaluaciones_existentes:
-                continue
-            model.evaluaciones.append(EvaluacionModel(
+            ),
+        )
+        self._sync_collection(
+            model.evaluaciones,
+            practica.evaluaciones,
+            lambda evaluacion: EvaluacionModel(
                 puntaje=evaluacion.puntaje,
                 fecha_evaluacion=evaluacion.fecha_evaluacion,
-            ))
+            ),
+        )
 
         db.session.commit()
         return self._to_practica_domain(model)
+
+    def _sync_collection(self, model_collection, domain_collection, mapper_func):
+        ids_actuales = {
+            item.id for item in domain_collection if item.id is not None
+        }
+        for item_model in list(model_collection):
+            if item_model.id not in ids_actuales:
+                model_collection.remove(item_model)
+
+        ids_existentes = {item_model.id for item_model in model_collection}
+        for item in domain_collection:
+            if item.id in ids_existentes:
+                continue
+            model_collection.append(mapper_func(item))
 
     def find_by_id(self, practica_id):
         model = db.session.get(PracticaModel, practica_id)
