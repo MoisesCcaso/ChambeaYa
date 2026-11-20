@@ -342,9 +342,12 @@
             : "Convocatorias disponibles para postular.";
         $("#dashboard-list-action").textContent = isCompany ? "Administrar" : "Explorar";
         $("#dashboard-list-action").dataset.targetView = isCompany ? "convocatorias" : "oportunidades";
-        $("#dashboard-list-head").innerHTML = isCompany
-            ? "<tr><th>Convocatoria</th><th>Estado</th><th>Fecha</th></tr>"
-            : "<tr><th>Convocatoria</th><th>Habilidades</th><th>Estado</th></tr>";
+        const headers = isCompany
+            ? ["Convocatoria", "Estado", "Fecha"]
+            : ["Convocatoria", "Habilidades", "Estado"];
+        $$("#dashboard-list-head th").forEach((th, index) => {
+            th.textContent = headers[index];
+        });
         $("#dashboard-list-body").innerHTML = items.length
             ? items
                   .map((item) =>
