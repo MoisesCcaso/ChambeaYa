@@ -203,3 +203,22 @@ def test_save_elimina_hijos_retirados_del_agregado(
     assert [item.puntaje for item in actualizada.evaluaciones] == [95]
     assert db.session.get(EntregableModel, entregable_eliminado_id) is None
     assert db.session.get(EvaluacionModel, evaluacion_eliminada_id) is None
+
+
+def test_find_by_empresa_id_retorna_practicas_asociadas_via_join(
+    app_context,
+    repository,
+    datos_practica,
+):
+    postulacion = db.session.get(PostulacionModel, datos_practica["postulacion_id"])
+    convocatoria = db.session.get(ConvocatoriaModel, postulacion.convocatoria_id)
+    empresa_id = convocatoria.empresa_id
+
+    practica = crear_practica(datos_practica)
+    guardada = repository.save(practica)
+
+    resultado = repository.find_by_empresa_id(empresa_id)
+    assert len(resultado) == 1
+    assert resultado[0].id == guardada.id
+
+    assert repository.find_by_empresa_id(99999) == []

@@ -110,6 +110,9 @@ class PracticaApplicationService:
         if empresa is None:
             raise ValueError("Perfil no encontrado")
 
+        if hasattr(self.practica_repository, "find_by_empresa_id"):
+            return self.practica_repository.find_by_empresa_id(empresa.id)
+
         practicas = []
         for convocatoria in self.convocatoria_repository.find_by_empresa_id(empresa.id):
             for postulacion in self.postulacion_repository.find_by_convocatoria_id(
