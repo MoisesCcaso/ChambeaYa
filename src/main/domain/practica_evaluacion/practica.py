@@ -18,6 +18,16 @@ class Practica:
         self.entregables = entregables or []
         self.evaluaciones = evaluaciones or []
 
+    @classmethod
+    def iniciar(cls, postulacion_id, practicante_id):
+        if postulacion_id is None or practicante_id is None:
+            raise ValueError("Se requiere postulación y practicante para iniciar la práctica")
+        return cls(
+            postulacion_id=postulacion_id,
+            practicante_id=practicante_id,
+            estado=cls.ESTADO_EN_CURSO,
+        )
+
     def subir_entregable(self, archivo):
         if self.estado == self.ESTADO_FINALIZADA:
             raise ValueError("No se pueden subir entregables a una práctica finalizada")
