@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from application.dtos import ConvocatoriaCommand
 from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
 
 class ConvocatoriaApplicationService:
@@ -9,13 +10,13 @@ class ConvocatoriaApplicationService:
 
     def create_convocatoria(self, empresa_id, data):
         self._require_repository()
-        titulo = data.get("titulo")
-        descripcion = data.get("descripcion")
-        habilidades_requeridas = data.get("habilidades_requeridas")
-        beneficios = data.get("beneficios")
+        command = ConvocatoriaCommand.from_dict(data)
         convocatoria = self.convocatoria_fabrica.crear_convocatoria(
-            empresa_id, titulo, descripcion=descripcion,
-            habilidades_requeridas=habilidades_requeridas, beneficios=beneficios
+            empresa_id,
+            command.titulo,
+            descripcion=command.descripcion,
+            habilidades_requeridas=command.habilidades_requeridas,
+            beneficios=command.beneficios,
         )
         return self.convocatoria_repository.save(convocatoria)
 
@@ -32,12 +33,13 @@ class ConvocatoriaApplicationService:
 
     def update(self, empresa_id, convocatoria_id, data):
         self._require_repository()
+        command = ConvocatoriaCommand.from_dict(data)
         convocatoria = self._find_owned(empresa_id, convocatoria_id)
         convocatoria.actualizar(
-            titulo=data.get("titulo"),
-            descripcion=data.get("descripcion"),
-            habilidades_requeridas=data.get("habilidades_requeridas"),
-            beneficios=data.get("beneficios"),
+            titulo=command.titulo,
+            descripcion=command.descripcion,
+            habilidades_requeridas=command.habilidades_requeridas,
+            beneficios=command.beneficios,
         )
         return self.convocatoria_repository.save(convocatoria)
 

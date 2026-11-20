@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from application.dtos import ActualizarPracticanteDTO, UNSET
 from domain.auth.usuario import Usuario
 from domain.perfil.practicante import Practicante
 
@@ -22,27 +23,30 @@ class PracticanteApplicationService:
     def update_practicante(self, usuario_id, data):
         self._require_repositories()
         self._require_practicante_user(usuario_id)
+        dto = ActualizarPracticanteDTO.from_dict(data)
 
         practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
             practicante = Practicante(usuario_id=usuario_id)
 
         practicante.actualizar_datos(
-            nombres=data.get("nombres"),
-            apellidos=data.get("apellidos"),
+            nombres=dto.nombres,
+            apellidos=dto.apellidos,
         )
 
-        identidad_actualizada = "dni" in data or "carnet_universitario" in data
-        if "dni" in data:
-            practicante.dni = self._optional_text(data.get("dni"))
-        if "carnet_universitario" in data:
+        identidad_actualizada = (
+            dto.dni is not UNSET or dto.carnet_universitario is not UNSET
+        )
+        if dto.dni is not UNSET:
+            practicante.dni = self._optional_text(dto.dni)
+        if dto.carnet_universitario is not UNSET:
             practicante.carnet_universitario = self._optional_text(
-                data.get("carnet_universitario")
+                dto.carnet_universitario
             )
-        if "habilidades" in data:
-            practicante.reemplazar_habilidades(data.get("habilidades") or [])
-        if "formacion_educativa" in data:
-            practicante.reemplazar_formacion(data.get("formacion_educativa") or [])
+        if dto.habilidades is not UNSET:
+            practicante.reemplazar_habilidades(dto.habilidades or [])
+        if dto.formacion_educativa is not UNSET:
+            practicante.reemplazar_formacion(dto.formacion_educativa or [])
 
         if identidad_actualizada:
             if practicante.dni or practicante.carnet_universitario:
