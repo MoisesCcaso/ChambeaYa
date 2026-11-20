@@ -68,9 +68,7 @@ class CertificacionApplicationService:
         if certificado is None:
             raise ValueError("Certificado no encontrado")
 
-        qr_valido = CertificacionDominioServicio().verificar_codigo_qr(
-            certificado, codigo_qr_valor
-        )
+        qr_valido = certificado.verificar_qr(codigo_qr_valor)
         documento_valido = (
             certificado.documento is not None
             and certificado.verificar_integridad(certificado.documento.contenido)

@@ -17,11 +17,6 @@ class CertificacionDominioServicio:
         certificado.generar_pdf(contenido)
         return certificado
 
-    def verificar_codigo_qr(self, certificado, valor):
-        if certificado.codigo_qr is None:
-            return False
-        return certificado.codigo_qr.verificar(valor)
-    
     def _construir_contenido(self, practicante, convocatoria):
         return (
             f"Se certifica que {practicante.nombres} {practicante.apellidos} "
