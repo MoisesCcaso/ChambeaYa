@@ -21,11 +21,17 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
 
         if certificado.codigo_qr is not None:
             model.codigo_qr_valor = certificado.codigo_qr.valor
-            model.codigo_qr_url_verificacion = certificado.codigo_qr.url_verificacion
+            model.codigo_qr_url_verificacion = (
+                certificado.codigo_qr.url_verificacion
+                or f"/certificados/verificar/{certificado.codigo_qr.valor}"
+            )
             model.codigo_qr_hash = certificado.codigo_qr.hash_integridad
 
         if certificado.documento is not None:
-            model.documento_url = certificado.documento.url
+            model.documento_url = (
+                certificado.documento.url
+                or f"/certificados/practica/{certificado.practica_id}/pdf"
+            )
             model.documento_hash = certificado.documento.hash_integridad
             model.documento_contenido = certificado.documento.contenido
 
@@ -57,7 +63,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
             )
 
         documento = None
-        if model.documento_url is not None:
+        if model.documento_url is not None or model.documento_contenido is not None:
             documento = ArchivoPDF(
                 url=model.documento_url,
                 hash_integridad=model.documento_hash,

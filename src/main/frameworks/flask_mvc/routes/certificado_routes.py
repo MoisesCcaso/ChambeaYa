@@ -41,11 +41,17 @@ def serialize_certificado(certificado):
         "practica_id": certificado.practica_id,
         "codigo_qr": {
             "valor": certificado.codigo_qr.valor,
-            "url_verificacion": certificado.codigo_qr.url_verificacion,
+            "url_verificacion": (
+                certificado.codigo_qr.url_verificacion
+                or f"/certificados/verificar/{certificado.codigo_qr.valor}"
+            ),
             "imagen_url": f"/certificados/{certificado.codigo_qr.valor}/qr",
         } if certificado.codigo_qr else None,
         "documento": {
-            "url": certificado.documento.url,
+            "url": (
+                certificado.documento.url
+                or f"/certificados/practica/{certificado.practica_id}/pdf"
+            ),
         } if certificado.documento else None,
     }
 
