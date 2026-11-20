@@ -5,12 +5,13 @@ from domain.certificacion.certificacion_dominio_servicio import CertificacionDom
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
                  postulacion_repository=None, convocatoria_repository=None,
-                 perfil_repository=None):
+                 perfil_repository=None, notificacion_service=None):
         self.certificado_repository = certificado_repository
         self.practica_repository = practica_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.perfil_repository = perfil_repository
+        self.notificacion_service = notificacion_service
 
     def issue_certificate(self, empresa_id, practica_id):
         self._require_repositories()
@@ -40,7 +41,25 @@ class CertificacionApplicationService:
         certificado = CertificacionDominioServicio().generar_certificado(
             practica, practicante, convocatoria
         )
-        return self.certificado_repository.save(certificado), True
+        guardado = self.certificado_repository.save(certificado)
+        self._notificar_emision(practicante, practica_id)
+        return guardado, True
+
+    def _notificar_emision(self, practicante, practica_id):
+        if self.notificacion_service is None:
+            return
+        usuario_id = getattr(practicante, "usuario_id", None)
+        if not usuario_id:
+            return
+        try:
+            self.notificacion_service.create_notification(
+                usuario_destino_id=usuario_id,
+                tipo="CERTIFICADO_EMITIDO",
+                mensaje="Tu certificado digital ha sido emitido",
+                metadata={"practica_id": practica_id},
+            )
+        except Exception:
+            pass
 
     def verify_certificate(self, codigo_qr_valor):
         self._require_repositories()
