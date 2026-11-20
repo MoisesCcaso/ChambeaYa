@@ -126,6 +126,30 @@ class PracticanteTest(unittest.TestCase):
         practicante.actualizar_datos()
         self.assertEqual(practicante.nombres, "Carlos")
 
+    def test_nombres_se_guardan_en_value_object_nombre_completo(self):
+        practicante = Practicante(nombres="Ana", apellidos="Torres")
+        self.assertIsInstance(practicante.nombre_completo, NombreCompleto)
+        self.assertEqual(str(practicante.nombre_completo), "Ana Torres")
+
+    def test_actualizar_datos_normaliza_y_conserva_el_campo_no_enviado(self):
+        practicante = Practicante(nombres="Ana", apellidos="Torres")
+        practicante.actualizar_datos(nombres="  Lucía  ")
+        self.assertEqual(practicante.nombres, "Lucía")
+        self.assertEqual(practicante.apellidos, "Torres")
+
+    def test_actualizar_datos_rechaza_nombres_en_blanco(self):
+        practicante = Practicante(nombres="Ana", apellidos="Torres")
+        for nombres, apellidos in (("   ", "Torres"), ("Ana", ""), ("", "")):
+            with self.subTest(nombres=nombres, apellidos=apellidos):
+                with self.assertRaisesRegex(ValueError, "Nombres y apellidos son obligatorios"):
+                    practicante.actualizar_datos(nombres=nombres, apellidos=apellidos)
+        self.assertEqual(str(practicante.nombre_completo), "Ana Torres")
+
+    def test_practicante_nuevo_sin_nombres_es_valido_hasta_completar_perfil(self):
+        practicante = Practicante(usuario_id=1)
+        self.assertIsNone(practicante.nombres)
+        self.assertIsNone(practicante.apellidos)
+
     def test_agregar_y_reemplazar_habilidades_y_formacion_normaliza_y_evita_duplicados(self):
         practicante = Practicante()
 
