@@ -471,11 +471,11 @@ A continuación se presenta el contenido estructurado de las **6 tarjetas de Tre
 - **Estrategia de Mitigación / Refactoring**:
   *Replace Magic Number with Symbolic Constant* / *Replace Error Code with Exception*: Unificar el mensaje en una constante simbólica compartida a nivel de módulo (`NOT_FOUND_PRACTICANTE = "Perfil de practicante no encontrado"`) o reemplazar la excepción genérica `ValueError` por una excepción especializada del modelo de dominio (`PerfilPracticanteNoEncontradoError`).
 - **Criterios de Aceptación (Checklist)**:
-  - [ ] Definir la constante simbólica `NOT_FOUND_PRACTICANTE` o la clase de excepción `PerfilPracticanteNoEncontradoError`.
-  - [ ] Reemplazar las 3 apariciones literales de `"Perfil de practicante no encontrado"` en `apply` (línea 22), `list_for_practicante` (línea 52) y `cancel` (línea 129).
-  - [ ] Verificar que los controladores y rutas que capturan o exponen el mensaje sigan recibiendo el texto esperado.
-  - [ ] Ejecutar las pruebas unitarias de postulación (`pytest src/test/application/test_postulacion_service.py`) y verificar que pasen al 100%.
-  - [ ] Comprobar que SonarQube no marque advertencias `python:S1192` en este servicio.
+  - [x] Definir la constante simbólica `NOT_FOUND_PRACTICANTE` o la clase de excepción `PerfilPracticanteNoEncontradoError`.
+  - [x] Reemplazar las 3 apariciones literales de `"Perfil de practicante no encontrado"` en `apply` (línea 22), `list_for_practicante` (línea 52) y `cancel` (línea 129).
+  - [x] Verificar que los controladores y rutas que capturan o exponen el mensaje sigan recibiendo el texto esperado.
+  - [x] Ejecutar las pruebas unitarias de postulación (`pytest src/test/application/test_postulacion_service.py`) y verificar que pasen al 100%.
+  - [x] Comprobar que SonarQube no marque advertencias `python:S1192` en este servicio.
 
 ---
 

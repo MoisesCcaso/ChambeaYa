@@ -1,5 +1,9 @@
+from typing import Final
+
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
+
+NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"
 
 
 class PostulacionApplicationService:
@@ -21,7 +25,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
+            raise ValueError(NOT_FOUND_PRACTICANTE)
         if not practicante.nombres or not practicante.apellidos:
             raise ValueError("Completa tus nombres y apellidos antes de postular")
 
@@ -51,7 +55,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
+            raise ValueError(NOT_FOUND_PRACTICANTE)
         return [
             (
                 postulacion,
@@ -128,7 +132,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
+            raise ValueError(NOT_FOUND_PRACTICANTE)
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
             raise ValueError("Postulación no encontrada")
