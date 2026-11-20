@@ -356,13 +356,19 @@
                           : `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML(item.descripcion || "Sin descripción")}</small></td><td>${C.escapeHTML((item.habilidades_requeridas || []).slice(0, 2).join(", ") || "—")}</td><td>${C.statusBadge(item.estado)}</td></tr>`
                   )
                   .join("")
-            : `<tr><td colspan="3">${C.emptyState(
-                  isCompany ? "Sin convocatorias" : "Sin oportunidades",
-                  isCompany
-                      ? "Crea tu primera convocatoria para comenzar."
-                      : "No encontramos convocatorias publicadas.",
-                  isCompany ? "briefcase" : "search"
-              )}</td></tr>`;
+            : `<tr><td colspan="3">${dashboardEmptyState(isCompany)}</td></tr>`;
+    }
+
+    function dashboardEmptyState(isCompany) {
+        if (isCompany) {
+            return C.emptyState("Sin convocatorias", "Crea tu primera convocatoria para comenzar.", "briefcase");
+        }
+        return C.emptyState("Sin oportunidades", "No encontramos convocatorias publicadas.", "search");
+    }
+
+    function profileScoreValue(isCompany) {
+        if (!isCompany) return `${Math.round(state.profile?.score_reputacion || 0)}%`;
+        return state.profile?.verificada ? "Verificada" : "Pendiente";
     }
 
     function renderProfile() {
@@ -374,7 +380,7 @@
             <p>${C.escapeHTML(state.user?.email || "")}</p>
             <div class="profile-score">
                 <span>${isCompany ? "Estado de verificación" : "Reputación del perfil"}</span>
-                <strong>${isCompany ? (state.profile?.verificada ? "Verificada" : "Pendiente") : `${Math.round(state.profile?.score_reputacion || 0)}%`}</strong>
+                <strong>${profileScoreValue(isCompany)}</strong>
             </div>`;
 
         if (isCompany) {
@@ -449,6 +455,7 @@
         );
         const activeApplication =
             application && application.estado !== "cancelada" ? application : null;
+        const applyLabel = application ? "Postular nuevamente" : "Postular ahora";
         $("#opportunity-detail").innerHTML = `
             <p class="eyebrow">Convocatoria activa</p>
             <h2>${C.escapeHTML(item.titulo)}</h2>
@@ -473,7 +480,7 @@
                 ${
                     activeApplication
                         ? `${C.statusBadge(activeApplication.estado)}`
-                        : `<button class="button button-primary" data-apply-opening="${item.id}">${C.icon("send")} ${application ? "Postular nuevamente" : "Postular ahora"}</button>`
+                        : `<button class="button button-primary" data-apply-opening="${item.id}">${C.icon("send")} ${applyLabel}</button>`
                 }
             </div>`;
     }
@@ -827,21 +834,23 @@
                                 .join("")}</div>
                         </div>
                         <div class="candidate-actions">
-                            ${
-                                item.estado === "pendiente"
-                                    ? `<button class="button button-secondary button-small" data-reject-candidate="${item.id}">${C.icon("x")} Rechazar</button><button class="button button-primary button-small" data-select-candidate="${item.id}">${C.icon("check")} Seleccionar</button>`
-                                    : item.estado === "seleccionada"
-                                      ? item.practica_iniciada
-                                          ? C.statusBadge(item.estado)
-                                          : `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button><button class="button button-primary button-small" data-start-practice="${item.id}">${C.icon("clipboard")} Iniciar práctica</button>`
-                                      : item.estado === "rechazada"
-                                        ? `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button>`
-                                        : C.statusBadge(item.estado)
-                            }
+                            ${candidateActionsHTML(item)}
                         </div>
                     </article>`;
             })
             .join("");
+    }
+
+    function candidateActionsHTML(item) {
+        const reconsider = `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button>`;
+        if (item.estado === "pendiente") {
+            return `<button class="button button-secondary button-small" data-reject-candidate="${item.id}">${C.icon("x")} Rechazar</button><button class="button button-primary button-small" data-select-candidate="${item.id}">${C.icon("check")} Seleccionar</button>`;
+        }
+        if (item.estado === "seleccionada" && !item.practica_iniciada) {
+            return `${reconsider}<button class="button button-primary button-small" data-start-practice="${item.id}">${C.icon("clipboard")} Iniciar práctica</button>`;
+        }
+        if (item.estado === "rechazada") return reconsider;
+        return C.statusBadge(item.estado);
     }
 
     async function candidateAction(applicationId, action, button) {
@@ -969,16 +978,7 @@
                 <div class="section-heading">
                     <div><h3>Certificación</h3><p>${certificate ? "El documento digital ya está disponible." : "Se habilita después de finalizar una práctica aprobada."}</p></div>
                 </div>
-                ${
-                    certificate
-                        ? `<div class="table-actions" style="justify-content:flex-start">
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
-                           </div>`
-                        : isCompany && practice.estado === "FINALIZADA"
-                          ? `<button class="button button-primary" data-issue-certificate="${practice.id}">${C.icon("certificate")} Emitir certificado</button>`
-                          : ""
-                }
+                ${certificateActionsHTML(certificate, practice, isCompany)}
                 ${
                     isCompany && canModify
                         ? `<div style="margin-top:18px"><button class="button button-secondary" data-finish-practice="${practice.id}">${C.icon("check")} Finalizar práctica</button></div>`
@@ -988,6 +988,19 @@
 
         $("#deliverable-form")?.addEventListener("submit", submitDeliverable);
         $("#evaluation-form")?.addEventListener("submit", submitEvaluation);
+    }
+
+    function certificateActionsHTML(certificate, practice, isCompany) {
+        if (certificate) {
+            return `<div class="table-actions" style="justify-content:flex-start">
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
+                           </div>`;
+        }
+        if (isCompany && practice.estado === "FINALIZADA") {
+            return `<button class="button button-primary" data-issue-certificate="${practice.id}">${C.icon("certificate")} Emitir certificado</button>`;
+        }
+        return "";
     }
 
     async function submitDeliverable(event) {
