@@ -6,12 +6,11 @@ from datetime import datetime, timedelta, timezone
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.practica import Practica
-from domain.practica_evaluacion.practica_fabrica import PracticaFabrica
 
 
-class TestPracticaFabrica(unittest.TestCase):
+class TestPracticaIniciar(unittest.TestCase):
     def test_inicia_practica_en_curso_y_sin_registros(self):
-        practica = PracticaFabrica().iniciar_practica(11, 22)
+        practica = Practica.iniciar(11, 22)
         self.assertEqual(practica.postulacion_id, 11)
         self.assertEqual(practica.practicante_id, 22)
         self.assertEqual(practica.estado, Practica.ESTADO_EN_CURSO)
@@ -22,7 +21,7 @@ class TestPracticaFabrica(unittest.TestCase):
         for postulacion_id, practicante_id in ((None, 22), (11, None), (None, None)):
             with self.subTest(postulacion_id=postulacion_id, practicante_id=practicante_id):
                 with self.assertRaisesRegex(ValueError, "postulación y practicante"):
-                    PracticaFabrica().iniciar_practica(postulacion_id, practicante_id)
+                    Practica.iniciar(postulacion_id, practicante_id)
 
 
 class TestEntregable(unittest.TestCase):

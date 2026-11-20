@@ -253,7 +253,7 @@ Son objetos que encapsulan la creación de entidades complejas, asegurando que n
 | Fábrica | Crea | Validaciones |
 |---------|------|-------------|
 | `ConvocatoriaFabrica` | `Convocatoria` en estado `BORRADOR` | empresa_id obligatorio, título obligatorio, habilidades y beneficios como lista |
-| `PracticaFabrica` | `Practica` en estado `EN_CURSO` | postulacion_id y practicante_id obligatorios |
+| `Practica.iniciar` (factory method) | `Practica` en estado `EN_CURSO` | postulacion_id y practicante_id obligatorios |
 
 **Fragmento — ConvocatoriaFabrica:**
 

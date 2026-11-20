@@ -3,8 +3,7 @@
 from typing import Final
 
 from domain.convocatorias.postulacion import Postulacion
-
-from domain.practica_evaluacion.practica_fabrica import PracticaFabrica
+from domain.practica_evaluacion.practica import Practica
 
 NOT_FOUND: Final = "Práctica no encontrada"
 
@@ -34,9 +33,7 @@ class PracticaApplicationService:
         if existente is not None:
             raise ValueError("La práctica ya fue iniciada")
 
-        practica = PracticaFabrica().iniciar_practica(
-            postulacion_id, postulacion.practicante_id
-        )
+        practica = Practica.iniciar(postulacion_id, postulacion.practicante_id)
         return self.practica_repository.save(practica)
 
     def upload_deliverable(self, usuario_id, practica_id, archivo):
