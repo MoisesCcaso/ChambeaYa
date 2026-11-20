@@ -27,9 +27,12 @@ def build_certificado_controller():
     postulacion_repository = SqlAlchemyPostulacionRepository()
     convocatoria_repository = SqlAlchemyConvocatoriaRepository()
     perfil_repository = SqlAlchemyPerfilRepository()
+    notif_repo = SqlAlchemyNotificacionRepository()
+    notificacion_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
     service = CertificacionApplicationService(
         certificado_repository, practica_repository,
-        postulacion_repository, convocatoria_repository, perfil_repository
+        postulacion_repository, convocatoria_repository, perfil_repository,
+        notificacion_service=notificacion_service,
     )
     return CertificadoController(service)
 
@@ -54,27 +57,6 @@ def issue_certificado(practica_id):
         data, status_code = controller.issue(empresa.id, practica_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-
-    if status_code == 201:
-        try:
-            practica_repo = SqlAlchemyPracticaRepository()
-            practica = practica_repo.find_by_id(practica_id)
-            if practica and practica.practicante_id:
-                perfil_repo = SqlAlchemyPerfilRepository()
-                practicante = perfil_repo.find_practicante_by_id(practica.practicante_id)
-                if practicante:
-                    repo = SqlAlchemyNotificacionRepository()
-                    notif_service = NotificacionApplicationService(writer=repo, reader=repo)
-                    notif_service.create_notification(
-                        usuario_destino_id=practicante.usuario_id,
-                        tipo="CERTIFICADO_EMITIDO",
-                        mensaje="Tu certificado digital ha sido emitido",
-                        metadata={"practica_id": practica_id},
-                    )
-        except Exception:
-            current_app.logger.exception(
-                "No se pudo crear la notificación de certificado emitido"
-            )
 
     return jsonify(data), status_code
 

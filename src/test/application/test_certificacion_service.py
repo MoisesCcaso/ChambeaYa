@@ -74,6 +74,32 @@ class TestCertificacionService(unittest.TestCase):
         self.certificados.find_by_practica_id.assert_called_once_with(PRACTICA_ID)
         self.certificados.save.assert_called_once_with(certificado)
 
+    def test_emite_certificado_y_notifica_al_practicante(self):
+        mock_notif_service = unittest.mock.Mock()
+        self.service.notificacion_service = mock_notif_service
+        self.practicante.usuario_id = 99
+
+        certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
+
+        self.assertTrue(creado)
+        mock_notif_service.create_notification.assert_called_once_with(
+            usuario_destino_id=99,
+            tipo="CERTIFICADO_EMITIDO",
+            mensaje="Tu certificado digital ha sido emitido",
+            metadata={"practica_id": PRACTICA_ID},
+        )
+
+    def test_emite_certificado_tolera_fallo_en_notificacion(self):
+        mock_notif_service = unittest.mock.Mock()
+        mock_notif_service.create_notification.side_effect = RuntimeError("SMTP Error")
+        self.service.notificacion_service = mock_notif_service
+        self.practicante.usuario_id = 99
+
+        certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
+
+        self.assertTrue(creado)
+        self.assertEqual(PRACTICA_ID, certificado.practica_id)
+
     def test_practica_inexistente_lanza_error(self):
         self.practicas.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):
