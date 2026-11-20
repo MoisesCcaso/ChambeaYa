@@ -32,7 +32,7 @@ class MatchingApplicationService:
         resultados = self.matching_servicio.filtrar_convocatorias(practicante, convocatorias)
 
         for resultado in resultados:
-            self.sugerencia_repository.save(resultado.sugerencia)
+            self.sugerencia_repository.save(getattr(resultado, "sugerencia", resultado))
 
         return resultados
 
