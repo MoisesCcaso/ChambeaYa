@@ -102,7 +102,7 @@ class TestPerfilRepository(unittest.TestCase):
         )
 
         # Actualización cuando viene con id existente
-        inicial.nombres = "Pedro Alberto"
+        inicial.actualizar_datos(nombres="Pedro Alberto")
         inicial.habilidades = ["Git", "Docker"]
         inicial.identidad_verificada = True
         inicial.score_reputacion = 40.0

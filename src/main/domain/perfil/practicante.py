@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from domain.perfil.nombre_completo import NombreCompleto
+
+
 class Practicante:
     def __init__(
         self,
@@ -17,8 +20,7 @@ class Practicante:
     ):
         self.id = id
         self.usuario_id = usuario_id
-        self.nombres = nombres
-        self.apellidos = apellidos
+        self.nombre_completo = NombreCompleto(nombres, apellidos)
         self.dni = dni
         self.carnet_universitario = carnet_universitario
         self.habilidades = habilidades or []
@@ -26,11 +28,20 @@ class Practicante:
         self.score_reputacion = score_reputacion
         self.identidad_verificada = identidad_verificada
 
+    @property
+    def nombres(self):
+        return self.nombre_completo.nombres
+
+    @property
+    def apellidos(self):
+        return self.nombre_completo.apellidos
+
     def actualizar_datos(self, nombres=None, apellidos=None, dni=None, carnet_universitario=None):
-        if nombres is not None:
-            self.nombres = nombres
-        if apellidos is not None:
-            self.apellidos = apellidos
+        if nombres is not None or apellidos is not None:
+            self.nombre_completo = NombreCompleto(
+                nombres if nombres is not None else self.nombres,
+                apellidos if apellidos is not None else self.apellidos,
+            ).validar()
         if dni is not None:
             self.dni = dni
         if carnet_universitario is not None:
