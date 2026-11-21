@@ -1,8 +1,16 @@
+from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStrategy
 from domain.matching.sugerencia import Sugerencia
 from domain.convocatorias.convocatoria import Convocatoria
 
 
 class MatchingDominioServicio:
+    def __init__(self, matching_strategy=None):
+        self.matching_strategy = (
+            matching_strategy
+            if matching_strategy is not None
+            else HabilidadesMatchingStrategy()
+        )
+
     def calcular_match(self, practicante, convocatoria):
         if practicante is None or convocatoria is None:
             return None
@@ -11,6 +19,7 @@ class MatchingDominioServicio:
             practicante_id=practicante.id,
             convocatoria_id=convocatoria.id,
             convocatoria=convocatoria,
+            matching_strategy=self.matching_strategy,
         )
         sugerencia.calcular_compatibilidad(
             practicante.habilidades,
