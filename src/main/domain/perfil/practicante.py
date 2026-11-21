@@ -53,6 +53,7 @@ class Practicante:
         habilidad_normalizada = self._normalizar_texto(habilidad)
         if habilidad_normalizada and habilidad_normalizada not in self.habilidades:
             self.habilidades.append(habilidad_normalizada)
+        self.calcular_score()
 
         return self
 
@@ -60,23 +61,22 @@ class Practicante:
         formacion_normalizada = self._normalizar_texto(formacion)
         if formacion_normalizada and formacion_normalizada not in self.formacion_educativa:
             self.formacion_educativa.append(formacion_normalizada)
+        self.calcular_score()
 
         return self
 
     def reemplazar_habilidades(self, habilidades):
         if not isinstance(habilidades, list):
             raise ValueError("Las habilidades deben ser una lista")
-        self.habilidades = []
-        for habilidad in habilidades:
-            self.agregar_habilidad(habilidad)
+        self.habilidades = self._normalizar_elementos(habilidades)
+        self.calcular_score()
         return self
 
     def reemplazar_formacion(self, formaciones):
         if not isinstance(formaciones, list):
             raise ValueError("La formación educativa debe ser una lista")
-        self.formacion_educativa = []
-        for formacion in formaciones:
-            self.agregar_formacion(formacion)
+        self.formacion_educativa = self._normalizar_elementos(formaciones)
+        self.calcular_score()
         return self
 
     def verificar_identidad(self):
@@ -88,6 +88,12 @@ class Practicante:
             raise ValueError("El carnet universitario no es válido")
 
         self.identidad_verificada = True
+        self.calcular_score()
+        return self
+
+    def revocar_verificacion_identidad(self):
+        self.identidad_verificada = False
+        self.calcular_score()
         return self
 
     def calcular_score(self):
@@ -105,3 +111,11 @@ class Practicante:
             return None
 
         return str(valor).strip()
+
+    def _normalizar_elementos(self, valores):
+        normalizados = []
+        for valor in valores:
+            valor_normalizado = self._normalizar_texto(valor)
+            if valor_normalizado and valor_normalizado not in normalizados:
+                normalizados.append(valor_normalizado)
+        return normalizados

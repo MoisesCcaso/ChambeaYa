@@ -52,9 +52,8 @@ class PracticanteApplicationService:
             if practicante.dni or practicante.carnet_universitario:
                 practicante.verificar_identidad()
             else:
-                practicante.identidad_verificada = False
+                practicante.revocar_verificacion_identidad()
 
-        practicante.calcular_score()
         return self.practicante_repository.save_practicante(practicante)
 
     update_profile = update_practicante
@@ -63,14 +62,12 @@ class PracticanteApplicationService:
         self._require_repositories()
         practicante = self._get_or_create_practicante(usuario_id)
         practicante.agregar_habilidad(habilidad)
-        practicante.calcular_score()
         return self.practicante_repository.save_practicante(practicante)
 
     def add_formacion(self, usuario_id, formacion):
         self._require_repositories()
         practicante = self._get_or_create_practicante(usuario_id)
         practicante.agregar_formacion(formacion)
-        practicante.calcular_score()
         return self.practicante_repository.save_practicante(practicante)
 
     def register_identity(self, usuario_id, dni=None, carnet_universitario=None):
@@ -78,7 +75,6 @@ class PracticanteApplicationService:
         practicante = self._get_or_create_practicante(usuario_id)
         practicante.actualizar_datos(dni=dni, carnet_universitario=carnet_universitario)
         practicante.verificar_identidad()
-        practicante.calcular_score()
         return self.practicante_repository.save_practicante(practicante)
 
     def verify_profile(self, usuario_id):
