@@ -115,7 +115,7 @@ class PostulacionApplicationService:
                 otra.rechazar()
                 self.postulacion_repository.save(otra)
             elif otra.estado == Postulacion.ESTADO_SELECCIONADA:
-                otra.estado = Postulacion.ESTADO_RECHAZADA
+                otra.rechazar_seleccionada()
                 self.postulacion_repository.save(otra)
         return seleccionada
 
