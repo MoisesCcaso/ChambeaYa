@@ -350,29 +350,41 @@
     function renderDashboardList() {
         const isCompany = role() === "empresa";
         const items = isCompany ? state.openings.slice(0, 5) : state.opportunities.slice(0, 5);
-        $("#dashboard-list-title").textContent = isCompany
-            ? "Tus convocatorias"
-            : "Oportunidades recientes";
-        $("#dashboard-list-description").textContent = isCompany
-            ? "Actividad actual de tus oportunidades."
-            : "Convocatorias disponibles para postular.";
-        $("#dashboard-list-action").textContent = isCompany ? "Administrar" : "Explorar";
-        $("#dashboard-list-action").dataset.targetView = isCompany ? "convocatorias" : "oportunidades";
-        const headers = isCompany
-            ? ["Convocatoria", "Estado", "Fecha"]
-            : ["Convocatoria", "Habilidades", "Estado"];
+        const title = $("#dashboard-list-title");
+        const description = $("#dashboard-list-description");
+        const action = $("#dashboard-list-action");
+        let headers;
+
+        if (isCompany) {
+            title.textContent = "Tus convocatorias";
+            description.textContent = "Actividad actual de tus oportunidades.";
+            action.textContent = "Administrar";
+            action.dataset.targetView = "convocatorias";
+            headers = ["Convocatoria", "Estado", "Fecha"];
+        } else {
+            title.textContent = "Oportunidades recientes";
+            description.textContent = "Convocatorias disponibles para postular.";
+            action.textContent = "Explorar";
+            action.dataset.targetView = "oportunidades";
+            headers = ["Convocatoria", "Habilidades", "Estado"];
+        }
+
         $$("#dashboard-list-head th").forEach((th, index) => {
             th.textContent = headers[index];
         });
-        $("#dashboard-list-body").innerHTML = items.length
-            ? items
-                  .map((item) =>
-                      isCompany
-                          ? `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>#${item.id}</small></td><td>${C.statusBadge(item.estado)}</td><td>${C.formatDate(item.fecha_publicacion)}</td></tr>`
-                          : `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML(item.descripcion || "Sin descripción")}</small></td><td>${C.escapeHTML((item.habilidades_requeridas || []).slice(0, 2).join(", ") || "—")}</td><td>${C.statusBadge(item.estado)}</td></tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="3">${dashboardEmptyState(isCompany)}</td></tr>`;
+        const body = $("#dashboard-list-body");
+        if (!items.length) {
+            body.innerHTML = `<tr><td colspan="3">${dashboardEmptyState(isCompany)}</td></tr>`;
+            return;
+        }
+        body.innerHTML = items.map((item) => dashboardListRow(item, isCompany)).join("");
+    }
+
+    function dashboardListRow(item, isCompany) {
+        if (isCompany) {
+            return `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>#${item.id}</small></td><td>${C.statusBadge(item.estado)}</td><td>${C.formatDate(item.fecha_publicacion)}</td></tr>`;
+        }
+        return `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML(item.descripcion || "Sin descripción")}</small></td><td>${C.escapeHTML((item.habilidades_requeridas || []).slice(0, 2).join(", ") || "—")}</td><td>${C.statusBadge(item.estado)}</td></tr>`;
     }
 
     function dashboardEmptyState(isCompany) {
@@ -551,10 +563,18 @@
             state.applicationFilter === "todas"
                 ? state.applications
                 : state.applications.filter((item) => item.estado === state.applicationFilter);
-        $("#applications-table").innerHTML = filtered.length
-            ? filtered
-                  .map(
-                      (item) => `
+        const table = $("#applications-table");
+        if (!filtered.length) {
+            table.innerHTML = `<tr><td colspan="4">${C.emptyState(
+                "No hay postulaciones",
+                "Los procesos con este estado aparecerán aquí.",
+                "send"
+            )}</td></tr>`;
+            return;
+        }
+        table.innerHTML = filtered
+            .map(
+                (item) => `
                     <tr>
                         <td><strong>${C.escapeHTML(item.convocatoria?.titulo || `Convocatoria #${item.convocatoria_id}`)}</strong><small>Postulación #${item.id}</small></td>
                         <td>${C.statusBadge(item.estado)}</td>
@@ -564,13 +584,8 @@
                             ${item.estado === "cancelada" && item.convocatoria?.estado === "publicada" ? `<button class="table-action" data-reapply-opening="${item.convocatoria_id}">${C.icon("undo")} Volver a postular</button>` : ""}
                         </div></td>
                     </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="4">${C.emptyState(
-                  "No hay postulaciones",
-                  "Los procesos con este estado aparecerán aquí.",
-                  "send"
-              )}</td></tr>`;
+            )
+            .join("");
     }
 
     function renderOpenings() {
@@ -578,10 +593,18 @@
             state.openingFilter === "todas"
                 ? state.openings
                 : state.openings.filter((item) => item.estado === state.openingFilter);
-        $("#openings-table").innerHTML = filtered.length
-            ? filtered
-                  .map(
-                      (item) => `
+        const table = $("#openings-table");
+        if (!filtered.length) {
+            table.innerHTML = `<tr><td colspan="4">${C.emptyState(
+                "Sin convocatorias",
+                "Crea una convocatoria para empezar a recibir postulaciones.",
+                "briefcase"
+            )}</td></tr>`;
+            return;
+        }
+        table.innerHTML = filtered
+            .map(
+                (item) => `
                     <tr>
                         <td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML((item.habilidades_requeridas || []).join(", ") || "Sin habilidades definidas")}</small></td>
                         <td>${C.statusBadge(item.estado)}</td>
@@ -594,13 +617,8 @@
                             ${item.estado === "borrador" ? `<button class="table-action danger" data-delete-opening="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
                         </div></td>
                     </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="4">${C.emptyState(
-                  "Sin convocatorias",
-                  "Crea una convocatoria para empezar a recibir postulaciones.",
-                  "briefcase"
-              )}</td></tr>`;
+            )
+            .join("");
     }
 
     function practiceTitle(practice) {
@@ -931,6 +949,23 @@
     function renderPracticeDetail(practice, deliverables, evaluations, certificate) {
         const isCompany = role() === "empresa";
         const canModify = practice.estado === "EN_CURSO";
+        const deliverablesMarkup = renderDeliverables(deliverables, isCompany, canModify);
+        const evaluationsMarkup = renderEvaluations(evaluations, isCompany, canModify);
+        const deliverableFormMarkup = !isCompany && canModify
+            ? `<form class="inline-form" id="deliverable-form">
+                <label class="field"><span>Subir archivo</span><input type="file" name="archivo" accept=".pdf,.doc,.docx,.zip" required></label>
+                <button class="button button-primary" type="submit">${C.icon("upload")} Subir entregable</button>
+               </form>`
+            : "";
+        const evaluationFormMarkup = isCompany && canModify
+            ? `<form class="inline-form" id="evaluation-form">
+                <label class="field"><span>Puntaje</span><input type="number" name="puntaje" min="0" max="100" required></label>
+                <button class="button button-primary" type="submit">${C.icon("check")} Registrar evaluación</button>
+               </form>`
+            : "";
+        const finishPracticeMarkup = isCompany && canModify
+            ? `<div style="margin-top:18px"><button class="button button-secondary" data-finish-practice="${practice.id}">${C.icon("check")} Finalizar práctica</button></div>`
+            : "";
         $("#practice-detail").innerHTML = `
             <section class="practice-detail-section">
                 <div class="section-heading">
@@ -940,70 +975,63 @@
             </section>
             <section class="practice-detail-section">
                 <h3>Entregables</h3>
-                ${
-                    deliverables.length
-                        ? deliverables
-                              .map(
-                                  (item) => `<div class="timeline-row">
-                                      <span><strong>${C.escapeHTML(displayFileName(item.archivo))}</strong><small>${C.formatDate(item.fecha_subida, true)}</small></span>
-                                      <div class="table-actions">
-                                          <a class="text-link" href="${C.escapeHTML(item.archivo_url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
-                                          ${!isCompany && canModify ? `<button class="table-action danger" data-delete-deliverable="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
-                                      </div>
-                                  </div>`
-                              )
-                              .join("")
-                        : `<p class="muted">Aún no se registraron entregables.</p>`
-                }
-                ${
-                    !isCompany && canModify
-                        ? `<form class="inline-form" id="deliverable-form">
-                            <label class="field"><span>Subir archivo</span><input type="file" name="archivo" accept=".pdf,.doc,.docx,.zip" required></label>
-                            <button class="button button-primary" type="submit">${C.icon("upload")} Subir entregable</button>
-                           </form>`
-                        : ""
-                }
+                ${deliverablesMarkup}
+                ${deliverableFormMarkup}
             </section>
             <section class="practice-detail-section">
                 <h3>Evaluaciones</h3>
-                ${
-                    evaluations.length
-                        ? evaluations
-                              .map(
-                                  (item) => `<div class="timeline-row">
-                                      <span><strong>${item.puntaje} / 100</strong><small>${C.formatDate(item.fecha_evaluacion, true)}</small></span>
-                                      <div class="table-actions">
-                                          ${C.statusBadge(item.aprobada ? "verificada" : "rechazada")}
-                                          ${isCompany && canModify ? `<button class="table-action danger" data-delete-evaluation="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
-                                      </div>
-                                  </div>`
-                              )
-                              .join("")
-                        : `<p class="muted">Aún no se registraron evaluaciones.</p>`
-                }
-                ${
-                    isCompany && canModify
-                        ? `<form class="inline-form" id="evaluation-form">
-                            <label class="field"><span>Puntaje</span><input type="number" name="puntaje" min="0" max="100" required></label>
-                            <button class="button button-primary" type="submit">${C.icon("check")} Registrar evaluación</button>
-                           </form>`
-                        : ""
-                }
+                ${evaluationsMarkup}
+                ${evaluationFormMarkup}
             </section>
             <section class="practice-detail-section">
                 <div class="section-heading">
                     <div><h3>Certificación</h3><p>${certificate ? "El documento digital ya está disponible." : "Se habilita después de finalizar una práctica aprobada."}</p></div>
                 </div>
                 ${certificateActionsHTML(certificate, practice, isCompany)}
-                ${
-                    isCompany && canModify
-                        ? `<div style="margin-top:18px"><button class="button button-secondary" data-finish-practice="${practice.id}">${C.icon("check")} Finalizar práctica</button></div>`
-                        : ""
-                }
+                ${finishPracticeMarkup}
             </section>`;
 
         $("#deliverable-form")?.addEventListener("submit", submitDeliverable);
         $("#evaluation-form")?.addEventListener("submit", submitEvaluation);
+    }
+
+    function renderDeliverables(deliverables, isCompany, canModify) {
+        if (!deliverables.length) {
+            return `<p class="muted">Aún no se registraron entregables.</p>`;
+        }
+        return deliverables.map((item) => {
+            let deleteAction = "";
+            if (!isCompany && canModify) {
+                deleteAction = `<button class="table-action danger" data-delete-deliverable="${item.id}">${C.icon("trash")} Eliminar</button>`;
+            }
+            return `<div class="timeline-row">
+                <span><strong>${C.escapeHTML(displayFileName(item.archivo))}</strong><small>${C.formatDate(item.fecha_subida, true)}</small></span>
+                <div class="table-actions">
+                    <a class="text-link" href="${C.escapeHTML(item.archivo_url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
+                    ${deleteAction}
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+    function renderEvaluations(evaluations, isCompany, canModify) {
+        if (!evaluations.length) {
+            return `<p class="muted">Aún no se registraron evaluaciones.</p>`;
+        }
+        return evaluations.map((item) => {
+            const status = item.aprobada ? "verificada" : "rechazada";
+            let deleteAction = "";
+            if (isCompany && canModify) {
+                deleteAction = `<button class="table-action danger" data-delete-evaluation="${item.id}">${C.icon("trash")} Eliminar</button>`;
+            }
+            return `<div class="timeline-row">
+                <span><strong>${item.puntaje} / 100</strong><small>${C.formatDate(item.fecha_evaluacion, true)}</small></span>
+                <div class="table-actions">
+                    ${C.statusBadge(status)}
+                    ${deleteAction}
+                </div>
+            </div>`;
+        }).join("");
     }
 
     function certificateActionsHTML(certificate, practice, isCompany) {
