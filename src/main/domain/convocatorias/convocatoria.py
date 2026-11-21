@@ -70,25 +70,33 @@ class Convocatoria:
         if self.estado != self.ESTADO_BORRADOR:
             raise ValueError("Solo una convocatoria en borrador puede editarse")
         if titulo is not None:
-            titulo = str(titulo).strip()
-            if not titulo:
-                raise ValueError("El título es obligatorio")
-            self.titulo = titulo
+            self.titulo = self.normalizar_titulo(titulo)
         if descripcion is not None:
             self.descripcion = str(descripcion).strip()
         if habilidades_requeridas is not None:
-            if not isinstance(habilidades_requeridas, list):
-                raise ValueError("Las habilidades requeridas deben ser una lista")
+            self.validar_lista(habilidades_requeridas, "Las habilidades requeridas")
             self.habilidades_requeridas = []
             for habilidad in habilidades_requeridas:
                 self.agregar_habilidad_requerida(habilidad)
         if beneficios is not None:
-            if not isinstance(beneficios, list):
-                raise ValueError("Los beneficios deben ser una lista")
+            self.validar_lista(beneficios, "Los beneficios")
             self.beneficios = []
             for beneficio in beneficios:
                 self.agregar_beneficio(beneficio)
         return self
+
+    @staticmethod
+    def normalizar_titulo(titulo):
+        titulo_normalizado = str(titulo).strip() if titulo is not None else ""
+        if not titulo_normalizado:
+            raise ValueError("El título es obligatorio")
+        return titulo_normalizado
+
+    @staticmethod
+    def validar_lista(valores, nombre):
+        if not isinstance(valores, list):
+            raise ValueError(f"{nombre} deben ser una lista")
+        return valores
 
     def agregar_habilidad_requerida(self, habilidad):
         habilidad_normalizada = self._normalizar_texto(habilidad)
