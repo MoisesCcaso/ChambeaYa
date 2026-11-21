@@ -299,36 +299,52 @@
     function renderDashboardProgress() {
         const panel = $("#dashboard-progress");
         if (role() === "empresa") {
-            const verified = Boolean(state.profile?.verificada);
-            const hasOpenings = state.openings.length > 0;
-            const hasPublished = state.openings.some((x) => x.estado === "publicada");
-            const score = [verified, hasOpenings, hasPublished].filter(Boolean).length / 3 * 100;
-            panel.innerHTML = `
-                <h3>Preparación de la empresa</h3>
-                <p>Completa estos pasos para gestionar candidatos.</p>
-                <div class="score-value">${Math.round(score)}%</div>
-                <div class="progress-line"><span style="width:${score}%"></span></div>
-                <ul class="progress-checklist">
-                    <li class="${verified ? "done" : ""}"><i>${verified ? C.icon("check") : ""}</i> Empresa verificada</li>
-                    <li class="${hasOpenings ? "done" : ""}"><i>${hasOpenings ? C.icon("check") : ""}</i> Primera convocatoria creada</li>
-                    <li class="${hasPublished ? "done" : ""}"><i>${hasPublished ? C.icon("check") : ""}</i> Convocatoria publicada</li>
-                </ul>`;
+            renderCompanyDashboardProgress(panel);
             return;
         }
+
+        renderPracticanteDashboardProgress(panel);
+    }
+
+    function renderCompanyDashboardProgress(panel) {
+        const verified = Boolean(state.profile?.verificada);
+        const hasOpenings = state.openings.length > 0;
+        const hasPublished = state.openings.some((x) => x.estado === "publicada");
+        const score = [verified, hasOpenings, hasPublished].filter(Boolean).length / 3 * 100;
+        renderDashboardProgressPanel(panel, "Preparación de la empresa", "Completa estos pasos para gestionar candidatos.", score, [
+            [verified, "Empresa verificada"],
+            [hasOpenings, "Primera convocatoria creada"],
+            [hasPublished, "Convocatoria publicada"],
+        ]);
+    }
+
+    function renderPracticanteDashboardProgress(panel) {
         const score = Math.round(state.profile?.score_reputacion || 0);
         const hasName = Boolean(state.profile?.nombres && state.profile?.apellidos);
         const hasSkills = Boolean(state.profile?.habilidades?.length);
         const verified = Boolean(state.profile?.identidad_verificada);
+        renderDashboardProgressPanel(panel, "Fortaleza del perfil", "Un perfil completo mejora tus recomendaciones.", score, [
+            [hasName, "Información personal"],
+            [hasSkills, "Habilidades registradas"],
+            [verified, "Identidad verificada"],
+        ]);
+    }
+
+    function renderDashboardProgressPanel(panel, heading, description, score, checklist) {
         panel.innerHTML = `
-            <h3>Fortaleza del perfil</h3>
-            <p>Un perfil completo mejora tus recomendaciones.</p>
-            <div class="score-value">${score}%</div>
+            <h3>${heading}</h3>
+            <p>${description}</p>
+            <div class="score-value">${Math.round(score)}%</div>
             <div class="progress-line"><span style="width:${score}%"></span></div>
-            <ul class="progress-checklist">
-                <li class="${hasName ? "done" : ""}"><i>${hasName ? C.icon("check") : ""}</i> Información personal</li>
-                <li class="${hasSkills ? "done" : ""}"><i>${hasSkills ? C.icon("check") : ""}</i> Habilidades registradas</li>
-                <li class="${verified ? "done" : ""}"><i>${verified ? C.icon("check") : ""}</i> Identidad verificada</li>
-            </ul>`;
+            <ul class="progress-checklist">${checklist
+                .map(([complete, label]) => progressChecklistItem(complete, label))
+                .join("")}</ul>`;
+    }
+
+    function progressChecklistItem(complete, label) {
+        const className = complete ? "done" : "";
+        const icon = complete ? C.icon("check") : "";
+        return `<li class="${className}"><i>${icon}</i> ${label}</li>`;
     }
 
     function renderDashboardList() {
