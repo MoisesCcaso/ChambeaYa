@@ -7,14 +7,11 @@ class ConvocatoriaFabrica:
 
         if not empresa_id:
             raise ValueError("La empresa es obligatoria")
-        if not titulo or not str(titulo).strip():
-            raise ValueError("El título es obligatorio")
-        if habilidades_requeridas is not None and not isinstance(
-            habilidades_requeridas, list
-        ):
-            raise ValueError("Las habilidades requeridas deben ser una lista")
-        if beneficios is not None and not isinstance(beneficios, list):
-            raise ValueError("Los beneficios deben ser una lista")
+        titulo = Convocatoria.normalizar_titulo(titulo)
+        if habilidades_requeridas is not None:
+            Convocatoria.validar_lista(habilidades_requeridas, "Las habilidades requeridas")
+        if beneficios is not None:
+            Convocatoria.validar_lista(beneficios, "Los beneficios")
 
         convocatoria = Convocatoria()
         convocatoria.empresa_id = empresa_id
