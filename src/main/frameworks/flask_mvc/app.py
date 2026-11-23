@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from flask import Flask, jsonify
+from flask_wtf.csrf import CSRFError, CSRFProtect
 from sqlalchemy.exc import IntegrityError
 
 from config import config_by_name
@@ -10,6 +11,8 @@ from frameworks.flask_mvc.email_cli import register_email_commands
 from frameworks.flask_mvc.routes import register_routes
 from frameworks.sqlalchemy_orm import models  # noqa: F401
 from frameworks.sqlalchemy_orm.database import db, migrate
+
+csrf = CSRFProtect()
 
 
 def create_app(config_name=None):
@@ -25,7 +28,7 @@ def create_app(config_name=None):
 
     selected_config = config_name or os.getenv("FLASK_ENV", "default")
     app.config.from_object(config_by_name.get(selected_config, config_by_name["default"]))
-    if selected_config == "production" and app.config["SECRET_KEY"] == "dev-secret-key":
+    if not app.config.get("SECRET_KEY"):
         raise RuntimeError("SECRET_KEY debe configurarse en producción")
     app.config.setdefault(
         "UPLOAD_FOLDER",
@@ -34,6 +37,7 @@ def create_app(config_name=None):
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     db.init_app(app)
+    csrf.init_app(app)
     migrations_directory = Path(__file__).resolve().parents[1] / "migrations"
     migrate.init_app(app, db, directory=str(migrations_directory))
 
@@ -45,6 +49,10 @@ def create_app(config_name=None):
     def handle_integrity_error(_error):
         db.session.rollback()
         return jsonify({"error": "El registro ya existe o contiene datos en conflicto"}), 409
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        return jsonify({"error": f"Solicitud rechazada: {error.description}"}), 400
 
     @app.errorhandler(413)
     def handle_payload_too_large(_error):
