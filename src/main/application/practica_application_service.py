@@ -4,6 +4,7 @@ from typing import Final
 
 from domain.convocatorias.postulacion import Postulacion
 from domain.practica_evaluacion.practica import Practica
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
 
 NOT_FOUND: Final = "Práctica no encontrada"
 
@@ -25,7 +26,7 @@ class PracticaApplicationService:
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La postulación no pertenece a esta empresa")
 
@@ -65,7 +66,7 @@ class PracticaApplicationService:
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
@@ -160,7 +161,7 @@ class PracticaApplicationService:
             raise ValueError("Postulación no encontrada")
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a esta empresa")
         return convocatoria

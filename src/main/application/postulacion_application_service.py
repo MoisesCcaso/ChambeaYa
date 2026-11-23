@@ -2,6 +2,7 @@ from typing import Final
 
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"
 
@@ -31,7 +32,7 @@ class PostulacionApplicationService:
 
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
             raise ValueError("Solo se puede postular a convocatorias publicadas")
 
@@ -89,7 +90,7 @@ class PostulacionApplicationService:
             raise ValueError("Postulación no encontrada")
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La convocatoria no pertenece a esta empresa")
 
@@ -157,7 +158,7 @@ class PostulacionApplicationService:
     def _require_owned_convocatoria(self, empresa_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La convocatoria no pertenece a esta empresa")
         return convocatoria

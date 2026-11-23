@@ -13,6 +13,7 @@ from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
 from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
 
 
 class TestPostulacionApplicationService(unittest.TestCase):
@@ -347,3 +348,12 @@ class TestPostulacionApplicationService(unittest.TestCase):
         resultado = self.service.reconsider_candidate(empresa_id=1, postulacion_id=1)
         self.assertEqual(resultado.estado, Postulacion.ESTADO_PENDIENTE)
         self.mock_postulacion_repo.save.assert_called_once_with(postulacion)
+        
+    def test_apply_convocatoria_inexistente_usa_mensaje_estandar(self):
+        self.mock_perfil_repo.find_practicante_by_user_id.return_value = MagicMock(
+            id=5, nombres="Ana", apellidos="Perez"
+        )
+        self.mock_convocatoria_repo.find_by_id.return_value = None
+        with self.assertRaises(ValueError) as ctx:
+            self.service.apply(usuario_id=2, convocatoria_id=99)
+        self.assertEqual(str(ctx.exception), CONVOCATORIA_NO_ENCONTRADA)        

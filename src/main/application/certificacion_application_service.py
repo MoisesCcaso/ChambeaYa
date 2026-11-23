@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
@@ -26,7 +27,7 @@ class CertificacionApplicationService:
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
