@@ -25,11 +25,14 @@ NO_AUTENTICADO_ERROR = "No autenticado"
 
 
 def build_practica_service():
+    notif_repo = SqlAlchemyNotificacionRepository()
+    notificacion_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
     return PracticaApplicationService(
         SqlAlchemyPracticaRepository(),
         SqlAlchemyPerfilRepository(),
         SqlAlchemyPostulacionRepository(),
         SqlAlchemyConvocatoriaRepository(),
+        notificacion_service=notificacion_service,
     )
 
 
@@ -135,24 +138,6 @@ def register_evaluation(practica_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     data = serialize_practica(practica)
-
-    try:
-        repo = SqlAlchemyNotificacionRepository()
-        notif_service = NotificacionApplicationService(writer=repo, reader=repo)
-        perfil_repo = SqlAlchemyPerfilRepository()
-        practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
-        if practicante:
-            notif_service.create_notification(
-                usuario_destino_id=practicante.usuario_id,
-                tipo="EVALUACION_DISPONIBLE",
-                mensaje="Tu práctica tiene una nueva evaluación disponible",
-                metadata={"practica_id": practica_id},
-            )
-    except Exception:
-        current_app.logger.exception(
-            "No se pudo crear la notificación de evaluación disponible"
-        )
-
     return jsonify(data), 201
 
 

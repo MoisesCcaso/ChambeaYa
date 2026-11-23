@@ -9,11 +9,12 @@ NOT_FOUND: Final = "Práctica no encontrada"
 
 
 class PracticaApplicationService:
-    def __init__(self, practica_repository=None, perfil_repository=None, postulacion_repository=None, convocatoria_repository=None):
+    def __init__(self, practica_repository=None, perfil_repository=None, postulacion_repository=None, convocatoria_repository=None, notificacion_service=None):
         self.practica_repository = practica_repository
         self.perfil_repository = perfil_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
+        self.notificacion_service = notificacion_service
 
     def start_practica(self, empresa_id, postulacion_id):
         self._require_repositories()
@@ -70,7 +71,28 @@ class PracticaApplicationService:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
         practica.registrar_evaluacion(puntaje)
-        return self.practica_repository.save(practica)
+        guardada = self.practica_repository.save(practica)
+        self._notificar_evaluacion(guardada)
+        return guardada
+
+    def _notificar_evaluacion(self, practica):
+        if self.notificacion_service is None or self.perfil_repository is None:
+            return
+        practicante_id = getattr(practica, "practicante_id", None)
+        if not practicante_id:
+            return
+        try:
+            practicante = self.perfil_repository.find_practicante_by_id(practicante_id)
+            usuario_id = getattr(practicante, "usuario_id", None)
+            if usuario_id:
+                self.notificacion_service.create_notification(
+                    usuario_destino_id=usuario_id,
+                    tipo="EVALUACION_DISPONIBLE",
+                    mensaje="Tu práctica tiene una nueva evaluación disponible",
+                    metadata={"practica_id": practica.id},
+                )
+        except Exception:
+            pass
 
     def get_evaluations_history(self, usuario_id, practica_id):
         self._require_repositories()
