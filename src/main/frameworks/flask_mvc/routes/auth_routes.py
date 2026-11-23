@@ -2,6 +2,7 @@ from flask import Blueprint, current_app, jsonify, request, session
 
 from application.email_delivery_error import EmailDeliveryError
 from frameworks.flask_mvc.dependencies import container
+from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -129,7 +130,7 @@ def logout():
 def me():
     usuario_id = session.get("usuario_id")
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
     usuario = build_usuario_service().find_by_id(usuario_id)
     if usuario is None:
