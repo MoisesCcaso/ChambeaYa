@@ -545,8 +545,15 @@ class BackendIntegrationTest(unittest.TestCase):
             self.assertIn(action, app_script.data)
         app_script.close()
 
+    def test_demo_seed_requires_demo_password(self):
+        self.app.config["DEMO_PASSWORD"] = None
+        result = self.app.test_cli_runner().invoke(args=["seed-demo"])
+        self.assertNotEqual(0, result.exit_code)
+        self.assertIn("Define DEMO_PASSWORD", result.output)
+
     def test_demo_seed_is_repeatable_and_covers_main_views(self):
         self.app.config["DEMO_MODE"] = True
+        self.app.config["DEMO_PASSWORD"] = "Demo1234"
         login_view = self.request(self.practicante, "get", "/ingresar", 200)
         self.assertIn(b"data-demo-login", login_view.data)
 
