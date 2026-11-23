@@ -3,7 +3,6 @@ from flask import Blueprint, current_app, jsonify, request, session
 from application.email_delivery_error import EmailDeliveryError
 from frameworks.flask_mvc.dependencies import container
 
-
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 

@@ -13,13 +13,14 @@ from domain.auth.i_auth_email_sender import IAuthEmailSender
 from domain.auth.i_usuario_repository import IUsuarioRepository
 from domain.auth.usuario import Usuario
 from werkzeug.security import check_password_hash
+from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 
 class TestUsuarioService(unittest.TestCase):
     def setUp(self):
         self.repositorio = create_autospec(IUsuarioRepository, instance=True, spec_set=True)
         self.remitente = create_autospec(IAuthEmailSender, instance=True, spec_set=True)
-        self.auth = AutenticacionDominioServicio()
+        self.auth = AutenticacionDominioServicio(WerkzeugPasswordHasher())
         self.service = UsuarioApplicationService(
             usuario_repository=self.repositorio,
             autenticacion_dominio_servicio=self.auth,

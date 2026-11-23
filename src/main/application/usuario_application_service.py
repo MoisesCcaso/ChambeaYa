@@ -4,7 +4,6 @@
 import re
 
 from application.email_delivery_error import EmailDeliveryError
-from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
 from domain.auth.usuario import Usuario
 
 
@@ -23,9 +22,7 @@ class UsuarioApplicationService:
         email_sender=None,
     ):
         self.usuario_repository = usuario_repository
-        self.autenticacion_dominio_servicio = (
-            autenticacion_dominio_servicio or AutenticacionDominioServicio()
-        )
+        self.autenticacion_dominio_servicio = autenticacion_dominio_servicio
         self.email_sender = email_sender
 
     def register_user(self, email, password, password_confirmation, tipo):

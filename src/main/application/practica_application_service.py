@@ -4,6 +4,7 @@ from typing import Final
 
 from domain.convocatorias.postulacion import Postulacion
 from domain.practica_evaluacion.practica import Practica
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 NOT_FOUND: Final = "Práctica no encontrada"
 
@@ -20,13 +21,13 @@ class PracticaApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError("Postulación no encontrada")
+            raise ValueError(POSTULACION_NO_ENCONTRADA)
         if postulacion.estado != Postulacion.ESTADO_SELECCIONADA:
             raise ValueError("La postulación debe estar seleccionada para iniciar la práctica")
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La postulación no pertenece a esta empresa")
 
@@ -62,11 +63,11 @@ class PracticaApplicationService:
             raise ValueError(NOT_FOUND)
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError("Postulación no encontrada")
+            raise ValueError(POSTULACION_NO_ENCONTRADA)
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
@@ -179,10 +180,10 @@ class PracticaApplicationService:
     def _require_empresa_owner(self, empresa_id, practica):
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError("Postulación no encontrada")
+            raise ValueError(POSTULACION_NO_ENCONTRADA)
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a esta empresa")
         return convocatoria

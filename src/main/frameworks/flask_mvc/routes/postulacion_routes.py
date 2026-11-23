@@ -83,7 +83,10 @@ def list_my_postulaciones():
         resultados = build_postulacion_service().list_for_practicante(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify([serialize_postulacion_con_convocatoria(*r) for r in resultados]), 200
+    return jsonify([
+        serialize_postulacion_con_convocatoria(r.postulacion, r.convocatoria)
+        for r in resultados
+    ]), 200
 
 
 @postulacion_bp.get("/convocatorias/<int:convocatoria_id>")
@@ -99,7 +102,10 @@ def list_convocatoria_postulaciones(convocatoria_id):
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify([serialize_candidato(*r) for r in resultados]), 200
+    return jsonify([
+        serialize_candidato(r.postulacion, r.practicante, r.practica)
+        for r in resultados
+    ]), 200
 
 
 @postulacion_bp.post("/<int:postulacion_id>/seleccionar")
