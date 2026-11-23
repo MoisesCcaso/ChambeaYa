@@ -1,25 +1,30 @@
 from flask import Blueprint, current_app, jsonify, session
 
-from application.matching_application_service import MatchingApplicationService
-from application.notificacion_application_service import NotificacionApplicationService
-from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
-from presentation.matching_controller import MatchingController
+from frameworks.flask_mvc.dependencies import container
+from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO
 
 
 matching_bp = Blueprint("matching", __name__, url_prefix="/matching")
 
 
-def build_matching_controller():
-    sug_repo = SqlAlchemyMatchingRepository()
-    per_repo = SqlAlchemyPerfilRepository()
-    conv_repo = SqlAlchemyConvocatoriaRepository()
-    servicio = MatchingDominioServicio()
-    app_service = MatchingApplicationService(sug_repo, per_repo, conv_repo, servicio)
-    return MatchingController(app_service)
+def build_matching_service():
+    return container.get_matching_service()
+
+
+def serialize_resultado(resultado):
+    return {
+        "practicante_id": resultado.practicante_id,
+        "convocatoria_id": resultado.convocatoria_id,
+        "score_compatibilidad": round(resultado.score_compatibilidad, 2),
+        "es_compatible": resultado.es_compatible(),
+        "habilidades_coincidentes": resultado.sugerencia.habilidades_coincidentes,
+        "convocatoria": {
+            "id": resultado.convocatoria.id,
+            "titulo": resultado.convocatoria.titulo,
+            "descripcion": resultado.convocatoria.descripcion,
+            "beneficios": resultado.convocatoria.beneficios,
+        } if resultado.convocatoria else None,
+    }
 
 
 @matching_bp.get("/sugerencias")
@@ -28,16 +33,14 @@ def suggest_convocatorias():
     usuario_id = session.get("usuario_id")
 
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-
-    controller = build_matching_controller()
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
     try:
-        data, status_code = controller.suggest_convocatorias(usuario_id)
+        resultados = build_matching_service().suggest_convocatorias(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify([serialize_resultado(r) for r in resultados]), 200
 
 
 @matching_bp.post("/calcular")
@@ -46,19 +49,17 @@ def calculate_match():
     usuario_id = session.get("usuario_id")
 
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-
-    controller = build_matching_controller()
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
     try:
-        data, status_code = controller.calculate_match(usuario_id)
+        resultados = build_matching_service().calculate_for_practicante(usuario_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
+    data = [serialize_resultado(r) for r in resultados]
 
-    if status_code == 200 and data:
+    if data:
         try:
-            repo = SqlAlchemyNotificacionRepository()
-            notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+            notif_service = container.get_notificacion_service()
             notif_service.create_notification(
                 usuario_destino_id=usuario_id,
                 tipo="NUEVAS_SUGERENCIAS",
@@ -69,4 +70,4 @@ def calculate_match():
                 "No se pudo crear la notificación de nuevas sugerencias"
             )
 
-    return jsonify(data), status_code
+    return jsonify(data), 200

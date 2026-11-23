@@ -253,7 +253,7 @@ Son objetos que encapsulan la creación de entidades complejas, asegurando que n
 | Fábrica | Crea | Validaciones |
 |---------|------|-------------|
 | `ConvocatoriaFabrica` | `Convocatoria` en estado `BORRADOR` | empresa_id obligatorio, título obligatorio, habilidades y beneficios como lista |
-| `PracticaFabrica` | `Practica` en estado `EN_CURSO` | postulacion_id y practicante_id obligatorios |
+| `Practica.iniciar` (factory method) | `Practica` en estado `EN_CURSO` | postulacion_id y practicante_id obligatorios |
 
 **Fragmento — ConvocatoriaFabrica:**
 
@@ -350,27 +350,25 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
 
 ## 4.9 Arquitectura en Capas
 
-El proyecto sigue una arquitectura en 5 capas con la regla de dependencia hacia adentro:
+El proyecto sigue una arquitectura en 4 capas con la regla de dependencia hacia adentro:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  frameworks  (Flask, SQLAlchemy, Alembic)             │
+│  frameworks  (Flask routes + serialización JSON,      │
+│               SQLAlchemy, Alembic)                    │
 │  ┌──────────────────────────────────────────────────┐ │
-│  │  presentation  (Controllers — adaptadores HTTP) │ │
+│  │  application  (Servicios de caso de uso)         │ │
 │  │  ┌──────────────────────────────────────────────┐ │ │
-│  │  │  application  (Servicios de caso de uso)     │ │ │
-│  │  │  ┌──────────────────────────────────────────┐ │ │ │
-│  │  │  │  domain  (Entidades, Value Objects,      │ │ │ │
-│  │  │  │            Interfaces de repositorio,    │ │ │ │
-│  │  │  │            Servicios de dominio)          │ │ │ │
-│  │  │  └──────────────────────────────────────────┘ │ │ │
+│  │  │  domain  (Entidades, Value Objects,          │ │ │
+│  │  │           Interfaces de repositorio,         │ │ │
+│  │  │           Servicios de dominio)              │ │ │
 │  │  └──────────────────────────────────────────────┘ │ │
 │  └──────────────────────────────────────────────────┘ │
 │  infrastructure  (Repositorios SQLAlchemy, Email)      │
 └──────────────────────────────────────────────────────┘
 ```
 
-**Regla de dependencia:** Las capas externas dependen de las internas, nunca al revés. `frameworks` → `presentation` → `application` → `domain`. `infrastructure` implementa interfaces de `domain`.
+**Regla de dependencia:** Las capas externas dependen de las internas, nunca al revés. `frameworks` → `application` → `domain`. `infrastructure` implementa interfaces de `domain`.
 
 ---
 
@@ -403,8 +401,7 @@ ChambeaYa/
     │   │   ├── migrations/
     │   │   ├── schemas/
     │   │   └── sqlalchemy_orm/
-    │   ├── infrastructure/
-    │   └── presentation/
+    │   └── infrastructure/
     └── test/
         ├── conftest.py
         ├── application/
@@ -420,8 +417,7 @@ ChambeaYa/
 | **Domain** | Entidades, Value Objects, interfaces de repositorio, servicios de dominio | Nada (capa más interna) |
 | **Application** | Casos de uso, orquestación, DTOs | Domain |
 | **Infrastructure** | Repositorios concretos, email sender, persistencia | Domain (implementa interfaces) |
-| **Presentation** | Controladores HTTP, serialización JSON | Application |
-| **Frameworks** | Flask routes, SQLAlchemy ORM, Alembic, config | Presentation + Infrastructure |
+| **Frameworks** | Flask routes (HTTP + serialización JSON), SQLAlchemy ORM, Alembic, config | Application + Infrastructure |
 
 La inyección de dependencias ocurre en las **rutas** (frameworks), que construyen los objetos concretos y los pasan como abstracciones a las capas internas.
 
@@ -479,9 +475,13 @@ class EmailDeliveryError(RuntimeError):
 @auth_bp.post("/register")
 def register():
     payload = request.get_json(silent=True) or {}
-    controller = build_usuario_controller()
     try:
-        data, status_code = controller.register(payload)
+        usuario = build_usuario_service().register_user(
+            email=payload.get("email"),
+            password=payload.get("password"),
+            password_confirmation=payload.get("password_confirmation"),
+            tipo=payload.get("tipo"),
+        )
     except EmailDeliveryError as exc:
         return jsonify({"error": str(exc)}), 503
     except ValueError as exc:
@@ -519,7 +519,7 @@ class PracticanteModel(db.Model):
 
 ### 6.1.4 Trinity (Tres Capas)
 
-Cada petición cruza tres capas estrictas. **Route** (framework) construye dependencias y recibe HTTP. **Controller** (presentation) serializa/deserializa. **Application Service** orquesta usando servicios de dominio e interfaces de repositorio. Cada capa solo conoce a la inmediata inferior.
+Cada petición cruza tres capas estrictas. **Route** (framework) construye dependencias, recibe HTTP y serializa la respuesta JSON. **Application Service** orquesta usando servicios de dominio e interfaces de repositorio. **Domain Service** aplica las reglas de negocio. Cada capa solo conoce a la inmediata inferior.
 
 ```python
 # src/main/frameworks/flask_mvc/routes/matching_routes.py — Route
@@ -528,25 +528,19 @@ def suggest_convocatorias():
     usuario_id = session.get("usuario_id")
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    controller = build_matching_controller()
-    data, status_code = controller.suggest_convocatorias(usuario_id)
-    return jsonify(data), status_code
+    try:
+        resultados = build_matching_service().suggest_convocatorias(usuario_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify([serialize_resultado(r) for r in resultados]), 200
 
-def build_matching_controller():
-    app_service = MatchingApplicationService(
+def build_matching_service():
+    return MatchingApplicationService(
         SqlAlchemyMatchingRepository(),
         SqlAlchemyPerfilRepository(),
         SqlAlchemyConvocatoriaRepository(),
         MatchingDominioServicio(),
     )
-    return MatchingController(app_service)
-
-# src/main/presentation/matching_controller.py — Controller
-class MatchingController:
-    def suggest_convocatorias(self, usuario_id):
-        self._require_service()
-        resultados = self.matching_application_service.suggest_convocatorias(usuario_id)
-        return [self._serialize_resultado(r) for r in resultados], 200
 
 # src/main/application/matching_application_service.py — Application Service
 class MatchingApplicationService:
@@ -580,25 +574,25 @@ La API usa URLs semánticas con sustantivos en plural, verbos HTTP según su pro
 @practica_bp.post("")
 def start_practica():
     """POST /practicas — 201: Iniciar práctica"""
-    data, status_code = build_practica_controller().start(empresa.id, postulacion_id)
-    return jsonify(data), 201
+    practica = build_practica_service().start_practica(empresa.id, postulacion_id)
+    return jsonify(serialize_practica(practica)), 201
 
 @practica_bp.get("/<int:practica_id>")
 def get_practica(practica_id):
     """GET /practicas/<id> — 200: Consultar práctica"""
-    data, status_code = build_practica_controller().get_for_user(usuario_id, practica_id)
-    return jsonify(data), 200
+    practica = build_practica_service().get_for_user(usuario_id, practica_id)
+    return jsonify(serialize_practica(practica)), 200
 
 @practica_bp.post("/<int:practica_id>/evaluar")
 def register_evaluation(practica_id):
     """POST /practicas/<id>/evaluar — 201: Registrar evaluación"""
-    data, status_code = controller.register_evaluation(empresa.id, practica_id, payload)
-    return jsonify(data), 201
+    practica = build_practica_service().evaluate(empresa.id, practica_id, payload.get("puntaje"))
+    return jsonify(serialize_practica(practica)), 201
 
 @practica_bp.post("/<int:practica_id>/finalizar")
 def finish_practica(practica_id):
     """POST /practicas/<id>/finalizar — 200: Finalizar práctica"""
-    data, status_code = build_practica_controller().finish(empresa.id, practica_id)
+    data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))
     return jsonify(data), 200
 
 # Códigos de error en toda la API:
@@ -663,7 +657,6 @@ from flask import Blueprint, jsonify, session         # framework
 
 from application.certificacion_application_service import ...  # application
 from infrastructure.sqlalchemy_certificado_repository import ...  # infrastructure
-from presentation.certificado_controller import ...     # presentation
 ```
 
 ## 6.3 Codificación Limpia (Clean Code)
@@ -696,18 +689,21 @@ def calcular_compatibilidad(self, habilidades_practicante, habilidades_requerida
 
 ### 6.3.2 Funciones pequeñas (una responsabilidad)
 
-Cada función hace una sola cosa. `issue()` del controller solo orquesta; `_serialize()` solo transforma a dict.
+Cada función hace una sola cosa. `issue_certificado()` de la ruta solo atiende HTTP y delega; `serialize_certificado()` solo transforma a dict.
 
 ```python
-# src/main/presentation/certificado_controller.py
-def issue(self, empresa_id, practica_id):
-    self._require_service()
-    certificado, creado = self.certificacion_application_service.issue_certificate(
-        empresa_id, practica_id
-    )
-    return self._serialize_certificado(certificado), 201 if creado else 200
+# src/main/frameworks/flask_mvc/routes/certificado_routes.py
+def issue_certificado(practica_id):
+    ...
+    try:
+        certificado, creado = build_certificacion_service().issue_certificate(
+            empresa.id, practica_id
+        )
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(serialize_certificado(certificado)), 201 if creado else 200
 
-def _serialize_certificado(self, certificado):
+def serialize_certificado(certificado):
     return {
         "id": certificado.id,
         "practica_id": certificado.practica_id,
@@ -735,7 +731,7 @@ def calculate_match():
 
 ### 6.3.4 Imports por capa arquitectónica
 
-Los imports se organizan según la dependencia entre capas: framework → domain → application → infrastructure → presentation.
+Los imports se organizan según la dependencia entre capas: framework → domain → application → infrastructure.
 
 ```python
 # src/main/frameworks/flask_mvc/routes/postulacion_routes.py
@@ -743,7 +739,6 @@ from flask import Blueprint, jsonify, session              # framework
 
 from application.notificacion_application_service import ...  # application
 from infrastructure.sqlalchemy_notificacion_repository import ...  # infrastructure
-from presentation.postulacion_controller import ...          # presentation
 ```
 
 ### 6.3.5 Objetos con comportamiento (no anémicos)
@@ -825,7 +820,7 @@ class INotificacionReader(ABC):
 
 ### 6.4.1 SRP — Single Responsibility Principle
 
-Cada clase tiene una única razón de cambiar. `Notificacion` solo conoce su estado de dominio; `NotificacionController` solo serializa HTTP; `SqlAlchemyNotificacionRepository` solo persiste.
+Cada clase tiene una única razón de cambiar. `Notificacion` solo conoce su estado de dominio; las rutas de `notificacion_routes.py` solo atienden HTTP y serializan; `SqlAlchemyNotificacionRepository` solo persiste.
 
 ```python
 # src/main/domain/notificaciones/notificacion.py — Solo dominio
@@ -843,28 +838,28 @@ class Notificacion:
     def marcar_como_leida(self):
         self.leida = True
 
-# src/main/presentation/notificacion_controller.py — Solo HTTP
-class NotificacionController:
-    def list_notifications(self, usuario_id):
-        self._require_service()
-        notificaciones = self.notificacion_application_service.list_notifications(usuario_id)
-        return [self._serialize(n) for n in notificaciones], 200
+# src/main/frameworks/flask_mvc/routes/notificacion_routes.py — Solo HTTP
+@notificacion_bp.get("")
+def list_notificaciones():
+    ...
+    notificaciones = build_notificacion_service().list_notifications(usuario_id)
+    return jsonify([serialize_notificacion(n) for n in notificaciones]), 200
 
-    def _serialize(self, notificacion):
-        return {
-            "id": notificacion.id,
-            "usuario_destino_id": notificacion.usuario_destino_id,
-            "tipo": notificacion.tipo,
-            "mensaje": notificacion.mensaje,
-            "metadata": notificacion.metadata,
-            "leida": notificacion.leida,
-            "created_at": notificacion.created_at.isoformat() if notificacion.created_at else None,
-        }
+def serialize_notificacion(notificacion):
+    return {
+        "id": notificacion.id,
+        "usuario_destino_id": notificacion.usuario_destino_id,
+        "tipo": notificacion.tipo,
+        "mensaje": notificacion.mensaje,
+        "metadata": notificacion.metadata,
+        "leida": notificacion.leida,
+        "created_at": notificacion.created_at.isoformat() if notificacion.created_at else None,
+    }
 ```
 
 ### 6.4.2 OCP — Open/Closed Principle
 
-Para agregar un nuevo tipo de notificación solo se crea una constante en `Notificacion` y se invoca `create_notification()` desde un hook. No se modifica el ApplicationService, Controller ni Repository del módulo de notificaciones.
+Para agregar un nuevo tipo de notificación solo se crea una constante en `Notificacion` y se invoca `create_notification()` desde un hook. No se modifica el ApplicationService, las rutas ni el Repository del módulo de notificaciones.
 
 ```python
 # src/main/domain/notificaciones/notificacion.py — Abierto a extensión
@@ -895,7 +890,7 @@ notif_service.create_notification(
 
 ### 6.4.3 LSP — Liskov Substitution Principle
 
-`SqlAlchemyNotificacionRepository` implementa tanto `INotificacionWriter` como `INotificacionReader`. La misma instancia puede inyectarse en ambos roles sin alterar el comportamiento esperado. Si se creara un `PostgresNotificacionRepository` con las mismas interfaces, podría sustituir al actual sin cambiar el ApplicationService ni el Controller.
+`SqlAlchemyNotificacionRepository` implementa tanto `INotificacionWriter` como `INotificacionReader`. La misma instancia puede inyectarse en ambos roles sin alterar el comportamiento esperado. Si se creara un `PostgresNotificacionRepository` con las mismas interfaces, podría sustituir al actual sin cambiar el ApplicationService ni las rutas.
 
 ```python
 # src/main/infrastructure/sqlalchemy_notificacion_repository.py
@@ -906,10 +901,9 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
     def count_unread(self, usuario_id): ...         # INotificacionReader
 
 # src/main/frameworks/flask_mvc/routes/notificacion_routes.py
-def build_notificacion_controller():
+def build_notificacion_service():
     repo = SqlAlchemyNotificacionRepository()
-    service = NotificacionApplicationService(writer=repo, reader=repo)
-    return NotificacionController(service)
+    return NotificacionApplicationService(writer=repo, reader=repo)
 ```
 
 ### 6.4.4 ISP — Interface Segregation Principle
@@ -983,10 +977,9 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
         return self._to_domain(model)
 
 # src/main/frameworks/flask_mvc/routes/notificacion_routes.py — Inyección
-def build_notificacion_controller():
+def build_notificacion_service():
     repo = SqlAlchemyNotificacionRepository()                     # concreción
-    service = NotificacionApplicationService(writer=repo, reader=repo)  # como abstracción
-    return NotificacionController(service)
+    return NotificacionApplicationService(writer=repo, reader=repo)  # como abstracción
 ```
 
 ## 6.5 Domain-Driven Design (DDD)
@@ -1147,11 +1140,10 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
 
 ### 6.5.7 Arquitectura en Capas
 
-Cinco capas con dependencias hacia adentro: el dominio no conoce infraestructura ni frameworks.
+Cuatro capas con dependencias hacia adentro: el dominio no conoce infraestructura ni frameworks.
 
 ```
-src/main/frameworks/    ← Flask, SQLAlchemy, Alembic (configuración, rutas)
-src/main/presentation/  ← Controllers (serialización HTTP)
+src/main/frameworks/    ← Flask, SQLAlchemy, Alembic (configuración, rutas + serialización HTTP)
 src/main/application/   ← Application Services (orquestación de casos de uso)
 src/main/infrastructure/← Repositorios concretos, email sender
 src/main/domain/        ← Entidades, VO, servicios de dominio, interfaces de repositorio
@@ -1160,7 +1152,7 @@ src/main/domain/        ← Entidades, VO, servicios de dominio, interfaces de r
 Flujo de ejemplo para registrar un usuario:
 
 ```
-UsuarioController.register(payload)
+POST /auth/register  (auth_routes.register)
   → UsuarioApplicationService.register_user(...)
     → AutenticacionDominioServicio.generar_password_hash(password)
     → Usuario.registrar()

@@ -155,7 +155,7 @@ class SmtpAuthEmailSender(IAuthEmailSender):
 
         try:
             if self.use_ssl:
-                context = ssl.create_default_context()
+                context = self._create_ssl_context()
                 with smtplib.SMTP_SSL(
                     self.server,
                     self.port,
@@ -173,7 +173,8 @@ class SmtpAuthEmailSender(IAuthEmailSender):
             ) as smtp:
                 smtp.ehlo()
                 if self.use_tls:
-                    smtp.starttls(context=ssl.create_default_context())
+                    context = self._create_ssl_context()
+                    smtp.starttls(context=context)
                     smtp.ehlo()
                 self._authenticate(smtp)
                 smtp.send_message(message)
@@ -182,6 +183,12 @@ class SmtpAuthEmailSender(IAuthEmailSender):
             raise EmailDeliveryError(
                 "No pudimos enviar el correo. Intenta reenviarlo en unos minutos."
             ) from exc
+
+    def _create_ssl_context(self):
+        context = ssl.create_default_context()
+        context.check_hostname = True
+        context.verify_mode = ssl.CERT_REQUIRED
+        return context
 
     def _authenticate(self, smtp):
         if self.username:

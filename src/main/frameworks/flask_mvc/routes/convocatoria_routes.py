@@ -1,18 +1,42 @@
 from flask import Blueprint, jsonify, request, session
 
-from application.convocatoria_application_service import ConvocatoriaApplicationService
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from presentation.convocatoria_controller import ConvocatoriaController
+from frameworks.flask_mvc.dependencies import container
+from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
 
 
 convocatoria_bp = Blueprint("convocatoria", __name__, url_prefix="/convocatorias")
 
 
-def build_convocatoria_controller():
-    convocatoria_repository = SqlAlchemyConvocatoriaRepository()
-    service = ConvocatoriaApplicationService(convocatoria_repository)
-    return ConvocatoriaController(service)
+def build_convocatoria_service():
+    return container.get_convocatoria_service()
+
+
+def get_authenticated_empresa(usuario_id):
+    if usuario_id is None:
+        return None
+    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
+
+
+def serialize_convocatoria(convocatoria):
+    return {
+        "id": convocatoria.id,
+        "empresa_id": convocatoria.empresa_id,
+        "titulo": convocatoria.titulo,
+        "descripcion": convocatoria.descripcion,
+        "estado": convocatoria.estado,
+        "habilidades_requeridas": convocatoria.habilidades_requeridas,
+        "beneficios": convocatoria.beneficios,
+        "fecha_publicacion": (
+            convocatoria.fecha_publicacion.isoformat()
+            if convocatoria.fecha_publicacion
+            else None
+        ),
+        "fecha_cierre": (
+            convocatoria.fecha_cierre.isoformat()
+            if convocatoria.fecha_cierre
+            else None
+        ),
+    }
 
 
 def get_authenticated_user_id():
@@ -21,171 +45,150 @@ def get_authenticated_user_id():
 
 @convocatoria_bp.get("")
 def list_convocatorias():
-    controller = build_convocatoria_controller()
-    data, status_code = controller.list(
-        query=request.args.get("q"),
-        estado="publicada",
-    )
-    return jsonify(data), status_code
+    convocatorias = build_convocatoria_service().search(request.args.get("q"), "publicada")
+    return jsonify([serialize_convocatoria(item) for item in convocatorias]), 200
 
 
 @convocatoria_bp.get("/mis")
 def list_my_convocatorias():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+        return jsonify({"error": NO_AUTENTICADO}), 401
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
-    data, status_code = build_convocatoria_controller().list_for_empresa(empresa.id)
-    return jsonify(data), status_code
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+    convocatorias = build_convocatoria_service().list_for_empresa(empresa.id)
+    return jsonify([serialize_convocatoria(item) for item in convocatorias]), 200
 
 
 @convocatoria_bp.get("/<int:convocatoria_id>")
 def get_convocatoria(convocatoria_id):
-    controller = build_convocatoria_controller()
     try:
-        data, status_code = controller.get(convocatoria_id)
+        data = serialize_convocatoria(build_convocatoria_service().find_by_id(convocatoria_id))
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     if data["estado"] != "publicada":
         usuario_id = get_authenticated_user_id()
-        empresa = (
-            SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
-            if usuario_id is not None
-            else None
-        )
+        empresa = get_authenticated_empresa(usuario_id)
         if empresa is None or empresa.id != data["empresa_id"]:
             return jsonify({"error": "Convocatoria no encontrada"}), 404
-    return jsonify(data), status_code
+    return jsonify(data), 200
 
 
 @convocatoria_bp.post("")
 def create_convocatoria():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     if not empresa.verificada:
         return jsonify({"error": "La empresa debe estar verificada"}), 400
 
     payload = request.get_json(silent=True) or {}
-    controller = build_convocatoria_controller()
     try:
-        data, status_code = controller.create(empresa.id, payload)
+        convocatoria = build_convocatoria_service().create_convocatoria(empresa.id, payload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 201
 
 @convocatoria_bp.post("/<int:convocatoria_id>/publicar")
 def publish_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
 
-    controller = build_convocatoria_controller()
     try:
-        data, status_code = controller.publish(empresa.id, convocatoria_id)
+        convocatoria = build_convocatoria_service().publish(empresa.id, convocatoria_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
 @convocatoria_bp.put("/<int:convocatoria_id>")
 def update_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+        return jsonify({"error": NO_AUTENTICADO}), 401
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
-        data, status_code = build_convocatoria_controller().update(
+        convocatoria = build_convocatoria_service().update(
             empresa.id,
             convocatoria_id,
             request.get_json(silent=True) or {},
         )
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
 @convocatoria_bp.post("/<int:convocatoria_id>/cerrar")
 def close_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
 
     try:
-        data, status_code = build_convocatoria_controller().close(
-            empresa.id, convocatoria_id
-        )
+        convocatoria = build_convocatoria_service().close(empresa.id, convocatoria_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
 @convocatoria_bp.post("/<int:convocatoria_id>/reabrir")
 def reopen_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+        return jsonify({"error": NO_AUTENTICADO}), 401
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
-        data, status_code = build_convocatoria_controller().reopen(
-            empresa.id, convocatoria_id
-        )
+        convocatoria = build_convocatoria_service().reopen(empresa.id, convocatoria_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
 @convocatoria_bp.post("/<int:convocatoria_id>/duplicar")
 def duplicate_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+        return jsonify({"error": NO_AUTENTICADO}), 401
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
-        data, status_code = build_convocatoria_controller().duplicate(
-            empresa.id, convocatoria_id
-        )
+        convocatoria = build_convocatoria_service().duplicate(empresa.id, convocatoria_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify(data), status_code
+    return jsonify(serialize_convocatoria(convocatoria)), 201
 
 
 @convocatoria_bp.delete("/<int:convocatoria_id>")
 def delete_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+        return jsonify({"error": NO_AUTENTICADO}), 401
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
-        data, status_code = build_convocatoria_controller().delete(
-            empresa.id, convocatoria_id
-        )
+        convocatoria = build_convocatoria_service().delete(empresa.id, convocatoria_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    return jsonify(data), status_code
+    return jsonify({"id": convocatoria.id, "mensaje": "Convocatoria eliminada"}), 200

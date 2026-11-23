@@ -37,8 +37,8 @@
             <div class="demo-access">
                 <span>Accesos preparados</span>
                 <div>
-                    <button type="button" data-demo-login="practicante@demo.local">Practicante</button>
-                    <button type="button" data-demo-login="empresa@demo.local">Empresa</button>
+                    <button type="button" data-demo-login="practicante@demo.local" data-demo-password="{{ config.get('DEMO_PASSWORD') or '' }}">Practicante</button>
+                    <button type="button" data-demo-login="empresa@demo.local" data-demo-password="{{ config.get('DEMO_PASSWORD') or '' }}">Empresa</button>
                 </div>
             </div>
             {% endif %}

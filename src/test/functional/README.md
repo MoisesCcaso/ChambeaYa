@@ -30,7 +30,7 @@ demo. Dejarla abierta en una terminal aparte.
 **Linux / macOS** (equivalente a `demo.ps1`):
 
 ```bash
-export FLASK_ENV=demo SECRET_KEY=chambeaya-demo-local DATABASE_URL=sqlite:///chambeaya-demo.db
+export FLASK_ENV=demo SECRET_KEY=chambeaya-demo-local DATABASE_URL=sqlite:///chambeaya-demo.db DEMO_PASSWORD=Demo1234
 rm -f instance/chambeaya-demo.db          # equivalente a -Reset (opcional)
 poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
 poetry run flask --app frameworks.flask_mvc.app:create_app seed-demo

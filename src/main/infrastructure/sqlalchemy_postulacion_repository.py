@@ -8,6 +8,18 @@ from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 
 class SqlAlchemyPostulacionRepository(IPostulacionRepository):
     def save(self, postulacion):
+        return self.save_all([postulacion])[0]
+
+    def save_all(self, postulaciones):
+        models = [self._upsert(postulacion) for postulacion in postulaciones]
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+        return [self._to_postulacion_domain(model) for model in models]
+
+    def _upsert(self, postulacion):
         model = None
         if postulacion.id is not None:
             model = db.session.get(PostulacionModel, postulacion.id)
@@ -20,9 +32,7 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
             db.session.add(model)
 
         model.estado = postulacion.estado
-
-        db.session.commit()
-        return self._to_postulacion_domain(model)
+        return model
 
     def find_by_id(self, postulacion_id):
         model = db.session.get(PostulacionModel, postulacion_id)

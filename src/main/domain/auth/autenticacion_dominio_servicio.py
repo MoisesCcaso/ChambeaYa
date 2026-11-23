@@ -5,10 +5,12 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 
 from domain.auth.token_recuperacion import TokenRecuperacion
-from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class AutenticacionDominioServicio:
+    def __init__(self, password_hasher):
+        self.password_hasher = password_hasher    
+    
     def generar_password_hash(self, password):
         if not password:
             raise ValueError("La contraseña es obligatoria")
@@ -24,18 +26,20 @@ class AutenticacionDominioServicio:
         if not any(character.isdigit() for character in password):
             raise ValueError("La contraseña debe incluir un número")
 
-        return generate_password_hash(password)
+        return self.password_hasher.hash(password)
 
     def autenticar(self, usuario, password):
         if usuario is None:
             return False
 
         usuario.login()
-        return check_password_hash(usuario.password_hash, password)
+        return self.password_hasher.verify(usuario.password_hash, password)
 
     def generar_token(self, horas_vigencia=24):
         expiracion = datetime.now(timezone.utc) + timedelta(hours=horas_vigencia)
         return TokenRecuperacion(token_urlsafe(32), expiracion)
 
-    def validar_token(self, valor, expiracion):
+    def validar_token(self, valor, expiracion=None):
+        if isinstance(valor, TokenRecuperacion):
+            return valor.esta_vigente()
         return TokenRecuperacion(valor, expiracion).esta_vigente()

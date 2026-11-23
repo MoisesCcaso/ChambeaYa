@@ -4,7 +4,6 @@
 import re
 
 from application.email_delivery_error import EmailDeliveryError
-from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
 from domain.auth.usuario import Usuario
 
 
@@ -23,9 +22,7 @@ class UsuarioApplicationService:
         email_sender=None,
     ):
         self.usuario_repository = usuario_repository
-        self.autenticacion_dominio_servicio = (
-            autenticacion_dominio_servicio or AutenticacionDominioServicio()
-        )
+        self.autenticacion_dominio_servicio = autenticacion_dominio_servicio
         self.email_sender = email_sender
 
     def register_user(self, email, password, password_confirmation, tipo):
@@ -122,8 +119,7 @@ class UsuarioApplicationService:
             raise ValueError("Token de activación inválido")
 
         if not self.autenticacion_dominio_servicio.validar_token(
-            usuario.activation_token,
-            usuario.activation_token_expires_at,
+            usuario.token_activacion,
         ):
             raise ValueError("Token de activación expirado")
 
@@ -141,8 +137,7 @@ class UsuarioApplicationService:
             raise ValueError("Token de recuperación inválido")
 
         if not self.autenticacion_dominio_servicio.validar_token(
-            usuario.password_reset_token,
-            usuario.password_reset_expires_at,
+            usuario.token_recuperacion,
         ):
             raise ValueError("Token de recuperación expirado")
 

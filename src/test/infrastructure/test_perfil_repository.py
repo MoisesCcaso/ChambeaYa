@@ -102,7 +102,7 @@ class TestPerfilRepository(unittest.TestCase):
         )
 
         # Actualización cuando viene con id existente
-        inicial.nombres = "Pedro Alberto"
+        inicial.actualizar_datos(nombres="Pedro Alberto")
         inicial.habilidades = ["Git", "Docker"]
         inicial.identidad_verificada = True
         inicial.score_reputacion = 40.0
@@ -190,6 +190,17 @@ class TestPerfilRepository(unittest.TestCase):
         self.assertEqual(self.repository._load_list("json-corrupto{"), [])
         self.assertEqual(self.repository._load_list('{"clave": "valor"}'), [])
         self.assertEqual(self.repository._load_list('["Python", "SQL"]'), ["Python", "SQL"])
+
+    def test_interfaz_segregada_implementa_ambos_contratos(self):
+        from domain.perfil.i_practicante_repository import IPracticanteRepository
+        from domain.perfil.i_empresa_repository import IEmpresaRepository
+        from domain.perfil.i_perfil_repository import IPerfilRepository
+
+        self.assertIsInstance(self.repository, IPracticanteRepository)
+        self.assertIsInstance(self.repository, IEmpresaRepository)
+        self.assertIsInstance(self.repository, IPerfilRepository)
+        self.assertTrue(issubclass(IPerfilRepository, IPracticanteRepository))
+        self.assertTrue(issubclass(IPerfilRepository, IEmpresaRepository))
 
 
 if __name__ == "__main__":

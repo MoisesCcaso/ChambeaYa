@@ -27,6 +27,11 @@
             ...options,
         };
 
+        const method = (config.method || "GET").toUpperCase();
+        if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+            config.headers["X-CSRFToken"] = document.querySelector('meta[name="csrf-token"]')?.content || "";
+        }
+
         if (config.body && !(config.body instanceof FormData) && typeof config.body !== "string") {
             config.headers["Content-Type"] = "application/json";
             config.body = JSON.stringify(config.body);

@@ -22,6 +22,15 @@ class Postulacion:
         self.estado = self.ESTADO_RECHAZADA
         return self
 
+    def rechazar_seleccionada(self):
+        """Rechaza una selección previa cuando se selecciona otro candidato."""
+        if self.estado != self.ESTADO_SELECCIONADA:
+            raise ValueError(
+                "Solo una postulación seleccionada puede rechazarse al elegir otro candidato"
+            )
+        self.estado = self.ESTADO_RECHAZADA
+        return self
+
     def seleccionar(self):
         """Selecciona la postulación si está pendiente."""
         if self.estado != self.ESTADO_PENDIENTE:

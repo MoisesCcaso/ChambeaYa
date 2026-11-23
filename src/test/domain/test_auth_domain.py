@@ -9,7 +9,17 @@ from werkzeug.security import check_password_hash
 from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
 from domain.auth.token_recuperacion import TokenRecuperacion
 from domain.auth.usuario import Usuario
+from domain.auth.i_password_hasher import IPasswordHasher
+from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
+class FakeHasher(IPasswordHasher):
+    """Doble de prueba: permite probar el dominio sin werkzeug."""
+
+    def hash(self, password):
+        return f"hash:{password}"
+
+    def verify(self, password_hash, password):
+        return password_hash == f"hash:{password}"
 
 class UsuarioTest(unittest.TestCase):
     def test_registrar_usuario_valido_devuelve_el_mismo_usuario(self):
@@ -83,6 +93,10 @@ class UsuarioTest(unittest.TestCase):
         self.assertEqual(usuario.activation_token_expires_at, expiracion)
         self.assertEqual(usuario.password_reset_token, "recuperacion")
         self.assertEqual(usuario.password_reset_expires_at, expiracion)
+        self.assertIs(usuario.token_activacion, token_activacion)
+        self.assertIs(usuario.token_recuperacion, token_recuperacion)
+        self.assertTrue(usuario.token_activacion_vigente())
+        self.assertTrue(usuario.token_recuperacion_vigente())
 
     def test_actualizar_password_guarda_hash_y_limpia_token_de_recuperacion(self):
         usuario = Usuario(
@@ -106,7 +120,7 @@ class UsuarioTest(unittest.TestCase):
 
 class AutenticacionDominioServicioTest(unittest.TestCase):
     def setUp(self):
-        self.servicio = AutenticacionDominioServicio()
+        self.servicio = AutenticacionDominioServicio(WerkzeugPasswordHasher())
 
     def test_generar_password_hash_acepta_limites_de_8_y_128_caracteres(self):
         passwords = ("Abcdef1x", "A" + "b" * 126 + "1")
@@ -207,6 +221,21 @@ class TokenRecuperacionTest(unittest.TestCase):
             datetime_mock.now.return_value = ahora
             self.assertTrue(TokenRecuperacion("token", expiracion_sin_zona).esta_vigente())
 
+    def test_generar_password_hash_usa_el_hasher_inyectado(self):
+        servicio = AutenticacionDominioServicio(FakeHasher())
+        self.assertEqual(servicio.generar_password_hash("Abcdef1x"), "hash:Abcdef1x")
 
+    def test_autenticar_usa_verify_del_hasher_inyectado(self):
+        servicio = AutenticacionDominioServicio(FakeHasher())
+        usuario = Usuario(estado=Usuario.ESTADO_ACTIVO, password_hash="hash:Abcdef1x")
+        self.assertTrue(servicio.autenticar(usuario, "Abcdef1x"))
+        self.assertFalse(servicio.autenticar(usuario, "OtraClave1"))
+
+    def test_dominio_no_importa_werkzeug(self):
+        from pathlib import Path
+
+        import domain.auth.autenticacion_dominio_servicio as modulo
+
+        self.assertNotIn("werkzeug", Path(modulo.__file__).read_text(encoding="utf-8"))
 if __name__ == "__main__":
     unittest.main()

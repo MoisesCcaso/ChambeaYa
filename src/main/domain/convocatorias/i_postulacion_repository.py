@@ -10,6 +10,10 @@ class IPostulacionRepository(ABC):
         pass
 
     @abstractmethod
+    def save_all(self, postulaciones):
+        """Guarda varias postulaciones en una sola transaccion atomica."""
+
+    @abstractmethod
     def find_by_id(self, postulacion_id):
         pass
 

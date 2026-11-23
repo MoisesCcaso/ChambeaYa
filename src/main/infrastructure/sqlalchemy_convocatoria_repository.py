@@ -70,16 +70,17 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         if model is None:
             return None
 
-        convocatoria = Convocatoria()
-        convocatoria.id = model.id
-        convocatoria.empresa_id = model.empresa_id
-        convocatoria.titulo = model.titulo
-        convocatoria.estado = model.estado
-        convocatoria.habilidades_requeridas = self._load_list(model.habilidades_requeridas)
-        convocatoria.descripcion = model.descripcion
-        convocatoria.beneficios = self._load_list(model.beneficios)
-        convocatoria.fecha_publicacion = model.fecha_publicacion
-        convocatoria.fecha_cierre = model.fecha_cierre
+        convocatoria = Convocatoria(
+            id=model.id,
+            empresa_id=model.empresa_id,
+            titulo=model.titulo,
+            descripcion=model.descripcion,
+            estado=model.estado,
+            habilidades_requeridas=self._load_list(model.habilidades_requeridas),
+            beneficios=self._load_list(model.beneficios),
+            fecha_publicacion=model.fecha_publicacion,
+            fecha_cierre=model.fecha_cierre,
+        )
         
         return convocatoria
     

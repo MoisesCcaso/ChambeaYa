@@ -5,7 +5,7 @@ Cobertura: Coverage.py
 
 Cubre:
   - Sugerencia.calcular_compatibilidad  (cálculo y normalización)
-  - ResultadoMatching.es_compatible     (resultados / umbral)
+  - Sugerencia.es_compatible            (regla de compatibilidad / umbral)
   - MatchingDominioServicio             (calcular_match y filtrar_convocatorias)
 """
 
@@ -13,7 +13,6 @@ import unittest
 
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-from domain.matching.resultado_matching import ResultadoMatching
 from domain.matching.sugerencia import Sugerencia
 from domain.perfil.practicante import Practicante
 
@@ -133,37 +132,45 @@ class SugerenciaNormalizacionTest(unittest.TestCase):
         self.assertCountEqual(["python", "sql"], self.sugerencia.habilidades_coincidentes)
 
 
-class ResultadoMatchingTest(unittest.TestCase):
-    """Estructura y regla de compatibilidad del resultado."""
+class SugerenciaCompatibilidadTest(unittest.TestCase):
+    """Estructura y regla de compatibilidad en Sugerencia (Move Method / Inline Class)."""
 
     def test_valores_por_defecto(self):
-        r = ResultadoMatching()
+        r = Sugerencia()
+        self.assertEqual(0.0, r.puntaje_match)
         self.assertEqual(0.0, r.score_compatibilidad)
         self.assertIsNone(r.practicante_id)
         self.assertIsNone(r.convocatoria_id)
-        self.assertIsNone(r.sugerencia)
+        self.assertIs(r, r.sugerencia)
         self.assertIsNone(r.convocatoria)
 
     def test_guarda_los_valores_recibidos(self):
-        sug, conv = Sugerencia(), Convocatoria()
-        r = ResultadoMatching(75.0, 1, 2, sug, conv)
+        conv = Convocatoria(id=2)
+        r = Sugerencia(
+            practicante_id=1,
+            convocatoria_id=2,
+            puntaje_match=75.0,
+            habilidades_coincidentes=["python"],
+            convocatoria=conv,
+        )
+        self.assertEqual(75.0, r.puntaje_match)
         self.assertEqual(75.0, r.score_compatibilidad)
         self.assertEqual(1, r.practicante_id)
         self.assertEqual(2, r.convocatoria_id)
-        self.assertIs(sug, r.sugerencia)
+        self.assertEqual(["python"], r.habilidades_coincidentes)
         self.assertIs(conv, r.convocatoria)
 
     def test_es_compatible_por_encima_del_umbral(self):
-        self.assertTrue(ResultadoMatching(score_compatibilidad=80).es_compatible())
+        self.assertTrue(Sugerencia(puntaje_match=80.0).es_compatible())
 
     def test_es_compatible_en_el_limite_exacto(self):
-        self.assertTrue(ResultadoMatching(score_compatibilidad=50).es_compatible())
+        self.assertTrue(Sugerencia(puntaje_match=50.0).es_compatible())
 
     def test_no_es_compatible_por_debajo_del_umbral(self):
-        self.assertFalse(ResultadoMatching(score_compatibilidad=49.99).es_compatible())
+        self.assertFalse(Sugerencia(puntaje_match=49.99).es_compatible())
 
     def test_es_compatible_con_umbral_personalizado(self):
-        r = ResultadoMatching(score_compatibilidad=30)
+        r = Sugerencia(puntaje_match=30.0)
         self.assertFalse(r.es_compatible())
         self.assertTrue(r.es_compatible(umbral=30))
         self.assertTrue(r.es_compatible(umbral=10))
@@ -190,7 +197,8 @@ class MatchingDominioServicioCalcularMatchTest(unittest.TestCase):
 
         resultado = self.servicio.calcular_match(practicante, convocatoria)
 
-        self.assertIsInstance(resultado, ResultadoMatching)
+        self.assertIsInstance(resultado, Sugerencia)
+        self.assertEqual(50.0, resultado.puntaje_match)
         self.assertEqual(50.0, resultado.score_compatibilidad)
         self.assertEqual(7, resultado.practicante_id)
         self.assertEqual(9, resultado.convocatoria_id)
@@ -202,11 +210,11 @@ class MatchingDominioServicioCalcularMatchTest(unittest.TestCase):
 
         resultado = self.servicio.calcular_match(practicante, convocatoria)
 
-        self.assertIsInstance(resultado.sugerencia, Sugerencia)
-        self.assertEqual(3, resultado.sugerencia.practicante_id)
-        self.assertEqual(4, resultado.sugerencia.convocatoria_id)
-        self.assertEqual(50.0, resultado.sugerencia.puntaje_match)
-        self.assertEqual(["python"], resultado.sugerencia.habilidades_coincidentes)
+        self.assertIsInstance(resultado, Sugerencia)
+        self.assertEqual(3, resultado.practicante_id)
+        self.assertEqual(4, resultado.convocatoria_id)
+        self.assertEqual(50.0, resultado.puntaje_match)
+        self.assertEqual(["python"], resultado.habilidades_coincidentes)
 
     def test_convocatoria_sin_habilidades_da_score_cero(self):
         resultado = self.servicio.calcular_match(

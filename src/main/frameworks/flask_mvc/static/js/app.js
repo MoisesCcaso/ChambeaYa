@@ -299,67 +299,104 @@
     function renderDashboardProgress() {
         const panel = $("#dashboard-progress");
         if (role() === "empresa") {
-            const verified = Boolean(state.profile?.verificada);
-            const hasOpenings = state.openings.length > 0;
-            const hasPublished = state.openings.some((x) => x.estado === "publicada");
-            const score = [verified, hasOpenings, hasPublished].filter(Boolean).length / 3 * 100;
-            panel.innerHTML = `
-                <h3>Preparación de la empresa</h3>
-                <p>Completa estos pasos para gestionar candidatos.</p>
-                <div class="score-value">${Math.round(score)}%</div>
-                <div class="progress-line"><span style="width:${score}%"></span></div>
-                <ul class="progress-checklist">
-                    <li class="${verified ? "done" : ""}"><i>${verified ? C.icon("check") : ""}</i> Empresa verificada</li>
-                    <li class="${hasOpenings ? "done" : ""}"><i>${hasOpenings ? C.icon("check") : ""}</i> Primera convocatoria creada</li>
-                    <li class="${hasPublished ? "done" : ""}"><i>${hasPublished ? C.icon("check") : ""}</i> Convocatoria publicada</li>
-                </ul>`;
+            renderCompanyDashboardProgress(panel);
             return;
         }
+
+        renderPracticanteDashboardProgress(panel);
+    }
+
+    function renderCompanyDashboardProgress(panel) {
+        const verified = Boolean(state.profile?.verificada);
+        const hasOpenings = state.openings.length > 0;
+        const hasPublished = state.openings.some((x) => x.estado === "publicada");
+        const score = [verified, hasOpenings, hasPublished].filter(Boolean).length / 3 * 100;
+        renderDashboardProgressPanel(panel, "Preparación de la empresa", "Completa estos pasos para gestionar candidatos.", score, [
+            [verified, "Empresa verificada"],
+            [hasOpenings, "Primera convocatoria creada"],
+            [hasPublished, "Convocatoria publicada"],
+        ]);
+    }
+
+    function renderPracticanteDashboardProgress(panel) {
         const score = Math.round(state.profile?.score_reputacion || 0);
         const hasName = Boolean(state.profile?.nombres && state.profile?.apellidos);
         const hasSkills = Boolean(state.profile?.habilidades?.length);
         const verified = Boolean(state.profile?.identidad_verificada);
+        renderDashboardProgressPanel(panel, "Fortaleza del perfil", "Un perfil completo mejora tus recomendaciones.", score, [
+            [hasName, "Información personal"],
+            [hasSkills, "Habilidades registradas"],
+            [verified, "Identidad verificada"],
+        ]);
+    }
+
+    function renderDashboardProgressPanel(panel, heading, description, score, checklist) {
         panel.innerHTML = `
-            <h3>Fortaleza del perfil</h3>
-            <p>Un perfil completo mejora tus recomendaciones.</p>
-            <div class="score-value">${score}%</div>
+            <h3>${heading}</h3>
+            <p>${description}</p>
+            <div class="score-value">${Math.round(score)}%</div>
             <div class="progress-line"><span style="width:${score}%"></span></div>
-            <ul class="progress-checklist">
-                <li class="${hasName ? "done" : ""}"><i>${hasName ? C.icon("check") : ""}</i> Información personal</li>
-                <li class="${hasSkills ? "done" : ""}"><i>${hasSkills ? C.icon("check") : ""}</i> Habilidades registradas</li>
-                <li class="${verified ? "done" : ""}"><i>${verified ? C.icon("check") : ""}</i> Identidad verificada</li>
-            </ul>`;
+            <ul class="progress-checklist">${checklist
+                .map(([complete, label]) => progressChecklistItem(complete, label))
+                .join("")}</ul>`;
+    }
+
+    function progressChecklistItem(complete, label) {
+        const className = complete ? "done" : "";
+        const icon = complete ? C.icon("check") : "";
+        return `<li class="${className}"><i>${icon}</i> ${label}</li>`;
     }
 
     function renderDashboardList() {
         const isCompany = role() === "empresa";
         const items = isCompany ? state.openings.slice(0, 5) : state.opportunities.slice(0, 5);
-        $("#dashboard-list-title").textContent = isCompany
-            ? "Tus convocatorias"
-            : "Oportunidades recientes";
-        $("#dashboard-list-description").textContent = isCompany
-            ? "Actividad actual de tus oportunidades."
-            : "Convocatorias disponibles para postular.";
-        $("#dashboard-list-action").textContent = isCompany ? "Administrar" : "Explorar";
-        $("#dashboard-list-action").dataset.targetView = isCompany ? "convocatorias" : "oportunidades";
-        $("#dashboard-list-head").innerHTML = isCompany
-            ? "<tr><th>Convocatoria</th><th>Estado</th><th>Fecha</th></tr>"
-            : "<tr><th>Convocatoria</th><th>Habilidades</th><th>Estado</th></tr>";
-        $("#dashboard-list-body").innerHTML = items.length
-            ? items
-                  .map((item) =>
-                      isCompany
-                          ? `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>#${item.id}</small></td><td>${C.statusBadge(item.estado)}</td><td>${C.formatDate(item.fecha_publicacion)}</td></tr>`
-                          : `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML(item.descripcion || "Sin descripción")}</small></td><td>${C.escapeHTML((item.habilidades_requeridas || []).slice(0, 2).join(", ") || "—")}</td><td>${C.statusBadge(item.estado)}</td></tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="3">${C.emptyState(
-                  isCompany ? "Sin convocatorias" : "Sin oportunidades",
-                  isCompany
-                      ? "Crea tu primera convocatoria para comenzar."
-                      : "No encontramos convocatorias publicadas.",
-                  isCompany ? "briefcase" : "search"
-              )}</td></tr>`;
+        const title = $("#dashboard-list-title");
+        const description = $("#dashboard-list-description");
+        const action = $("#dashboard-list-action");
+        let headers;
+
+        if (isCompany) {
+            title.textContent = "Tus convocatorias";
+            description.textContent = "Actividad actual de tus oportunidades.";
+            action.textContent = "Administrar";
+            action.dataset.targetView = "convocatorias";
+            headers = ["Convocatoria", "Estado", "Fecha"];
+        } else {
+            title.textContent = "Oportunidades recientes";
+            description.textContent = "Convocatorias disponibles para postular.";
+            action.textContent = "Explorar";
+            action.dataset.targetView = "oportunidades";
+            headers = ["Convocatoria", "Habilidades", "Estado"];
+        }
+
+        $$("#dashboard-list-head th").forEach((th, index) => {
+            th.textContent = headers[index];
+        });
+        const body = $("#dashboard-list-body");
+        if (!items.length) {
+            body.innerHTML = `<tr><td colspan="3">${dashboardEmptyState(isCompany)}</td></tr>`;
+            return;
+        }
+        body.innerHTML = items.map((item) => dashboardListRow(item, isCompany)).join("");
+    }
+
+    function dashboardListRow(item, isCompany) {
+        if (isCompany) {
+            return `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>#${item.id}</small></td><td>${C.statusBadge(item.estado)}</td><td>${C.formatDate(item.fecha_publicacion)}</td></tr>`;
+        }
+        return `<tr><td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML(item.descripcion || "Sin descripción")}</small></td><td>${C.escapeHTML((item.habilidades_requeridas || []).slice(0, 2).join(", ") || "—")}</td><td>${C.statusBadge(item.estado)}</td></tr>`;
+    }
+
+    function dashboardEmptyState(isCompany) {
+        if (isCompany) {
+            return C.emptyState("Sin convocatorias", "Crea tu primera convocatoria para comenzar.", "briefcase");
+        }
+        return C.emptyState("Sin oportunidades", "No encontramos convocatorias publicadas.", "search");
+    }
+
+    function profileScoreValue(isCompany) {
+        if (!isCompany) return `${Math.round(state.profile?.score_reputacion || 0)}%`;
+        return state.profile?.verificada ? "Verificada" : "Pendiente";
     }
 
     function renderProfile() {
@@ -371,7 +408,7 @@
             <p>${C.escapeHTML(state.user?.email || "")}</p>
             <div class="profile-score">
                 <span>${isCompany ? "Estado de verificación" : "Reputación del perfil"}</span>
-                <strong>${isCompany ? (state.profile?.verificada ? "Verificada" : "Pendiente") : `${Math.round(state.profile?.score_reputacion || 0)}%`}</strong>
+                <strong>${profileScoreValue(isCompany)}</strong>
             </div>`;
 
         if (isCompany) {
@@ -446,6 +483,7 @@
         );
         const activeApplication =
             application && application.estado !== "cancelada" ? application : null;
+        const applyLabel = application ? "Postular nuevamente" : "Postular ahora";
         $("#opportunity-detail").innerHTML = `
             <p class="eyebrow">Convocatoria activa</p>
             <h2>${C.escapeHTML(item.titulo)}</h2>
@@ -470,7 +508,7 @@
                 ${
                     activeApplication
                         ? `${C.statusBadge(activeApplication.estado)}`
-                        : `<button class="button button-primary" data-apply-opening="${item.id}">${C.icon("send")} ${application ? "Postular nuevamente" : "Postular ahora"}</button>`
+                        : `<button class="button button-primary" data-apply-opening="${item.id}">${C.icon("send")} ${applyLabel}</button>`
                 }
             </div>`;
     }
@@ -525,10 +563,18 @@
             state.applicationFilter === "todas"
                 ? state.applications
                 : state.applications.filter((item) => item.estado === state.applicationFilter);
-        $("#applications-table").innerHTML = filtered.length
-            ? filtered
-                  .map(
-                      (item) => `
+        const table = $("#applications-table");
+        if (!filtered.length) {
+            table.innerHTML = `<tr><td colspan="4">${C.emptyState(
+                "No hay postulaciones",
+                "Los procesos con este estado aparecerán aquí.",
+                "send"
+            )}</td></tr>`;
+            return;
+        }
+        table.innerHTML = filtered
+            .map(
+                (item) => `
                     <tr>
                         <td><strong>${C.escapeHTML(item.convocatoria?.titulo || `Convocatoria #${item.convocatoria_id}`)}</strong><small>Postulación #${item.id}</small></td>
                         <td>${C.statusBadge(item.estado)}</td>
@@ -538,13 +584,8 @@
                             ${item.estado === "cancelada" && item.convocatoria?.estado === "publicada" ? `<button class="table-action" data-reapply-opening="${item.convocatoria_id}">${C.icon("undo")} Volver a postular</button>` : ""}
                         </div></td>
                     </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="4">${C.emptyState(
-                  "No hay postulaciones",
-                  "Los procesos con este estado aparecerán aquí.",
-                  "send"
-              )}</td></tr>`;
+            )
+            .join("");
     }
 
     function renderOpenings() {
@@ -552,29 +593,42 @@
             state.openingFilter === "todas"
                 ? state.openings
                 : state.openings.filter((item) => item.estado === state.openingFilter);
-        $("#openings-table").innerHTML = filtered.length
-            ? filtered
-                  .map(
-                      (item) => `
+        const table = $("#openings-table");
+        if (!filtered.length) {
+            table.innerHTML = `<tr><td colspan="4">${C.emptyState(
+                "Sin convocatorias",
+                "Crea una convocatoria para empezar a recibir postulaciones.",
+                "briefcase"
+            )}</td></tr>`;
+            return;
+        }
+        table.innerHTML = filtered
+            .map(
+                (item) => `
                     <tr>
                         <td><strong>${C.escapeHTML(item.titulo)}</strong><small>${C.escapeHTML((item.habilidades_requeridas || []).join(", ") || "Sin habilidades definidas")}</small></td>
                         <td>${C.statusBadge(item.estado)}</td>
                         <td>${C.formatDate(item.fecha_publicacion)}</td>
                         <td class="align-right"><div class="table-actions">
-                            ${item.estado === "borrador" ? `<button class="table-action" data-edit-opening="${item.id}">${C.icon("edit")} Editar</button><button class="table-action" data-publish-opening="${item.id}">${C.icon("send")} Publicar</button>` : ""}
-                            ${item.estado === "publicada" ? `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action danger" data-close-opening="${item.id}">${C.icon("x")} Cerrar</button>` : ""}
-                            ${item.estado === "cerrada" ? `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action" data-reopen-opening="${item.id}">${C.icon("refresh")} Reabrir</button>` : ""}
-                            <button class="table-action" data-duplicate-opening="${item.id}">${C.icon("copy")} Duplicar</button>
-                            ${item.estado === "borrador" ? `<button class="table-action danger" data-delete-opening="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
+                            ${openingActionsHTML(item)}
                         </div></td>
                     </tr>`
-                  )
-                  .join("")
-            : `<tr><td colspan="4">${C.emptyState(
-                  "Sin convocatorias",
-                  "Crea una convocatoria para empezar a recibir postulaciones.",
-                  "briefcase"
-              )}</td></tr>`;
+            )
+            .join("");
+    }
+
+    function openingActionsHTML(item) {
+        const duplicate = `<button class="table-action" data-duplicate-opening="${item.id}">${C.icon("copy")} Duplicar</button>`;
+        if (item.estado === "borrador") {
+            return `<button class="table-action" data-edit-opening="${item.id}">${C.icon("edit")} Editar</button><button class="table-action" data-publish-opening="${item.id}">${C.icon("send")} Publicar</button>${duplicate}<button class="table-action danger" data-delete-opening="${item.id}">${C.icon("trash")} Eliminar</button>`;
+        }
+        if (item.estado === "publicada") {
+            return `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action danger" data-close-opening="${item.id}">${C.icon("x")} Cerrar</button>${duplicate}`;
+        }
+        if (item.estado === "cerrada") {
+            return `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action" data-reopen-opening="${item.id}">${C.icon("refresh")} Reabrir</button>${duplicate}`;
+        }
+        return duplicate;
     }
 
     function practiceTitle(practice) {
@@ -824,21 +878,23 @@
                                 .join("")}</div>
                         </div>
                         <div class="candidate-actions">
-                            ${
-                                item.estado === "pendiente"
-                                    ? `<button class="button button-secondary button-small" data-reject-candidate="${item.id}">${C.icon("x")} Rechazar</button><button class="button button-primary button-small" data-select-candidate="${item.id}">${C.icon("check")} Seleccionar</button>`
-                                    : item.estado === "seleccionada"
-                                      ? item.practica_iniciada
-                                          ? C.statusBadge(item.estado)
-                                          : `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button><button class="button button-primary button-small" data-start-practice="${item.id}">${C.icon("clipboard")} Iniciar práctica</button>`
-                                      : item.estado === "rechazada"
-                                        ? `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button>`
-                                        : C.statusBadge(item.estado)
-                            }
+                            ${candidateActionsHTML(item)}
                         </div>
                     </article>`;
             })
             .join("");
+    }
+
+    function candidateActionsHTML(item) {
+        const reconsider = `<button class="button button-secondary button-small" data-reconsider-candidate="${item.id}">${C.icon("undo")} Reconsiderar</button>`;
+        if (item.estado === "pendiente") {
+            return `<button class="button button-secondary button-small" data-reject-candidate="${item.id}">${C.icon("x")} Rechazar</button><button class="button button-primary button-small" data-select-candidate="${item.id}">${C.icon("check")} Seleccionar</button>`;
+        }
+        if (item.estado === "seleccionada" && !item.practica_iniciada) {
+            return `${reconsider}<button class="button button-primary button-small" data-start-practice="${item.id}">${C.icon("clipboard")} Iniciar práctica</button>`;
+        }
+        if (item.estado === "rechazada") return reconsider;
+        return C.statusBadge(item.estado);
     }
 
     async function candidateAction(applicationId, action, button) {
@@ -903,6 +959,23 @@
     function renderPracticeDetail(practice, deliverables, evaluations, certificate) {
         const isCompany = role() === "empresa";
         const canModify = practice.estado === "EN_CURSO";
+        const deliverablesMarkup = renderDeliverables(deliverables, isCompany, canModify);
+        const evaluationsMarkup = renderEvaluations(evaluations, isCompany, canModify);
+        const deliverableFormMarkup = !isCompany && canModify
+            ? `<form class="inline-form" id="deliverable-form">
+                <label class="field"><span>Subir archivo</span><input type="file" name="archivo" accept=".pdf,.doc,.docx,.zip" required></label>
+                <button class="button button-primary" type="submit">${C.icon("upload")} Subir entregable</button>
+               </form>`
+            : "";
+        const evaluationFormMarkup = isCompany && canModify
+            ? `<form class="inline-form" id="evaluation-form">
+                <label class="field"><span>Puntaje</span><input type="number" name="puntaje" min="0" max="100" required></label>
+                <button class="button button-primary" type="submit">${C.icon("check")} Registrar evaluación</button>
+               </form>`
+            : "";
+        const finishPracticeMarkup = isCompany && canModify
+            ? `<div style="margin-top:18px"><button class="button button-secondary" data-finish-practice="${practice.id}">${C.icon("check")} Finalizar práctica</button></div>`
+            : "";
         $("#practice-detail").innerHTML = `
             <section class="practice-detail-section">
                 <div class="section-heading">
@@ -912,79 +985,76 @@
             </section>
             <section class="practice-detail-section">
                 <h3>Entregables</h3>
-                ${
-                    deliverables.length
-                        ? deliverables
-                              .map(
-                                  (item) => `<div class="timeline-row">
-                                      <span><strong>${C.escapeHTML(displayFileName(item.archivo))}</strong><small>${C.formatDate(item.fecha_subida, true)}</small></span>
-                                      <div class="table-actions">
-                                          <a class="text-link" href="${C.escapeHTML(item.archivo_url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
-                                          ${!isCompany && canModify ? `<button class="table-action danger" data-delete-deliverable="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
-                                      </div>
-                                  </div>`
-                              )
-                              .join("")
-                        : `<p class="muted">Aún no se registraron entregables.</p>`
-                }
-                ${
-                    !isCompany && canModify
-                        ? `<form class="inline-form" id="deliverable-form">
-                            <label class="field"><span>Subir archivo</span><input type="file" name="archivo" accept=".pdf,.doc,.docx,.zip" required></label>
-                            <button class="button button-primary" type="submit">${C.icon("upload")} Subir entregable</button>
-                           </form>`
-                        : ""
-                }
+                ${deliverablesMarkup}
+                ${deliverableFormMarkup}
             </section>
             <section class="practice-detail-section">
                 <h3>Evaluaciones</h3>
-                ${
-                    evaluations.length
-                        ? evaluations
-                              .map(
-                                  (item) => `<div class="timeline-row">
-                                      <span><strong>${item.puntaje} / 100</strong><small>${C.formatDate(item.fecha_evaluacion, true)}</small></span>
-                                      <div class="table-actions">
-                                          ${C.statusBadge(item.aprobada ? "verificada" : "rechazada")}
-                                          ${isCompany && canModify ? `<button class="table-action danger" data-delete-evaluation="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
-                                      </div>
-                                  </div>`
-                              )
-                              .join("")
-                        : `<p class="muted">Aún no se registraron evaluaciones.</p>`
-                }
-                ${
-                    isCompany && canModify
-                        ? `<form class="inline-form" id="evaluation-form">
-                            <label class="field"><span>Puntaje</span><input type="number" name="puntaje" min="0" max="100" required></label>
-                            <button class="button button-primary" type="submit">${C.icon("check")} Registrar evaluación</button>
-                           </form>`
-                        : ""
-                }
+                ${evaluationsMarkup}
+                ${evaluationFormMarkup}
             </section>
             <section class="practice-detail-section">
                 <div class="section-heading">
                     <div><h3>Certificación</h3><p>${certificate ? "El documento digital ya está disponible." : "Se habilita después de finalizar una práctica aprobada."}</p></div>
                 </div>
-                ${
-                    certificate
-                        ? `<div class="table-actions" style="justify-content:flex-start">
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
-                           </div>`
-                        : isCompany && practice.estado === "FINALIZADA"
-                          ? `<button class="button button-primary" data-issue-certificate="${practice.id}">${C.icon("certificate")} Emitir certificado</button>`
-                          : ""
-                }
-                ${
-                    isCompany && canModify
-                        ? `<div style="margin-top:18px"><button class="button button-secondary" data-finish-practice="${practice.id}">${C.icon("check")} Finalizar práctica</button></div>`
-                        : ""
-                }
+                ${certificateActionsHTML(certificate, practice, isCompany)}
+                ${finishPracticeMarkup}
             </section>`;
 
         $("#deliverable-form")?.addEventListener("submit", submitDeliverable);
         $("#evaluation-form")?.addEventListener("submit", submitEvaluation);
+    }
+
+    function renderDeliverables(deliverables, isCompany, canModify) {
+        if (!deliverables.length) {
+            return `<p class="muted">Aún no se registraron entregables.</p>`;
+        }
+        return deliverables.map((item) => {
+            let deleteAction = "";
+            if (!isCompany && canModify) {
+                deleteAction = `<button class="table-action danger" data-delete-deliverable="${item.id}">${C.icon("trash")} Eliminar</button>`;
+            }
+            return `<div class="timeline-row">
+                <span><strong>${C.escapeHTML(displayFileName(item.archivo))}</strong><small>${C.formatDate(item.fecha_subida, true)}</small></span>
+                <div class="table-actions">
+                    <a class="text-link" href="${C.escapeHTML(item.archivo_url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
+                    ${deleteAction}
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+    function renderEvaluations(evaluations, isCompany, canModify) {
+        if (!evaluations.length) {
+            return `<p class="muted">Aún no se registraron evaluaciones.</p>`;
+        }
+        return evaluations.map((item) => {
+            const status = item.aprobada ? "verificada" : "rechazada";
+            let deleteAction = "";
+            if (isCompany && canModify) {
+                deleteAction = `<button class="table-action danger" data-delete-evaluation="${item.id}">${C.icon("trash")} Eliminar</button>`;
+            }
+            return `<div class="timeline-row">
+                <span><strong>${item.puntaje} / 100</strong><small>${C.formatDate(item.fecha_evaluacion, true)}</small></span>
+                <div class="table-actions">
+                    ${C.statusBadge(status)}
+                    ${deleteAction}
+                </div>
+            </div>`;
+        }).join("");
+    }
+
+    function certificateActionsHTML(certificate, practice, isCompany) {
+        if (certificate) {
+            return `<div class="table-actions" style="justify-content:flex-start">
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
+                           </div>`;
+        }
+        if (isCompany && practice.estado === "FINALIZADA") {
+            return `<button class="button button-primary" data-issue-certificate="${practice.id}">${C.icon("certificate")} Emitir certificado</button>`;
+        }
+        return "";
     }
 
     async function submitDeliverable(event) {
@@ -1458,18 +1528,7 @@
         bindSession();
     }
 
-    async function initialize() {
-        try {
-            state.user = await C.api("/auth/me");
-        } catch (error) {
-            window.location.assign("/ingresar");
-            return;
-        }
-
-        configureRole();
-        bindEvents();
-        await loadProfile();
-
+    async function loadRoleData() {
         const shared = [loadNotifications()];
         if (state.profile) {
             shared.push(loadPractices());
@@ -1481,13 +1540,11 @@
         } else if (role() === "practicante") {
             shared.push(loadOpportunities());
         }
-        try {
-            await Promise.all(shared);
-            if (role() === "practicante") await loadCertificates();
-        } catch (error) {
-            C.toast(error.message, "error", 6500);
-        }
+        await Promise.all(shared);
+        if (role() === "practicante") await loadCertificates();
+    }
 
+    function showInitialView() {
         renderDashboard();
         $("#app-loading").hidden = true;
         $("#app-shell").hidden = false;
@@ -1502,6 +1559,27 @@
                     : "Completa tus datos para habilitar todas las funciones."
             );
         }
+    }
+
+    async function initialize() {
+        try {
+            state.user = await C.api("/auth/me");
+        } catch (error) {
+            window.location.assign("/ingresar");
+            return;
+        }
+
+        configureRole();
+        bindEvents();
+        await loadProfile();
+
+        try {
+            await loadRoleData();
+        } catch (error) {
+            C.toast(error.message, "error", 6500);
+        }
+
+        showInitialView();
     }
 
     initialize();

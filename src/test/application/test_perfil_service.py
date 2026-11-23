@@ -7,11 +7,15 @@ Código bajo prueba:
 import unittest
 from unittest.mock import create_autospec
 
+from application.empresa_application_service import EmpresaApplicationService
 from application.perfil_application_service import PerfilApplicationService
+from application.practicante_application_service import PracticanteApplicationService
 from domain.auth.i_usuario_repository import IUsuarioRepository
 from domain.auth.usuario import Usuario
 from domain.perfil.empresa import Empresa
+from domain.perfil.i_empresa_repository import IEmpresaRepository
 from domain.perfil.i_perfil_repository import IPerfilRepository
+from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.perfil.practicante import Practicante
 from domain.perfil.ruc import RUC
 
@@ -259,6 +263,60 @@ class TestPerfilService(unittest.TestCase):
             RuntimeError, "requiere un repositorio de usuario"
         ):
             sin_usuario_repo.get_practicante_profile(10)
+
+
+class TestPracticanteApplicationService(unittest.TestCase):
+    """Pruebas aisladas de PracticanteApplicationService usando IPracticanteRepository segregado."""
+
+    def setUp(self):
+        self.practicante_repo = create_autospec(IPracticanteRepository, instance=True, spec_set=True)
+        self.usuario_repo = create_autospec(IUsuarioRepository, instance=True, spec_set=True)
+        self.service = PracticanteApplicationService(
+            practicante_repository=self.practicante_repo,
+            usuario_repository=self.usuario_repo,
+        )
+
+    def test_actualiza_habilidades_y_reputacion_con_repo_segregado(self):
+        usuario = Usuario(id=22, email="student@test.pe", password_hash="hash", tipo=Usuario.TIPO_PRACTICANTE, estado=Usuario.ESTADO_ACTIVO)
+        self.usuario_repo.find_by_id.return_value = usuario
+        self.practicante_repo.find_practicante_by_user_id.return_value = None
+        self.practicante_repo.save_practicante.side_effect = lambda p: p
+
+        practicante = self.service.add_habilidad(22, "FastAPI")
+        self.assertIn("FastAPI", practicante.habilidades)
+        self.practicante_repo.save_practicante.assert_called_once()
+
+    def test_requiere_repositorios(self):
+        sin_repo = PracticanteApplicationService(practicante_repository=None, usuario_repository=self.usuario_repo)
+        with self.assertRaises(RuntimeError):
+            sin_repo.get_profile(22)
+
+
+class TestEmpresaApplicationService(unittest.TestCase):
+    """Pruebas aisladas de EmpresaApplicationService usando IEmpresaRepository segregado."""
+
+    def setUp(self):
+        self.empresa_repo = create_autospec(IEmpresaRepository, instance=True, spec_set=True)
+        self.usuario_repo = create_autospec(IUsuarioRepository, instance=True, spec_set=True)
+        self.service = EmpresaApplicationService(
+            empresa_repository=self.empresa_repo,
+            usuario_repository=self.usuario_repo,
+        )
+
+    def test_actualiza_empresa_con_repo_segregado(self):
+        usuario = Usuario(id=33, email="empresa@test.pe", password_hash="hash", tipo=Usuario.TIPO_EMPRESA, estado=Usuario.ESTADO_ACTIVO)
+        self.usuario_repo.find_by_id.return_value = usuario
+        self.empresa_repo.find_empresa_by_user_id.return_value = None
+        self.empresa_repo.save_empresa.side_effect = lambda e: e
+
+        empresa = self.service.update_empresa(33, {"razon_social": "Acme SAC", "ruc": "20100070988"})
+        self.assertEqual(empresa.razon_social, "Acme SAC")
+        self.empresa_repo.save_empresa.assert_called_once()
+
+    def test_requiere_repositorios(self):
+        sin_repo = EmpresaApplicationService(empresa_repository=None, usuario_repository=self.usuario_repo)
+        with self.assertRaises(RuntimeError):
+            sin_repo.get_profile(33)
 
 
 if __name__ == "__main__":

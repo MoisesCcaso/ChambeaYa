@@ -1,16 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
                  postulacion_repository=None, convocatoria_repository=None,
-                 perfil_repository=None):
+                 perfil_repository=None, notificacion_service=None):
         self.certificado_repository = certificado_repository
         self.practica_repository = practica_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.perfil_repository = perfil_repository
+        self.notificacion_service = notificacion_service
 
     def issue_certificate(self, empresa_id, practica_id):
         self._require_repositories()
@@ -21,11 +23,11 @@ class CertificacionApplicationService:
 
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError("Postulación no encontrada")
+            raise ValueError(POSTULACION_NO_ENCONTRADA)
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError("Convocatoria no encontrada")
+            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 
@@ -40,7 +42,25 @@ class CertificacionApplicationService:
         certificado = CertificacionDominioServicio().generar_certificado(
             practica, practicante, convocatoria
         )
-        return self.certificado_repository.save(certificado), True
+        guardado = self.certificado_repository.save(certificado)
+        self._notificar_emision(practicante, practica_id)
+        return guardado, True
+
+    def _notificar_emision(self, practicante, practica_id):
+        if self.notificacion_service is None:
+            return
+        usuario_id = getattr(practicante, "usuario_id", None)
+        if not usuario_id:
+            return
+        try:
+            self.notificacion_service.create_notification(
+                usuario_destino_id=usuario_id,
+                tipo="CERTIFICADO_EMITIDO",
+                mensaje="Tu certificado digital ha sido emitido",
+                metadata={"practica_id": practica_id},
+            )
+        except Exception:
+            pass
 
     def verify_certificate(self, codigo_qr_valor):
         self._require_repositories()
@@ -49,9 +69,7 @@ class CertificacionApplicationService:
         if certificado is None:
             raise ValueError("Certificado no encontrado")
 
-        qr_valido = CertificacionDominioServicio().verificar_codigo_qr(
-            certificado, codigo_qr_valor
-        )
+        qr_valido = certificado.verificar_qr(codigo_qr_valor)
         documento_valido = (
             certificado.documento is not None
             and certificado.verificar_integridad(certificado.documento.contenido)

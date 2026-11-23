@@ -7,7 +7,9 @@ configuración ``demo``, ``development`` sin SMTP y ``testing``).
 """
 
 import json
+import re
 import uuid
+from http.cookiejar import CookieJar
 from urllib import request
 from urllib.error import HTTPError
 
@@ -19,16 +21,29 @@ def unique_email() -> str:
     return f"func-{uuid.uuid4().hex[:12]}@test.local"
 
 
+def csrf_token(opener, base_url: str) -> str:
+    """Lee el token CSRF de la página de ingreso con la sesión del ``opener``."""
+    with opener.open(f"{base_url.rstrip('/')}/ingresar", timeout=10) as response:
+        html = response.read().decode("utf-8")
+    match = re.search(r'<meta name="csrf-token" content="([^"]+)"', html)
+    assert match, "La página no expone el token CSRF"
+    return match.group(1)
+
+
 def _post(base_url: str, path: str, payload: dict) -> dict:
     """Envía un POST JSON a la API y devuelve el cuerpo decodificado."""
+    opener = request.build_opener(request.HTTPCookieProcessor(CookieJar()))
     req = request.Request(
         f"{base_url.rstrip('/')}{path}",
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrf_token(opener, base_url),
+        },
         method="POST",
     )
     try:
-        with request.urlopen(req, timeout=10) as response:
+        with opener.open(req, timeout=10) as response:
             return json.load(response)
     except HTTPError as error:
         detail = error.read().decode("utf-8", errors="replace")

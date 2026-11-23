@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from domain.auth.token_recuperacion import TokenRecuperacion
+
+
 class Usuario:
     ESTADO_ACTIVO = "activo"
     ESTADO_PENDIENTE = "pendiente"
@@ -18,16 +21,88 @@ class Usuario:
         activation_token_expires_at=None,
         password_reset_token=None,
         password_reset_expires_at=None,
+        token_activacion=None,
+        token_recuperacion=None,
     ):
         self.id = id
         self.email = email
         self.password_hash = password_hash
         self.tipo = tipo
         self.estado = estado or self.ESTADO_PENDIENTE
-        self.activation_token = activation_token
-        self.activation_token_expires_at = activation_token_expires_at
-        self.password_reset_token = password_reset_token
-        self.password_reset_expires_at = password_reset_expires_at
+
+        if token_activacion is not None:
+            self._token_activacion = token_activacion
+        elif activation_token is not None or activation_token_expires_at is not None:
+            self._token_activacion = TokenRecuperacion(activation_token, activation_token_expires_at)
+        else:
+            self._token_activacion = None
+
+        if token_recuperacion is not None:
+            self._token_recuperacion = token_recuperacion
+        elif password_reset_token is not None or password_reset_expires_at is not None:
+            self._token_recuperacion = TokenRecuperacion(password_reset_token, password_reset_expires_at)
+        else:
+            self._token_recuperacion = None
+
+    @property
+    def token_activacion(self):
+        return self._token_activacion
+
+    @token_activacion.setter
+    def token_activacion(self, token):
+        self._token_activacion = token
+
+    @property
+    def token_recuperacion(self):
+        return self._token_recuperacion
+
+    @token_recuperacion.setter
+    def token_recuperacion(self, token):
+        self._token_recuperacion = token
+
+    @property
+    def activation_token(self):
+        return self._token_activacion.valor if self._token_activacion else None
+
+    @activation_token.setter
+    def activation_token(self, valor):
+        if self._token_activacion:
+            self._token_activacion.valor = valor
+        elif valor is not None:
+            self._token_activacion = TokenRecuperacion(valor=valor)
+
+    @property
+    def activation_token_expires_at(self):
+        return self._token_activacion.expiracion if self._token_activacion else None
+
+    @activation_token_expires_at.setter
+    def activation_token_expires_at(self, expiracion):
+        if self._token_activacion:
+            self._token_activacion.expiracion = expiracion
+        elif expiracion is not None:
+            self._token_activacion = TokenRecuperacion(expiracion=expiracion)
+
+    @property
+    def password_reset_token(self):
+        return self._token_recuperacion.valor if self._token_recuperacion else None
+
+    @password_reset_token.setter
+    def password_reset_token(self, valor):
+        if self._token_recuperacion:
+            self._token_recuperacion.valor = valor
+        elif valor is not None:
+            self._token_recuperacion = TokenRecuperacion(valor=valor)
+
+    @property
+    def password_reset_expires_at(self):
+        return self._token_recuperacion.expiracion if self._token_recuperacion else None
+
+    @password_reset_expires_at.setter
+    def password_reset_expires_at(self, expiracion):
+        if self._token_recuperacion:
+            self._token_recuperacion.expiracion = expiracion
+        elif expiracion is not None:
+            self._token_recuperacion = TokenRecuperacion(expiracion=expiracion)
 
     def registrar(self):
         if not self.email:
@@ -47,25 +122,27 @@ class Usuario:
 
     def activar(self):
         self.estado = self.ESTADO_ACTIVO
-        self.activation_token = None
-        self.activation_token_expires_at = None
+        self._token_activacion = None
         return self
 
     def asignar_token_activacion(self, token):
-        self.activation_token = token.valor
-        self.activation_token_expires_at = token.expiracion
+        self._token_activacion = token
         return self
 
     def asignar_token_recuperacion(self, token):
-        self.password_reset_token = token.valor
-        self.password_reset_expires_at = token.expiracion
+        self._token_recuperacion = token
         return self
+
+    def token_activacion_vigente(self):
+        return self._token_activacion.esta_vigente() if self._token_activacion else False
+
+    def token_recuperacion_vigente(self):
+        return self._token_recuperacion.esta_vigente() if self._token_recuperacion else False
 
     def actualizar_password(self, password_hash):
         if not password_hash:
             raise ValueError("La contraseña es obligatoria")
 
         self.password_hash = password_hash
-        self.password_reset_token = None
-        self.password_reset_expires_at = None
+        self._token_recuperacion = None
         return self

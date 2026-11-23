@@ -3,7 +3,9 @@
 
 import json
 
+from domain.perfil.i_empresa_repository import IEmpresaRepository
 from domain.perfil.i_perfil_repository import IPerfilRepository
+from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.perfil.practicante import Practicante
 from domain.perfil.empresa import Empresa
 from domain.perfil.ruc import RUC
@@ -12,7 +14,7 @@ from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 
 
-class SqlAlchemyPerfilRepository(IPerfilRepository):
+class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmpresaRepository):
     def save_practicante(self, practicante):
         model = None
         if practicante.id is not None:

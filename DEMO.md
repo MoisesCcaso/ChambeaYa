@@ -21,6 +21,10 @@ credenciales:
 | Practicante | `practicante@demo.local` | `Demo1234` |
 | Empresa | `empresa@demo.local` | `Demo1234` |
 
+La contraseña sale de la variable `DEMO_PASSWORD`: `demo.ps1` la define como
+`Demo1234` si no existe. Si ejecutas `flask seed-demo` a mano, agrega
+`DEMO_PASSWORD=Demo1234` a tu `.env` (ver `.env.example`).
+
 ## Reiniciar antes de presentar
 
 Si se finalizaron prácticas, se emitieron certificados o se modificaron los

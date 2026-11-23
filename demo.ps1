@@ -15,6 +15,9 @@ Set-Location -LiteralPath $projectRoot
 $env:FLASK_ENV = "demo"
 $env:SECRET_KEY = "chambeaya-demo-local"
 $env:DATABASE_URL = "sqlite:///chambeaya-demo.db"
+if (-not $env:DEMO_PASSWORD) {
+    $env:DEMO_PASSWORD = "Demo1234"
+}
 
 if ($Reset -and (Test-Path -LiteralPath $demoDatabase)) {
     Remove-Item -LiteralPath $demoDatabase -Force
@@ -34,8 +37,8 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "ChambeaYa está listo para la presentación:" -ForegroundColor Cyan
 Write-Host "  URL:          http://127.0.0.1:5000"
-Write-Host "  Practicante: practicante@demo.local / Demo1234"
-Write-Host "  Empresa:      empresa@demo.local / Demo1234"
+Write-Host "  Practicante: practicante@demo.local / $env:DEMO_PASSWORD"
+Write-Host "  Empresa:      empresa@demo.local / $env:DEMO_PASSWORD"
 Write-Host ""
 Write-Host "Presiona Ctrl+C para detener la aplicación."
 

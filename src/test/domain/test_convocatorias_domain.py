@@ -7,6 +7,7 @@ from unittest.mock import patch
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
 from domain.convocatorias.postulacion import Postulacion
+from domain.convocatorias.estado_convocatoria import BorradorState, CerradaState, PublicadaState
 
 
 class TestConvocatoriaDomain(unittest.TestCase):
@@ -22,6 +23,27 @@ class TestConvocatoriaDomain(unittest.TestCase):
             habilidades_requeridas=["Python", "SQLAlchemy"],
             beneficios=["Seguro", "Remoto"],
         )
+
+    def test_solo_el_estado_cerrada_tiene_fecha_cierre(self):
+        ahora = datetime(2026, 11, 1, tzinfo=timezone.utc)
+        self.assertIsNone(BorradorState().fecha_cierre)
+        self.assertIsNone(PublicadaState().fecha_cierre)
+        self.assertEqual(CerradaState(ahora).fecha_cierre, ahora)
+
+    def test_fecha_cierre_solo_existe_mientras_la_convocatoria_esta_cerrada(self):
+        self.assertIsNone(self.convocatoria.fecha_cierre)
+        self.convocatoria.publicar()
+        self.assertIsNone(self.convocatoria.fecha_cierre)
+        self.convocatoria.cerrar()
+        self.assertIsNotNone(self.convocatoria.fecha_cierre)
+        self.convocatoria.reabrir()
+        self.assertIsNone(self.convocatoria.fecha_cierre)
+
+    def test_constructor_con_estado_cerrada_conserva_su_fecha_cierre(self):
+        fecha = datetime(2026, 11, 1, tzinfo=timezone.utc)
+        convocatoria = Convocatoria(estado=Convocatoria.ESTADO_CERRADA, fecha_cierre=fecha)
+        self.assertEqual(convocatoria.estado, Convocatoria.ESTADO_CERRADA)
+        self.assertEqual(convocatoria.fecha_cierre, fecha)
 
     def test_publicar_desde_borrador_asigna_estado_y_fecha_utc(self):
         fecha_fija = datetime(2026, 10, 28, 12, 0, 0, tzinfo=timezone.utc)
@@ -65,8 +87,10 @@ class TestConvocatoriaDomain(unittest.TestCase):
             self.convocatoria.cerrar()
 
     def test_reabrir_desde_cerrada_asigna_estado_publicada_y_limpia_cierre(self):
-        self.convocatoria.estado = Convocatoria.ESTADO_CERRADA
-        self.convocatoria.fecha_cierre = datetime(2026, 11, 1, tzinfo=timezone.utc)
+        self.convocatoria = Convocatoria(
+            estado=Convocatoria.ESTADO_CERRADA,
+            fecha_cierre=datetime(2026, 11, 1, tzinfo=timezone.utc),
+        )
         fecha_reapertura = datetime(2026, 11, 5, 10, 0, 0, tzinfo=timezone.utc)
 
         with patch("domain.convocatorias.convocatoria.datetime") as mock_dt:

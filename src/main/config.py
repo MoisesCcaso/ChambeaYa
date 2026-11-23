@@ -1,4 +1,5 @@
 import os
+import secrets
 
 from dotenv import load_dotenv
 
@@ -14,7 +15,8 @@ def env_bool(name, default=False):
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+    # Sin SECRET_KEY fuera de producción: clave aleatoria por proceso (las sesiones no sobreviven reinicios).
+    SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///chambeaya.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
@@ -35,6 +37,7 @@ class Config:
     MAIL_TIMEOUT = int(os.getenv("MAIL_TIMEOUT", "15"))
     EXPOSE_AUTH_TOKENS = env_bool("EXPOSE_AUTH_TOKENS", False)
     DEMO_MODE = False
+    DEMO_PASSWORD = os.getenv("DEMO_PASSWORD")
 
 
 class DevelopmentConfig(Config):
@@ -47,6 +50,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
+    WTF_CSRF_ENABLED = False
     SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
     EXPOSE_AUTH_TOKENS = True
     MAIL_DELIVERY_MODE = "console"
@@ -65,6 +69,7 @@ class DemoConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    SECRET_KEY = os.getenv("SECRET_KEY")
     SESSION_COOKIE_SECURE = True
 
 

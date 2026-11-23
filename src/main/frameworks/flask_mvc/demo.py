@@ -21,7 +21,6 @@ from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 
 
-DEMO_PASSWORD = "Demo1234"
 DEMO_PRACTITIONER_EMAIL = "practicante@demo.local"
 DEMO_COMPANY_EMAIL = "empresa@demo.local"
 DEMO_DELIVERABLE_NAME = "informe-avance-demo.pdf"
@@ -39,7 +38,7 @@ def _create_demo_pdf():
         return
 
     pdf = canvas.Canvas(str(target), pagesize=A4)
-    width, height = A4
+    _, height = A4
     pdf.setTitle("Informe de avance de práctica")
     pdf.setFont("Helvetica-Bold", 18)
     pdf.drawString(72, height - 90, "Informe de avance de práctica")
@@ -55,7 +54,7 @@ def _create_demo_pdf():
     pdf.save()
 
 
-def seed_demo_data():
+def seed_demo_data(password):
     existing = UsuarioModel.query.filter(
         UsuarioModel.email.in_(
             [DEMO_PRACTITIONER_EMAIL, DEMO_COMPANY_EMAIL]
@@ -66,7 +65,7 @@ def seed_demo_data():
         return False
 
     now = datetime.now(timezone.utc)
-    password_hash = generate_password_hash(DEMO_PASSWORD)
+    password_hash = generate_password_hash(password)
     practitioner_user = UsuarioModel(
         email=DEMO_PRACTITIONER_EMAIL,
         password_hash=password_hash,
@@ -237,7 +236,12 @@ def register_demo_commands(app):
     @app.cli.command("seed-demo")
     def seed_demo_command():
         """Carga cuentas y datos para la presentación local."""
-        created = seed_demo_data()
+        password = current_app.config.get("DEMO_PASSWORD")
+        if not password:
+            raise click.ClickException(
+                "Define DEMO_PASSWORD en tu .env (ver .env.example)."
+            )
+        created = seed_demo_data(password)
         if created:
             click.secho("Datos de demostración creados correctamente.", fg="green")
         else:
@@ -245,5 +249,5 @@ def register_demo_commands(app):
                 "La demostración ya estaba preparada; no se duplicaron datos.",
                 fg="yellow",
             )
-        click.echo(f"Practicante: {DEMO_PRACTITIONER_EMAIL} / {DEMO_PASSWORD}")
-        click.echo(f"Empresa:      {DEMO_COMPANY_EMAIL} / {DEMO_PASSWORD}")
+        click.echo(f"Practicante: {DEMO_PRACTITIONER_EMAIL} / {password}")
+        click.echo(f"Empresa:      {DEMO_COMPANY_EMAIL} / {password}")
