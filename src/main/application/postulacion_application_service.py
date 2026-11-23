@@ -14,12 +14,14 @@ class PostulacionApplicationService:
         perfil_repository=None,
         practica_repository=None,
         practicante_repository=None,
+        notificacion_service=None,
     ):
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.practicante_repository = practicante_repository or perfil_repository
         self.perfil_repository = self.practicante_repository
         self.practica_repository = practica_repository
+        self.notificacion_service = notificacion_service
 
     def apply(self, usuario_id, convocatoria_id):
         self._require_repositories()
@@ -108,16 +110,44 @@ class PostulacionApplicationService:
 
         postulacion.seleccionar()
         seleccionada = self.postulacion_repository.save(postulacion)
+        rechazadas = []
         for otra in otras:
             if otra.id == postulacion.id:
                 continue
             if otra.estado == Postulacion.ESTADO_PENDIENTE:
                 otra.rechazar()
                 self.postulacion_repository.save(otra)
+                rechazadas.append(otra)
             elif otra.estado == Postulacion.ESTADO_SELECCIONADA:
                 otra.rechazar_seleccionada()
                 self.postulacion_repository.save(otra)
+                rechazadas.append(otra)
+        self._notificar_seleccion(seleccionada, rechazadas)
         return seleccionada
+
+    def _notificar_seleccion(self, seleccionada, rechazadas):
+        if self.notificacion_service is None or self.perfil_repository is None:
+            return
+        try:
+            practicante = self.perfil_repository.find_practicante_by_id(seleccionada.practicante_id)
+            if practicante and getattr(practicante, "usuario_id", None):
+                self.notificacion_service.create_notification(
+                    usuario_destino_id=practicante.usuario_id,
+                    tipo="POSTULACION_SELECCIONADA",
+                    mensaje="Has sido seleccionado para una convocatoria",
+                    metadata={"postulacion_id": seleccionada.id},
+                )
+            for rechazada in rechazadas:
+                otro = self.perfil_repository.find_practicante_by_id(rechazada.practicante_id)
+                if otro and getattr(otro, "usuario_id", None):
+                    self.notificacion_service.create_notification(
+                        usuario_destino_id=otro.usuario_id,
+                        tipo="POSTULACION_RECHAZADA",
+                        mensaje="Tu postulación no fue seleccionada",
+                        metadata={"postulacion_id": rechazada.id},
+                    )
+        except Exception:
+            pass
 
     def reject_candidate(self, empresa_id, postulacion_id):
         self._require_repositories()

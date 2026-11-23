@@ -108,58 +108,16 @@ def select_postulacion(postulacion_id):
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    perfil_repository = container.get_perfil_repository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa()
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
-
-    postulacion_repository = container.get_postulacion_repository()
-    objetivo = postulacion_repository.find_by_id(postulacion_id)
-    otras_pendientes = []
-    if objetivo is not None:
-        otras_pendientes = [
-            item
-            for item in postulacion_repository.find_by_convocatoria_id(
-                objetivo.convocatoria_id
-            )
-            if item.id != postulacion_id
-            and item.estado in ("pendiente", "seleccionada")
-        ]
 
     try:
         postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    data = serialize_postulacion(postulacion)
 
-    try:
-        notif_service = container.get_notificacion_service()
-        perfil_repo = container.get_perfil_repository()
-        practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
-        if practicante:
-            notif_service.create_notification(
-                usuario_destino_id=practicante.usuario_id,
-                tipo="POSTULACION_SELECCIONADA",
-                mensaje="Has sido seleccionado para una convocatoria",
-                metadata={"postulacion_id": postulacion_id},
-            )
-        for rechazada in otras_pendientes:
-            otro_practicante = perfil_repo.find_practicante_by_id(
-                rechazada.practicante_id
-            )
-            if otro_practicante:
-                notif_service.create_notification(
-                    usuario_destino_id=otro_practicante.usuario_id,
-                    tipo="POSTULACION_RECHAZADA",
-                    mensaje="Tu postulación no fue seleccionada",
-                    metadata={"postulacion_id": rechazada.id},
-                )
-    except Exception:
-        current_app.logger.exception(
-            "No se pudo crear la notificación de postulación seleccionada"
-        )
-
-    return jsonify(data), 200
+    return jsonify(serialize_postulacion(postulacion)), 200
 
 
 @postulacion_bp.post("/<int:postulacion_id>/rechazar")
