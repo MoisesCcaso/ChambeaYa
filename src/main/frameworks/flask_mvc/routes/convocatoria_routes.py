@@ -1,15 +1,19 @@
 from flask import Blueprint, jsonify, request, session
 
-from application.convocatoria_application_service import ConvocatoriaApplicationService
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 convocatoria_bp = Blueprint("convocatoria", __name__, url_prefix="/convocatorias")
 
 
 def build_convocatoria_service():
-    return ConvocatoriaApplicationService(SqlAlchemyConvocatoriaRepository())
+    return container.get_convocatoria_service()
+
+
+def get_authenticated_empresa(usuario_id):
+    if usuario_id is None:
+        return None
+    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
 
 
 def serialize_convocatoria(convocatoria):
@@ -49,7 +53,7 @@ def list_my_convocatorias():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     convocatorias = build_convocatoria_service().list_for_empresa(empresa.id)
@@ -64,11 +68,7 @@ def get_convocatoria(convocatoria_id):
         return jsonify({"error": str(exc)}), 404
     if data["estado"] != "publicada":
         usuario_id = get_authenticated_user_id()
-        empresa = (
-            SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
-            if usuario_id is not None
-            else None
-        )
+        empresa = get_authenticated_empresa(usuario_id)
         if empresa is None or empresa.id != data["empresa_id"]:
             return jsonify({"error": "Convocatoria no encontrada"}), 404
     return jsonify(data), 200
@@ -80,8 +80,7 @@ def create_convocatoria():
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     if not empresa.verificada:
@@ -101,8 +100,7 @@ def publish_convocatoria(convocatoria_id):
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
 
@@ -119,7 +117,7 @@ def update_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     try:
@@ -139,7 +137,7 @@ def close_convocatoria(convocatoria_id):
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
 
@@ -155,7 +153,7 @@ def reopen_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     try:
@@ -170,7 +168,7 @@ def duplicate_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     try:
@@ -185,7 +183,7 @@ def delete_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
-    empresa = SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
     try:

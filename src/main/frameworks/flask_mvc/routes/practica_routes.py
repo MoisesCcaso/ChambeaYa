@@ -12,12 +12,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from application.notificacion_application_service import NotificacionApplicationService
-from application.practica_application_service import PracticaApplicationService
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 practica_bp = Blueprint("practica", __name__, url_prefix="/practicas")
@@ -25,12 +20,7 @@ NO_AUTENTICADO_ERROR = "No autenticado"
 
 
 def build_practica_service():
-    return PracticaApplicationService(
-        SqlAlchemyPracticaRepository(),
-        SqlAlchemyPerfilRepository(),
-        SqlAlchemyPostulacionRepository(),
-        SqlAlchemyConvocatoriaRepository(),
-    )
+    return container.get_practica_service()
 
 
 def serialize_practica(practica):
@@ -75,7 +65,7 @@ def get_authenticated_empresa():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return None
-    return SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
 
 
 @practica_bp.post("")
@@ -135,24 +125,6 @@ def register_evaluation(practica_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     data = serialize_practica(practica)
-
-    try:
-        repo = SqlAlchemyNotificacionRepository()
-        notif_service = NotificacionApplicationService(writer=repo, reader=repo)
-        perfil_repo = SqlAlchemyPerfilRepository()
-        practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
-        if practicante:
-            notif_service.create_notification(
-                usuario_destino_id=practicante.usuario_id,
-                tipo="EVALUACION_DISPONIBLE",
-                mensaje="Tu práctica tiene una nueva evaluación disponible",
-                metadata={"practica_id": practica_id},
-            )
-    except Exception:
-        current_app.logger.exception(
-            "No se pudo crear la notificación de evaluación disponible"
-        )
-
     return jsonify(data), 201
 
 

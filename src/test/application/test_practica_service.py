@@ -194,6 +194,32 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_called_once_with(self.practica)
         self.assertIs(resultado, self.practica)
 
+    def test_evalua_practica_y_notifica_al_practicante(self):
+        mock_notif = unittest.mock.Mock()
+        self.service.notificacion_service = mock_notif
+        self.practicante.usuario_id = 99
+        self.perfiles.find_practicante_by_id.return_value = self.practicante
+
+        resultado = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
+
+        self.assertIs(resultado, self.practica)
+        mock_notif.create_notification.assert_called_once_with(
+            usuario_destino_id=99,
+            tipo="EVALUACION_DISPONIBLE",
+            mensaje="Tu práctica tiene una nueva evaluación disponible",
+            metadata={"practica_id": PRACTICA_ID},
+        )
+
+    def test_evalua_practica_tolera_fallo_en_notificacion(self):
+        mock_notif = unittest.mock.Mock()
+        mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
+        self.service.notificacion_service = mock_notif
+        self.practicante.usuario_id = 99
+        self.perfiles.find_practicante_by_id.return_value = self.practicante
+
+        resultado = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
+        self.assertIs(resultado, self.practica)
+
     def test_evaluar_rechaza_practica_inexistente(self):
         self.practicas.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):

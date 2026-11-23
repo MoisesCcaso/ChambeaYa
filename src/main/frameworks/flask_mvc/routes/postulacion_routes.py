@@ -1,24 +1,13 @@
 from flask import Blueprint, current_app, jsonify, session
 
-from application.notificacion_application_service import NotificacionApplicationService
-from application.postulacion_application_service import PostulacionApplicationService
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 postulacion_bp = Blueprint("postulacion", __name__, url_prefix="/postulaciones")
 
 
 def build_postulacion_service():
-    return PostulacionApplicationService(
-        SqlAlchemyPostulacionRepository(),
-        SqlAlchemyConvocatoriaRepository(),
-        SqlAlchemyPerfilRepository(),
-        SqlAlchemyPracticaRepository(),
-    )
+    return container.get_postulacion_service()
 
 
 def serialize_postulacion(postulacion):
@@ -70,7 +59,7 @@ def get_authenticated_empresa():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return None
-    return SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
 
 
 @postulacion_bp.post("/convocatorias/<int:convocatoria_id>")
@@ -125,59 +114,16 @@ def select_postulacion(postulacion_id):
     if usuario_id is None:
         return jsonify({"error": "No autenticado"}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = get_authenticated_empresa()
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
-
-    postulacion_repository = SqlAlchemyPostulacionRepository()
-    objetivo = postulacion_repository.find_by_id(postulacion_id)
-    otras_pendientes = []
-    if objetivo is not None:
-        otras_pendientes = [
-            item
-            for item in postulacion_repository.find_by_convocatoria_id(
-                objetivo.convocatoria_id
-            )
-            if item.id != postulacion_id
-            and item.estado in ("pendiente", "seleccionada")
-        ]
 
     try:
         postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
-    data = serialize_postulacion(postulacion)
 
-    try:
-        repo = SqlAlchemyNotificacionRepository()
-        notif_service = NotificacionApplicationService(writer=repo, reader=repo)
-        perfil_repo = SqlAlchemyPerfilRepository()
-        practicante = perfil_repo.find_practicante_by_id(data["practicante_id"])
-        if practicante:
-            notif_service.create_notification(
-                usuario_destino_id=practicante.usuario_id,
-                tipo="POSTULACION_SELECCIONADA",
-                mensaje="Has sido seleccionado para una convocatoria",
-                metadata={"postulacion_id": postulacion_id},
-            )
-        for rechazada in otras_pendientes:
-            otro_practicante = perfil_repo.find_practicante_by_id(
-                rechazada.practicante_id
-            )
-            if otro_practicante:
-                notif_service.create_notification(
-                    usuario_destino_id=otro_practicante.usuario_id,
-                    tipo="POSTULACION_RECHAZADA",
-                    mensaje="Tu postulación no fue seleccionada",
-                    metadata={"postulacion_id": rechazada.id},
-                )
-    except Exception:
-        current_app.logger.exception(
-            "No se pudo crear la notificación de postulación seleccionada"
-        )
-
-    return jsonify(data), 200
+    return jsonify(serialize_postulacion(postulacion)), 200
 
 
 @postulacion_bp.post("/<int:postulacion_id>/rechazar")
@@ -196,12 +142,11 @@ def reject_postulacion(postulacion_id):
         return jsonify({"error": str(exc)}), 400
     data = serialize_postulacion(postulacion)
 
-    practicante = SqlAlchemyPerfilRepository().find_practicante_by_id(
+    practicante = container.get_perfil_repository().find_practicante_by_id(
         data["practicante_id"]
     )
     if practicante:
-        repo = SqlAlchemyNotificacionRepository()
-        NotificacionApplicationService(writer=repo, reader=repo).create_notification(
+        container.get_notificacion_service().create_notification(
             usuario_destino_id=practicante.usuario_id,
             tipo="POSTULACION_RECHAZADA",
             mensaje="Tu postulación no fue seleccionada",
@@ -239,12 +184,11 @@ def reconsider_postulacion(postulacion_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     try:
-        practicante = SqlAlchemyPerfilRepository().find_practicante_by_id(
+        practicante = container.get_perfil_repository().find_practicante_by_id(
             data["practicante_id"]
         )
         if practicante:
-            repo = SqlAlchemyNotificacionRepository()
-            NotificacionApplicationService(writer=repo, reader=repo).create_notification(
+            container.get_notificacion_service().create_notification(
                 usuario_destino_id=practicante.usuario_id,
                 tipo="POSTULACION_RECONSIDERADA",
                 mensaje="La empresa volvió a considerar tu postulación",

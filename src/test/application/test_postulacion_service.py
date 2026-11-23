@@ -303,6 +303,57 @@ class TestPostulacionApplicationService(unittest.TestCase):
         )
         self.mock_postulacion_repo.save.assert_not_called()
 
+    def test_select_candidate_envia_notificaciones_a_candidatos(self):
+        mock_notif = unittest.mock.Mock()
+        self.service.notificacion_service = mock_notif
+        postulacion_1 = Postulacion(id=1, convocatoria_id=10, practicante_id=101, estado=Postulacion.ESTADO_PENDIENTE)
+        postulacion_2 = Postulacion(id=2, convocatoria_id=10, practicante_id=102, estado=Postulacion.ESTADO_PENDIENTE)
+
+        self.mock_postulacion_repo.find_by_id.return_value = postulacion_1
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_1, postulacion_2]
+        self.mock_practica_repo.find_by_postulacion_id.return_value = None
+        self.mock_postulacion_repo.save.side_effect = lambda p: p
+
+        practicante_1 = unittest.mock.Mock(usuario_id=201)
+        practicante_2 = unittest.mock.Mock(usuario_id=202)
+        self.mock_perfil_repo.find_practicante_by_id.side_effect = lambda pid: (
+            practicante_1 if pid == 101 else practicante_2
+        )
+
+        resultado = self.service.select_candidate(empresa_id=1, postulacion_id=1)
+
+        self.assertEqual(resultado.id, 1)
+        self.assertEqual(mock_notif.create_notification.call_count, 2)
+        mock_notif.create_notification.assert_any_call(
+            usuario_destino_id=201,
+            tipo="POSTULACION_SELECCIONADA",
+            mensaje="Has sido seleccionado para una convocatoria",
+            metadata={"postulacion_id": 1},
+        )
+        mock_notif.create_notification.assert_any_call(
+            usuario_destino_id=202,
+            tipo="POSTULACION_RECHAZADA",
+            mensaje="Tu postulación no fue seleccionada",
+            metadata={"postulacion_id": 2},
+        )
+
+    def test_select_candidate_tolera_error_de_notificacion(self):
+        mock_notif = unittest.mock.Mock()
+        mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
+        self.service.notificacion_service = mock_notif
+        postulacion = Postulacion(id=1, convocatoria_id=10, practicante_id=101, estado=Postulacion.ESTADO_PENDIENTE)
+
+        self.mock_postulacion_repo.find_by_id.return_value = postulacion
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion]
+        self.mock_practica_repo.find_by_postulacion_id.return_value = None
+        self.mock_postulacion_repo.save.side_effect = lambda p: p
+        self.mock_perfil_repo.find_practicante_by_id.return_value = unittest.mock.Mock(usuario_id=201)
+
+        resultado = self.service.select_candidate(empresa_id=1, postulacion_id=1)
+        self.assertEqual(resultado.id, 1)
+
     # ------------------- Tests de reject_candidate, cancel y reconsider_candidate -------------------
 
     def test_reject_candidate_exitoso(self):

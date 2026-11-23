@@ -1,23 +1,13 @@
 from flask import Blueprint, current_app, jsonify, session
 
-from application.matching_application_service import MatchingApplicationService
-from application.notificacion_application_service import NotificacionApplicationService
-from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 matching_bp = Blueprint("matching", __name__, url_prefix="/matching")
 
 
 def build_matching_service():
-    sug_repo = SqlAlchemyMatchingRepository()
-    per_repo = SqlAlchemyPerfilRepository()
-    conv_repo = SqlAlchemyConvocatoriaRepository()
-    servicio = MatchingDominioServicio()
-    return MatchingApplicationService(sug_repo, per_repo, conv_repo, servicio)
+    return container.get_matching_service()
 
 
 def serialize_resultado(resultado):
@@ -68,8 +58,7 @@ def calculate_match():
 
     if data:
         try:
-            repo = SqlAlchemyNotificacionRepository()
-            notif_service = NotificacionApplicationService(writer=repo, reader=repo)
+            notif_service = container.get_notificacion_service()
             notif_service.create_notification(
                 usuario_destino_id=usuario_id,
                 tipo="NUEVAS_SUGERENCIAS",

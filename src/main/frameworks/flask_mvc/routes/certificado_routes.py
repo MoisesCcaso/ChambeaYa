@@ -5,15 +5,7 @@ from flask import Blueprint, current_app, jsonify, send_file, session, url_for
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from application.certificacion_application_service import CertificacionApplicationService
-from application.notificacion_application_service import NotificacionApplicationService
-from application.practica_application_service import PracticaApplicationService
-from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
-from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
@@ -21,18 +13,7 @@ NO_AUTENTICADO_ERROR = "No autenticado"
 
 
 def build_certificacion_service():
-    certificado_repository = SqlAlchemyCertificadoRepository()
-    practica_repository = SqlAlchemyPracticaRepository()
-    postulacion_repository = SqlAlchemyPostulacionRepository()
-    convocatoria_repository = SqlAlchemyConvocatoriaRepository()
-    perfil_repository = SqlAlchemyPerfilRepository()
-    notif_repo = SqlAlchemyNotificacionRepository()
-    notificacion_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
-    return CertificacionApplicationService(
-        certificado_repository, practica_repository,
-        postulacion_repository, convocatoria_repository, perfil_repository,
-        notificacion_service=notificacion_service,
-    )
+    return container.get_certificacion_service()
 
 
 def serialize_certificado(certificado):
@@ -66,7 +47,7 @@ def issue_certificado(practica_id):
     if usuario_id is None:
         return jsonify({"error": NO_AUTENTICADO_ERROR}), 401
 
-    perfil_repository = SqlAlchemyPerfilRepository()
+    perfil_repository = container.get_perfil_repository()
     empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
     if empresa is None:
         return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
@@ -97,12 +78,7 @@ def get_certificado_by_practica(practica_id):
     if usuario_id is None:
         return jsonify({"error": NO_AUTENTICADO_ERROR}), 401
 
-    practica_service = PracticaApplicationService(
-        SqlAlchemyPracticaRepository(),
-        SqlAlchemyPerfilRepository(),
-        SqlAlchemyPostulacionRepository(),
-        SqlAlchemyConvocatoriaRepository(),
-    )
+    practica_service = container.get_practica_service()
     try:
         practica_service.get_for_user(usuario_id, practica_id)
         certificado = build_certificacion_service().find_by_practica_id(practica_id)
@@ -115,7 +91,7 @@ def get_certificado_by_practica(practica_id):
 
 @certificado_bp.get("/practica/<int:practica_id>/pdf")
 def download_certificado_pdf(practica_id):
-    certificado = SqlAlchemyCertificadoRepository().find_by_practica_id(practica_id)
+    certificado = container.get_certificado_repository().find_by_practica_id(practica_id)
     if certificado is None or certificado.documento is None:
         return jsonify({"error": "Certificado no encontrado"}), 404
     if not certificado.verificar_integridad(certificado.documento.contenido):
@@ -146,7 +122,7 @@ def download_certificado_pdf(practica_id):
 
 @certificado_bp.get("/<codigo_qr_valor>/qr")
 def download_certificado_qr(codigo_qr_valor):
-    certificado = SqlAlchemyCertificadoRepository().find_by_codigo(codigo_qr_valor)
+    certificado = container.get_certificado_repository().find_by_codigo(codigo_qr_valor)
     if certificado is None or certificado.codigo_qr is None:
         return jsonify({"error": "Certificado no encontrado"}), 404
 

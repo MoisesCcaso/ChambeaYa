@@ -39,5 +39,7 @@ class AutenticacionDominioServicio:
         expiracion = datetime.now(timezone.utc) + timedelta(hours=horas_vigencia)
         return TokenRecuperacion(token_urlsafe(32), expiracion)
 
-    def validar_token(self, valor, expiracion):
+    def validar_token(self, valor, expiracion=None):
+        if isinstance(valor, TokenRecuperacion):
+            return valor.esta_vigente()
         return TokenRecuperacion(valor, expiracion).esta_vigente()
