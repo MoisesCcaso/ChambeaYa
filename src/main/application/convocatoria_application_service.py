@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from application.dtos import ConvocatoriaCommand
 from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 class ConvocatoriaApplicationService:
     def __init__(self, convocatoria_repository=None, convocatoria_fabrica=None):

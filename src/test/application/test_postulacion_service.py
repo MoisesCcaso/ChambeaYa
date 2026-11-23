@@ -13,7 +13,7 @@ from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
 from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA
+from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 
 class TestPostulacionApplicationService(unittest.TestCase):
