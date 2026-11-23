@@ -107,17 +107,17 @@ class PostulacionApplicationService:
                 )
 
         postulacion.seleccionar()
-        seleccionada = self.postulacion_repository.save(postulacion)
+        modificadas = [postulacion]
         for otra in otras:
             if otra.id == postulacion.id:
                 continue
             if otra.estado == Postulacion.ESTADO_PENDIENTE:
                 otra.rechazar()
-                self.postulacion_repository.save(otra)
+                modificadas.append(otra)
             elif otra.estado == Postulacion.ESTADO_SELECCIONADA:
                 otra.rechazar_seleccionada()
-                self.postulacion_repository.save(otra)
-        return seleccionada
+                modificadas.append(otra)
+        return self.postulacion_repository.save_all(modificadas)[0]
 
     def reject_candidate(self, empresa_id, postulacion_id):
         self._require_repositories()

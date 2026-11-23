@@ -117,6 +117,44 @@ class TestPostulacionRepository(unittest.TestCase):
         recuperada = self.repository.find_by_id(guardada.id)
         self.assertEqual(recuperada.estado, Postulacion.ESTADO_SELECCIONADA)
 
+    def test_save_all_persiste_varias_postulaciones_en_una_transaccion(self):
+        p1 = self.repository.save(Postulacion(
+            convocatoria_id=self.convocatoria_1.id,
+            practicante_id=self.practicante_1.id,
+            estado=Postulacion.ESTADO_PENDIENTE,
+        ))
+        p2 = self.repository.save(Postulacion(
+            convocatoria_id=self.convocatoria_1.id,
+            practicante_id=self.practicante_2.id,
+            estado=Postulacion.ESTADO_PENDIENTE,
+        ))
+        p1.estado = Postulacion.ESTADO_SELECCIONADA
+        p2.estado = Postulacion.ESTADO_RECHAZADA
+
+        guardadas = self.repository.save_all([p1, p2])
+
+        self.assertEqual([g.estado for g in guardadas], ["seleccionada", "rechazada"])
+        self.assertEqual(self.repository.find_by_id(p1.id).estado, Postulacion.ESTADO_SELECCIONADA)
+        self.assertEqual(self.repository.find_by_id(p2.id).estado, Postulacion.ESTADO_RECHAZADA)
+
+    def test_save_all_hace_rollback_si_falla_el_commit(self):
+        p1 = self.repository.save(Postulacion(
+            convocatoria_id=self.convocatoria_1.id,
+            practicante_id=self.practicante_1.id,
+            estado=Postulacion.ESTADO_PENDIENTE,
+        ))
+        p1.estado = Postulacion.ESTADO_SELECCIONADA
+        invalida = Postulacion(
+            convocatoria_id=99999,
+            practicante_id=self.practicante_2.id,
+            estado=Postulacion.ESTADO_PENDIENTE,
+        )
+
+        with self.assertRaises(Exception):
+            self.repository.save_all([p1, invalida])
+
+        self.assertEqual(self.repository.find_by_id(p1.id).estado, Postulacion.ESTADO_PENDIENTE)
+
     def test_find_by_id_existente_e_inexistente(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,

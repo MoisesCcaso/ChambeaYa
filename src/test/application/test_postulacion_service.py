@@ -289,7 +289,7 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_1, postulacion_2, postulacion_3]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
-        self.mock_postulacion_repo.save.side_effect = lambda p: p
+        self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
 
         resultado = self.service.select_candidate(empresa_id=1, postulacion_id=1)
 
@@ -298,8 +298,10 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertEqual(postulacion_2.estado, Postulacion.ESTADO_RECHAZADA)
         self.assertEqual(postulacion_3.estado, Postulacion.ESTADO_RECHAZADA)
 
-        # Debe guardar postulacion_1 (seleccionada), postulacion_2 (rechazada) y postulacion_3 (rechazada)
-        self.assertEqual(self.mock_postulacion_repo.save.call_count, 3)
+        self.mock_postulacion_repo.save_all.assert_called_once_with(
+            [postulacion_1, postulacion_2, postulacion_3]
+        )
+        self.mock_postulacion_repo.save.assert_not_called()
 
     # ------------------- Tests de reject_candidate, cancel y reconsider_candidate -------------------
 
