@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from domain.auth.i_usuario_repository import IUsuarioRepository
+from domain.auth.token_recuperacion import TokenRecuperacion
 from domain.auth.usuario import Usuario
 from frameworks.sqlalchemy_orm.database import db
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
@@ -49,14 +50,24 @@ class SqlAlchemyUsuarioRepository(IUsuarioRepository):
         if model is None:
             return None
 
+        token_activacion = None
+        if model.activation_token or model.activation_token_expires_at:
+            token_activacion = TokenRecuperacion(
+                model.activation_token, model.activation_token_expires_at
+            )
+
+        token_recuperacion = None
+        if model.password_reset_token or model.password_reset_expires_at:
+            token_recuperacion = TokenRecuperacion(
+                model.password_reset_token, model.password_reset_expires_at
+            )
+
         return Usuario(
             id=model.id,
             email=model.email,
             password_hash=model.password_hash,
             tipo=model.tipo,
             estado=model.estado,
-            activation_token=model.activation_token,
-            activation_token_expires_at=model.activation_token_expires_at,
-            password_reset_token=model.password_reset_token,
-            password_reset_expires_at=model.password_reset_expires_at,
+            token_activacion=token_activacion,
+            token_recuperacion=token_recuperacion,
         )

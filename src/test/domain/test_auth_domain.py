@@ -83,6 +83,10 @@ class UsuarioTest(unittest.TestCase):
         self.assertEqual(usuario.activation_token_expires_at, expiracion)
         self.assertEqual(usuario.password_reset_token, "recuperacion")
         self.assertEqual(usuario.password_reset_expires_at, expiracion)
+        self.assertIs(usuario.token_activacion, token_activacion)
+        self.assertIs(usuario.token_recuperacion, token_recuperacion)
+        self.assertTrue(usuario.token_activacion_vigente())
+        self.assertTrue(usuario.token_recuperacion_vigente())
 
     def test_actualizar_password_guarda_hash_y_limpia_token_de_recuperacion(self):
         usuario = Usuario(
