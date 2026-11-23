@@ -73,7 +73,7 @@
     document.querySelectorAll("[data-demo-login]").forEach((button) => {
         button.addEventListener("click", () => {
             form.elements.email.value = button.dataset.demoLogin;
-            form.elements.password.value = "Demo1234";
+            form.elements.password.value = button.dataset.demoPassword;
             form.elements.email.focus();
         });
     });

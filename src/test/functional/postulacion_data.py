@@ -32,10 +32,13 @@ class ApiSession:
     def call(self, method: str, path: str, payload: dict | None = None):
         """Envía la petición y devuelve ``(código_http, cuerpo_json)``."""
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
+        headers = {"Content-Type": "application/json"}
+        if method != "GET":
+            headers["X-CSRFToken"] = auth_data.csrf_token(self._opener, self.base_url)
         req = request.Request(
             f"{self.base_url}{path}",
             data=data,
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             method=method,
         )
         try:
