@@ -198,6 +198,33 @@ class TestPostulacionApplicationService(unittest.TestCase):
 
         self.assertEqual(len(resultado), 1)
         self.assertEqual(resultado[0], (p1, practicante, practica))
+        
+    def test_list_for_practicante_devuelve_atributos_nombrados(self):
+        self.mock_perfil_repo.find_practicante_by_user_id.return_value = MagicMock(id=5)
+        p1 = Postulacion(id=1, convocatoria_id=100, practicante_id=5)
+        self.mock_postulacion_repo.find_by_practicante_id.return_value = [p1]
+        c1 = Convocatoria(id=100, titulo="Convo 100")
+        self.mock_convocatoria_repo.find_by_id.return_value = c1
+
+        resultado = self.service.list_for_practicante(usuario_id=2)
+
+        self.assertIs(resultado[0].postulacion, p1)
+        self.assertIs(resultado[0].convocatoria, c1)
+
+    def test_list_for_convocatoria_devuelve_atributos_nombrados(self):
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=3)
+        p1 = Postulacion(id=1, convocatoria_id=10, practicante_id=50)
+        self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [p1]
+        practicante = MagicMock(id=50)
+        practica = MagicMock(id=1000)
+        self.mock_perfil_repo.find_practicante_by_id.return_value = practicante
+        self.mock_practica_repo.find_by_postulacion_id.return_value = practica
+
+        resultado = self.service.list_for_convocatoria(empresa_id=3, convocatoria_id=10)
+
+        self.assertIs(resultado[0].postulacion, p1)
+        self.assertIs(resultado[0].practicante, practicante)
+        self.assertIs(resultado[0].practica, practica)    
 
     def test_require_owned_convocatoria_en_list_for_convocatoria(self):
         # Convocatoria inexistente

@@ -3,6 +3,7 @@ from typing import Final
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
 from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"
 
@@ -58,7 +59,7 @@ class PostulacionApplicationService:
         if practicante is None:
             raise ValueError(NOT_FOUND_PRACTICANTE)
         return [
-            (
+            PostulacionDetalleDTO(
                 postulacion,
                 self.convocatoria_repository.find_by_id(postulacion.convocatoria_id),
             )
@@ -71,11 +72,9 @@ class PostulacionApplicationService:
         self._require_repositories()
         self._require_owned_convocatoria(empresa_id, convocatoria_id)
         return [
-            (
+            CandidatoConvocatoriaDTO(
                 postulacion,
-                self.perfil_repository.find_practicante_by_id(
-                    postulacion.practicante_id
-                ),
+                self.perfil_repository.find_practicante_by_id(postulacion.practicante_id),
                 self.practica_repository.find_by_postulacion_id(postulacion.id),
             )
             for postulacion in self.postulacion_repository.find_by_convocatoria_id(

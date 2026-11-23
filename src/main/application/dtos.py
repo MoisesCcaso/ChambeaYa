@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import NamedTuple, Optional
+
+from domain.convocatorias.convocatoria import Convocatoria
+from domain.convocatorias.postulacion import Postulacion
 
 UNSET = object()
 
@@ -79,3 +82,17 @@ class ActualizarEmpresaDTO:
             razon_social=payload.get("razon_social"),
             ruc=payload.get("ruc"),
         )
+
+class PostulacionDetalleDTO(NamedTuple):
+    """Resultado de list_for_practicante (Replace Array with Object)."""
+
+    postulacion: Postulacion
+    convocatoria: Optional[Convocatoria]
+
+
+class CandidatoConvocatoriaDTO(NamedTuple):
+    """Resultado de list_for_convocatoria (Replace Array with Object)."""
+
+    postulacion: Postulacion
+    practicante: Optional[object]
+    practica: Optional[object]
