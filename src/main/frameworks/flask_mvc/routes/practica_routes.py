@@ -12,12 +12,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from application.notificacion_application_service import NotificacionApplicationService
-from application.practica_application_service import PracticaApplicationService
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 practica_bp = Blueprint("practica", __name__, url_prefix="/practicas")
@@ -25,15 +20,7 @@ NO_AUTENTICADO_ERROR = "No autenticado"
 
 
 def build_practica_service():
-    notif_repo = SqlAlchemyNotificacionRepository()
-    notificacion_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
-    return PracticaApplicationService(
-        SqlAlchemyPracticaRepository(),
-        SqlAlchemyPerfilRepository(),
-        SqlAlchemyPostulacionRepository(),
-        SqlAlchemyConvocatoriaRepository(),
-        notificacion_service=notificacion_service,
-    )
+    return container.get_practica_service()
 
 
 def serialize_practica(practica):
@@ -78,7 +65,7 @@ def get_authenticated_empresa():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return None
-    return SqlAlchemyPerfilRepository().find_empresa_by_user_id(usuario_id)
+    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
 
 
 @practica_bp.post("")

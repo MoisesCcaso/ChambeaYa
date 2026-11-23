@@ -1,20 +1,17 @@
 from flask import Blueprint, jsonify, request, session
 
-from application.empresa_application_service import EmpresaApplicationService
-from application.practicante_application_service import PracticanteApplicationService
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
 
 
 def build_practicante_service():
-    return PracticanteApplicationService(SqlAlchemyPerfilRepository(), SqlAlchemyUsuarioRepository())
+    return container.get_practicante_service()
 
 
 def build_empresa_service():
-    return EmpresaApplicationService(SqlAlchemyPerfilRepository(), SqlAlchemyUsuarioRepository())
+    return container.get_empresa_service()
 
 
 def serialize_practicante(practicante):
@@ -53,7 +50,7 @@ def get_my_profile():
         return jsonify({"error": "No autenticado"}), 401
 
     try:
-        usuario = SqlAlchemyUsuarioRepository().find_by_id(usuario_id)
+        usuario = container.get_usuario_repository().find_by_id(usuario_id)
         if usuario is None:
             return jsonify({"error": "Usuario no encontrado"}), 404
         if usuario.tipo == "empresa":

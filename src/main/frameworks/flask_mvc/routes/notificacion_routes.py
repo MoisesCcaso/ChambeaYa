@@ -1,15 +1,13 @@
 from flask import Blueprint, jsonify, session
 
-from application.notificacion_application_service import NotificacionApplicationService
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 notificacion_bp = Blueprint("notificacion", __name__, url_prefix="/notificaciones")
 
 
 def build_notificacion_service():
-    repo = SqlAlchemyNotificacionRepository()
-    return NotificacionApplicationService(writer=repo, reader=repo)
+    return container.get_notificacion_service()
 
 
 def serialize_notificacion(notificacion):

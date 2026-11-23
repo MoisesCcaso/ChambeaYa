@@ -1,19 +1,14 @@
-from flask import Blueprint, current_app, jsonify, request, session
+from flask import Blueprint, jsonify, request, session
 
 from application.email_delivery_error import EmailDeliveryError
-from application.usuario_application_service import UsuarioApplicationService
-from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from frameworks.flask_mvc.dependencies import container
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
 def build_usuario_service():
-    return UsuarioApplicationService(
-        SqlAlchemyUsuarioRepository(),
-        email_sender=SmtpAuthEmailSender.from_config(current_app.config),
-    )
+    return container.get_usuario_service()
 
 
 def serialize_usuario(usuario):
