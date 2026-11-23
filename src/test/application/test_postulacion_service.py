@@ -313,7 +313,7 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_1, postulacion_2]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
-        self.mock_postulacion_repo.save.side_effect = lambda p: p
+        self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
 
         practicante_1 = unittest.mock.Mock(usuario_id=201)
         practicante_2 = unittest.mock.Mock(usuario_id=202)
@@ -348,7 +348,7 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
-        self.mock_postulacion_repo.save.side_effect = lambda p: p
+        self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
         self.mock_perfil_repo.find_practicante_by_id.return_value = unittest.mock.Mock(usuario_id=201)
 
         resultado = self.service.select_candidate(empresa_id=1, postulacion_id=1)
