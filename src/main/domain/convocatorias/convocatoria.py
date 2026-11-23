@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime, timezone
+from domain.convocatorias.estado_convocatoria import estado_desde_nombre
 
 
 class Convocatoria:
@@ -25,34 +26,37 @@ class Convocatoria:
         self.empresa_id = empresa_id
         self.titulo = titulo
         self.descripcion = descripcion
-        self.estado = estado
+        self._estado = estado_desde_nombre(estado, fecha_cierre)
         self.habilidades_requeridas = habilidades_requeridas or []
         self.beneficios = beneficios or []
         self.fecha_publicacion = fecha_publicacion
-        self.fecha_cierre = fecha_cierre
+
+    @property
+    def estado(self):
+        return self._estado.nombre
+
+    @estado.setter
+    def estado(self, nombre):
+        self._estado = estado_desde_nombre(nombre)
+
+    @property
+    def fecha_cierre(self):
+        """Solo tiene valor mientras la convocatoria esta cerrada."""
+        return self._estado.fecha_cierre
 
     def publicar(self):
         """Publica la convocatoria si está en estado borrador."""
-        if self.estado != self.ESTADO_BORRADOR:
-            raise ValueError("Solo una convocatoria en borrador puede publicarse")
-
-        self.estado = self.ESTADO_PUBLICADA
+        self._estado = self._estado.publicar()
         self.fecha_publicacion = datetime.now(timezone.utc)
         return self
 
     def cerrar(self):
-        if self.estado != self.ESTADO_PUBLICADA:
-            raise ValueError("Solo una convocatoria publicada puede cerrarse")
-        self.estado = self.ESTADO_CERRADA
-        self.fecha_cierre = datetime.now(timezone.utc)
+        self._estado = self._estado.cerrar(datetime.now(timezone.utc))
         return self
 
     def reabrir(self):
-        if self.estado != self.ESTADO_CERRADA:
-            raise ValueError("Solo una convocatoria cerrada puede reabrirse")
-        self.estado = self.ESTADO_PUBLICADA
+        self._estado = self._estado.reabrir()
         self.fecha_publicacion = datetime.now(timezone.utc)
-        self.fecha_cierre = None
         return self
 
     def validar_eliminacion(self):
