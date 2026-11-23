@@ -610,15 +610,25 @@
                         <td>${C.statusBadge(item.estado)}</td>
                         <td>${C.formatDate(item.fecha_publicacion)}</td>
                         <td class="align-right"><div class="table-actions">
-                            ${item.estado === "borrador" ? `<button class="table-action" data-edit-opening="${item.id}">${C.icon("edit")} Editar</button><button class="table-action" data-publish-opening="${item.id}">${C.icon("send")} Publicar</button>` : ""}
-                            ${item.estado === "publicada" ? `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action danger" data-close-opening="${item.id}">${C.icon("x")} Cerrar</button>` : ""}
-                            ${item.estado === "cerrada" ? `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action" data-reopen-opening="${item.id}">${C.icon("refresh")} Reabrir</button>` : ""}
-                            <button class="table-action" data-duplicate-opening="${item.id}">${C.icon("copy")} Duplicar</button>
-                            ${item.estado === "borrador" ? `<button class="table-action danger" data-delete-opening="${item.id}">${C.icon("trash")} Eliminar</button>` : ""}
+                            ${openingActionsHTML(item)}
                         </div></td>
                     </tr>`
             )
             .join("");
+    }
+
+    function openingActionsHTML(item) {
+        const duplicate = `<button class="table-action" data-duplicate-opening="${item.id}">${C.icon("copy")} Duplicar</button>`;
+        if (item.estado === "borrador") {
+            return `<button class="table-action" data-edit-opening="${item.id}">${C.icon("edit")} Editar</button><button class="table-action" data-publish-opening="${item.id}">${C.icon("send")} Publicar</button>${duplicate}<button class="table-action danger" data-delete-opening="${item.id}">${C.icon("trash")} Eliminar</button>`;
+        }
+        if (item.estado === "publicada") {
+            return `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action danger" data-close-opening="${item.id}">${C.icon("x")} Cerrar</button>${duplicate}`;
+        }
+        if (item.estado === "cerrada") {
+            return `<button class="table-action" data-candidates-opening="${item.id}">${C.icon("users")} Candidatos</button><button class="table-action" data-reopen-opening="${item.id}">${C.icon("refresh")} Reabrir</button>${duplicate}`;
+        }
+        return duplicate;
     }
 
     function practiceTitle(practice) {
@@ -1518,18 +1528,7 @@
         bindSession();
     }
 
-    async function initialize() {
-        try {
-            state.user = await C.api("/auth/me");
-        } catch (error) {
-            window.location.assign("/ingresar");
-            return;
-        }
-
-        configureRole();
-        bindEvents();
-        await loadProfile();
-
+    async function loadRoleData() {
         const shared = [loadNotifications()];
         if (state.profile) {
             shared.push(loadPractices());
@@ -1541,13 +1540,11 @@
         } else if (role() === "practicante") {
             shared.push(loadOpportunities());
         }
-        try {
-            await Promise.all(shared);
-            if (role() === "practicante") await loadCertificates();
-        } catch (error) {
-            C.toast(error.message, "error", 6500);
-        }
+        await Promise.all(shared);
+        if (role() === "practicante") await loadCertificates();
+    }
 
+    function showInitialView() {
         renderDashboard();
         $("#app-loading").hidden = true;
         $("#app-shell").hidden = false;
@@ -1562,6 +1559,27 @@
                     : "Completa tus datos para habilitar todas las funciones."
             );
         }
+    }
+
+    async function initialize() {
+        try {
+            state.user = await C.api("/auth/me");
+        } catch (error) {
+            window.location.assign("/ingresar");
+            return;
+        }
+
+        configureRole();
+        bindEvents();
+        await loadProfile();
+
+        try {
+            await loadRoleData();
+        } catch (error) {
+            C.toast(error.message, "error", 6500);
+        }
+
+        showInitialView();
     }
 
     initialize();
