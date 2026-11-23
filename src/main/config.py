@@ -35,6 +35,7 @@ class Config:
     MAIL_TIMEOUT = int(os.getenv("MAIL_TIMEOUT", "15"))
     EXPOSE_AUTH_TOKENS = env_bool("EXPOSE_AUTH_TOKENS", False)
     DEMO_MODE = False
+    DEMO_PASSWORD = os.getenv("DEMO_PASSWORD")
 
 
 class DevelopmentConfig(Config):

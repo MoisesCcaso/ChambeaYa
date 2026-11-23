@@ -34,9 +34,6 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
         model.estado = postulacion.estado
         return model
 
-        db.session.commit()
-        return self._to_postulacion_domain(model)
-
     def find_by_id(self, postulacion_id):
         model = db.session.get(PostulacionModel, postulacion_id)
         return self._to_postulacion_domain(model)
