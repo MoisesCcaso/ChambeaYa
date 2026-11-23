@@ -4,7 +4,8 @@ from application.email_delivery_error import EmailDeliveryError
 from application.usuario_application_service import UsuarioApplicationService
 from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
-
+from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
+from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -12,6 +13,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 def build_usuario_service():
     return UsuarioApplicationService(
         SqlAlchemyUsuarioRepository(),
+        AutenticacionDominioServicio(WerkzeugPasswordHasher()),
         email_sender=SmtpAuthEmailSender.from_config(current_app.config),
     )
 
