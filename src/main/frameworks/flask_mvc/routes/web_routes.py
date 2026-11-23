@@ -2,6 +2,7 @@ from flask import Blueprint, redirect, render_template, session, url_for
 
 
 web_bp = Blueprint("web", __name__)
+AUTH_TEMPLATE = "auth.html"
 
 
 @web_bp.get("/")
@@ -13,29 +14,29 @@ def landing():
 def login_view():
     if session.get("usuario_id") is not None:
         return redirect(url_for("web.app_view"))
-    return render_template("auth.html", mode="login")
+    return render_template(AUTH_TEMPLATE, mode="login")
 
 
 @web_bp.get("/registro")
 def register_view():
     if session.get("usuario_id") is not None:
         return redirect(url_for("web.app_view"))
-    return render_template("auth.html", mode="register")
+    return render_template(AUTH_TEMPLATE, mode="register")
 
 
 @web_bp.get("/activar")
 def activate_view():
-    return render_template("auth.html", mode="activate")
+    return render_template(AUTH_TEMPLATE, mode="activate")
 
 
 @web_bp.get("/recuperar")
 def recover_view():
-    return render_template("auth.html", mode="recover")
+    return render_template(AUTH_TEMPLATE, mode="recover")
 
 
 @web_bp.get("/restablecer")
 def reset_view():
-    return render_template("auth.html", mode="reset")
+    return render_template(AUTH_TEMPLATE, mode="reset")
 
 
 @web_bp.get("/verificar-certificado")

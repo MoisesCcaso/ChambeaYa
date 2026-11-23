@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, jsonify, session
 
 from frameworks.flask_mvc.dependencies import container
+from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
 
 
 postulacion_bp = Blueprint("postulacion", __name__, url_prefix="/postulaciones")
@@ -66,7 +67,7 @@ def get_authenticated_empresa():
 def apply_to_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
     try:
         postulacion = build_postulacion_service().apply(usuario_id, convocatoria_id)
     except ValueError as exc:
@@ -78,7 +79,7 @@ def apply_to_convocatoria(convocatoria_id):
 def list_my_postulaciones():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
     try:
         resultados = build_postulacion_service().list_for_practicante(usuario_id)
     except ValueError as exc:
@@ -93,9 +94,9 @@ def list_my_postulaciones():
 def list_convocatoria_postulaciones(convocatoria_id):
     empresa = get_authenticated_empresa()
     if get_authenticated_user_id() is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
         resultados = build_postulacion_service().list_for_convocatoria(
             empresa.id, convocatoria_id
@@ -112,11 +113,11 @@ def list_convocatoria_postulaciones(convocatoria_id):
 def select_postulacion(postulacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
 
     try:
         postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
@@ -130,11 +131,11 @@ def select_postulacion(postulacion_id):
 def reject_postulacion(postulacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
 
     try:
         postulacion = build_postulacion_service().reject_candidate(empresa.id, postulacion_id)
@@ -159,7 +160,7 @@ def reject_postulacion(postulacion_id):
 def cancel_postulacion(postulacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
     try:
         data = serialize_postulacion(
             build_postulacion_service().cancel(usuario_id, postulacion_id)
@@ -173,10 +174,10 @@ def cancel_postulacion(postulacion_id):
 def reconsider_postulacion(postulacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": "No autenticado"}), 401
+        return jsonify({"error": NO_AUTENTICADO}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": "Empresa no encontrada para este usuario"}), 400
+        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
     try:
         data = serialize_postulacion(
             build_postulacion_service().reconsider_candidate(empresa.id, postulacion_id)
