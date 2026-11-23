@@ -9,6 +9,7 @@ from application.postulacion_application_service import PostulacionApplicationSe
 from application.practica_application_service import PracticaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
 from application.usuario_application_service import UsuarioApplicationService
+from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
@@ -19,6 +20,7 @@ from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilReposito
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 
 class DependencyContainer:
@@ -65,6 +67,7 @@ class DependencyContainer:
             email_sender = SmtpAuthEmailSender()
         return UsuarioApplicationService(
             self.get_usuario_repository(),
+            AutenticacionDominioServicio(WerkzeugPasswordHasher()),
             email_sender=email_sender,
         )
 
