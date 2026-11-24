@@ -236,3 +236,6 @@ Desktop.ini
 
 # SonarQube
 /.scannerwork/
+
+# Poetry instalado por el pipeline de Jenkins
+.poetry-venv/
