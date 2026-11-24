@@ -404,7 +404,6 @@ por dominio, infraestructura, aplicación, integración y funcionales.
 ```text
 ChambeaYa/
 ├── pyproject.toml / poetry.lock   ← dependencias y build (Poetry)
-├── requirements.txt               ← dependencias para pip
 ├── sonar-project.properties       ← configuración de SonarQube
 ├── Jenkinsfile                    ← pipeline de CI/CD
 ├── demo.ps1                       ← demo en Windows
@@ -1233,6 +1232,7 @@ El proyecto requiere **Python 3.12 o superior** y **Poetry 2.4.3**, la versión 
 
 - `.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
 - `.env` es un archivo distinto: contiene la configuración local de Flask, como la clave secreta y los datos SMTP. No se sube al repositorio.
+- Las dependencias se declaran solo en `pyproject.toml`. Si algún entorno exige un `requirements.txt`, se genera en el momento con `poetry export -f requirements.txt -o requirements.txt` (requiere el plugin `poetry-plugin-export`) y no se versiona.
 
 ## 9.1 Instalación y arranque
 
