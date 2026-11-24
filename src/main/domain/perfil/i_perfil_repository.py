@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from abc import ABC
 from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.perfil.i_empresa_repository import IEmpresaRepository

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
 from frameworks.sqlalchemy_orm.database import db

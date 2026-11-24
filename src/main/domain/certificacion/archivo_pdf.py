@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 import hashlib
 class ArchivoPDF:
     def __init__(self, url=None, hash_integridad=None, contenido=None):

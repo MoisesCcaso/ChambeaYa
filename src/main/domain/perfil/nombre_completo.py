@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 class NombreCompleto:
     def __init__(self, nombres=None, apellidos=None):
         self.nombres = nombres

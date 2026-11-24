@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-}
 from typing import Final
 
 from domain.convocatorias.postulacion import Postulacion

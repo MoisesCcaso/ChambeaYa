@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from domain.auth.i_usuario_repository import IUsuarioRepository
 from domain.auth.token_recuperacion import TokenRecuperacion
 from domain.auth.usuario import Usuario

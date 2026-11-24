@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from domain.auth.token_recuperacion import TokenRecuperacion
 
 

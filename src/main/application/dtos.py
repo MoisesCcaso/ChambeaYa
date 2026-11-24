@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
