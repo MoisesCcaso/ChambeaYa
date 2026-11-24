@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 from domain.notificaciones.notificacion import Notificacion
 
 

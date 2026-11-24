@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
 from domain.practica_evaluacion.practica import Practica

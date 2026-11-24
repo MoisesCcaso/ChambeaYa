@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 

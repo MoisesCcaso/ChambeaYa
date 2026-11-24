@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 class RUC:
     def __init__(self, numero=None):
         self.numero = numero

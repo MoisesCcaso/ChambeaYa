@@ -161,7 +161,7 @@ Las entidades tienen identidad propia (id) y encapsulan comportamiento de negoci
 | `Practicante` | perfil | nombres, apellidos, dni, habilidades, score_reputacion | actualizar_datos(), agregar_habilidad(), verificar_identidad(), calcular_score() |
 | `Empresa` | perfil | razon_social, ruc, verificada | verificar_ruc() |
 | `Convocatoria` | convocatorias | titulo, descripcion, estado, habilidades_requeridas, beneficios | publicar(), cerrar(), reabrir(), actualizar(), validar_eliminacion() |
-| `Postulacion` | convocatorias | estado (pendiente/seleccionada/rechazada/cancelada) | aceptar(), rechazar(), cancelar(), reactivar(), reconsiderar() |
+| `Postulacion` | convocatorias | estado (pendiente/seleccionada/rechazada/cancelada) | seleccionar(), rechazar(), cancelar(), reactivar(), reconsiderar() |
 | `Sugerencia` | matching | puntaje_match, habilidades_coincidentes | calcular_compatibilidad() |
 | `Practica` | practica_evaluacion | estado (EN_CURSO/FINALIZADA), entregables, evaluaciones | subir_entregable(), registrar_evaluacion(), finalizar() |
 | `Entregable` | practica_evaluacion | archivo, fecha_subida | (creado por factory estática) |
@@ -404,7 +404,6 @@ por dominio, infraestructura, aplicación, integración y funcionales.
 ```text
 ChambeaYa/
 ├── pyproject.toml / poetry.lock   ← dependencias y build (Poetry)
-├── requirements.txt               ← dependencias para pip
 ├── sonar-project.properties       ← configuración de SonarQube
 ├── Jenkinsfile                    ← pipeline de CI/CD
 ├── demo.ps1                       ← demo en Windows
@@ -423,13 +422,13 @@ ChambeaYa/
     │   │   │   ├── static/
     │   │   │   └── templates/
     │   │   ├── migrations/
-    │   │   ├── schemas/
     │   │   └── sqlalchemy_orm/
     │   └── infrastructure/
     └── test/
         ├── conftest.py
         ├── application/
         ├── domain/
+        ├── frameworks/            ← plantillas HTML y accesibilidad
         ├── infrastructure/
         ├── integration/
         └── functional/            ← Selenium (Page Objects)
@@ -1233,6 +1232,7 @@ El proyecto requiere **Python 3.12 o superior** y **Poetry 2.4.3**, la versión 
 
 - `.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
 - `.env` es un archivo distinto: contiene la configuración local de Flask, como la clave secreta y los datos SMTP. No se sube al repositorio.
+- Las dependencias se declaran solo en `pyproject.toml`. Si algún entorno exige un `requirements.txt`, se genera en el momento con `poetry export -f requirements.txt -o requirements.txt` (requiere el plugin `poetry-plugin-export`) y no se versiona.
 
 ## 9.1 Instalación y arranque
 
@@ -1623,7 +1623,7 @@ La suite está en `src/test/` y se divide por capa:
 
 | Carpeta | Tipo | Necesita la app levantada |
 |---------|------|---------------------------|
-| `domain/`, `application/`, `infrastructure/` | Unitarias | No |
+| `domain/`, `application/`, `infrastructure/`, `frameworks/` | Unitarias | No |
 | `integration/` | Integración (flujos de negocio con Flask y SQLite en memoria) | No |
 | `functional/` | Funcionales de caja negra con Selenium | Sí, en modo demo |
 

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 class Notificacion:
     TIPO_POSTULACION_SELECCIONADA = "POSTULACION_SELECCIONADA"
     TIPO_EVALUACION_DISPONIBLE = "EVALUACION_DISPONIBLE"

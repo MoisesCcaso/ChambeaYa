@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from domain.practica_evaluacion.practica import Practica
 from domain.practica_evaluacion.entregable import Entregable

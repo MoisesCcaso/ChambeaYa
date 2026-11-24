@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 import hashlib
 from uuid import uuid4
 class CodigoQR:

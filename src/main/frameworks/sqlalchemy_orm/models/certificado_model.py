@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from frameworks.sqlalchemy_orm.database import db
 from frameworks.sqlalchemy_orm.models.mixins import TimestampMixin
 

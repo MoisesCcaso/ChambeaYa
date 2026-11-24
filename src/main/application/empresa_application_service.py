@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from application.dtos import ActualizarEmpresaDTO
 from domain.auth.usuario import Usuario
 from domain.perfil.empresa import Empresa

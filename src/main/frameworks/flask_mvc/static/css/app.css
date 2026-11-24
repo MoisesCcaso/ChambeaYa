@@ -128,14 +128,6 @@ h3 {
     object-position: center;
 }
 
-.brand-logo-square {
-    display: block;
-    width: 96px;
-    height: auto;
-    object-fit: contain;
-    object-position: center;
-}
-
 .icon {
     display: inline-block;
     width: 1.1em;
