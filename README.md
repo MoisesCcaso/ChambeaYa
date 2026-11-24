@@ -422,7 +422,6 @@ ChambeaYa/
     │   │   │   ├── static/
     │   │   │   └── templates/
     │   │   ├── migrations/
-    │   │   ├── schemas/
     │   │   └── sqlalchemy_orm/
     │   └── infrastructure/
     └── test/
