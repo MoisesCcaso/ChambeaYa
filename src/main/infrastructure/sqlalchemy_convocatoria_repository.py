@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 import json
 
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository

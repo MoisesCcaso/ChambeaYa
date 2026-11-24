@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 import json
 
 from domain.perfil.i_empresa_repository import IEmpresaRepository

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
 from domain.perfil.nombre_completo import NombreCompleto
 
 
