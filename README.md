@@ -428,6 +428,7 @@ ChambeaYa/
         ├── conftest.py
         ├── application/
         ├── domain/
+        ├── frameworks/            ← plantillas HTML y accesibilidad
         ├── infrastructure/
         ├── integration/
         └── functional/            ← Selenium (Page Objects)
@@ -1622,7 +1623,7 @@ La suite está en `src/test/` y se divide por capa:
 
 | Carpeta | Tipo | Necesita la app levantada |
 |---------|------|---------------------------|
-| `domain/`, `application/`, `infrastructure/` | Unitarias | No |
+| `domain/`, `application/`, `infrastructure/`, `frameworks/` | Unitarias | No |
 | `integration/` | Integración (flujos de negocio con Flask y SQLite en memoria) | No |
 | `functional/` | Funcionales de caja negra con Selenium | Sí, en modo demo |
 
