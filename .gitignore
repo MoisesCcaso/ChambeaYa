@@ -239,3 +239,6 @@ Desktop.ini
 
 # Poetry instalado por el pipeline de Jenkins
 .poetry-venv/
+
+# Enunciados e informes del curso: no van en el repo
+/*.pdf

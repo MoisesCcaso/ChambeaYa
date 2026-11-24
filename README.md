@@ -2,6 +2,19 @@
 
 Plataforma web para la gestión de prácticas preprofesionales, conectando estudiantes y empresas mediante postulaciones, seguimiento de procesos, recomendaciones basadas en habilidades y certificación digital de prácticas.
 
+**Stack:** Python 3.12+ · Flask 3 · SQLAlchemy · Alembic · SQLite · Poetry · pytest · Selenium · SonarQube · Jenkins
+
+## Inicio rápido
+
+```bash
+poetry install
+cp .env.example .env            # Windows: Copy-Item .env.example .env
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
+```
+
+Abre `http://127.0.0.1:5000`. Para una demo con datos precargados, consulta el [modo demo](#92-modo-demo).
+
 ---
 
 ## Índice
@@ -46,13 +59,17 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
     - [6.5.7 Arquitectura en Capas](#657-arquitectura-en-capas)
 - [7. Gestión del Proyecto](#7-gestión-del-proyecto)
   - [7.1 Tablero Trello](#71-tablero-trello)
-  - [7.3 Distribución de responsabilidades](#73-distribución-de-responsabilidades)
+  - [7.2 Distribución de responsabilidades](#72-distribución-de-responsabilidades)
 - [8. Tecnologías](#8-tecnologías)
 - [9. Ejecución local](#9-ejecución-local)
-- [10. Pruebas](#10-pruebas)
-- [11. Migraciones](#11-migraciones)
-- [12. Endpoints iniciales](#12-endpoints-iniciales)
-- [13. Documentación complementaria](#13-documentación-complementaria)
+  - [9.1 Instalación y arranque](#91-instalación-y-arranque)
+  - [9.2 Modo demo](#92-modo-demo)
+  - [9.3 Verificación de correo (SMTP)](#93-verificación-de-correo-smtp)
+- [10. Interfaz web](#10-interfaz-web)
+- [11. API REST](#11-api-rest)
+- [12. Persistencia y migraciones](#12-persistencia-y-migraciones)
+- [13. Pruebas](#13-pruebas)
+- [14. Integración y despliegue continuo (Jenkins)](#14-integración-y-despliegue-continuo-jenkins)
 
 ---
 
@@ -382,11 +399,18 @@ El proyecto sigue una arquitectura en 4 capas con la regla de dependencia hacia 
 
 El código de implementación está en `src/main/` y las pruebas en `src/test/`,
 separados según la estructura solicitada para el laboratorio. La suite se divide
-por dominio, infraestructura, aplicación e integración.
+por dominio, infraestructura, aplicación, integración y funcionales.
 
 ```text
 ChambeaYa/
-├── requirements.txt
+├── pyproject.toml / poetry.lock   ← dependencias y build (Poetry)
+├── requirements.txt               ← dependencias para pip
+├── sonar-project.properties       ← configuración de SonarQube
+├── Jenkinsfile                    ← pipeline de CI/CD
+├── demo.ps1                       ← demo en Windows
+├── scripts/
+│   ├── demo_reset.sh              ← demo en Linux/macOS
+│   └── ci/deploy.sh               ← despliegue usado por Jenkins
 └── src/
     ├── main/
     │   ├── config.py
@@ -407,7 +431,8 @@ ChambeaYa/
         ├── application/
         ├── domain/
         ├── infrastructure/
-        └── integration/
+        ├── integration/
+        └── functional/            ← Selenium (Page Objects)
 ```
 
 ## 5.3 Clean Architecture / DDD
@@ -1038,7 +1063,7 @@ class RUC:
 
 ### 6.5.3 Servicios de Dominio
 
-Operaciones que no pertenecen naturalmente a una sola entidad. Son stateless y coordinant varias entidades o value objects.
+Operaciones que no pertenecen naturalmente a una sola entidad. Son stateless y coordinan varias entidades o value objects.
 
 ```python
 # src/main/domain/auth/autenticacion_dominio_servicio.py
@@ -1173,8 +1198,7 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 
 <img width="1856" height="818" alt="TableroTrello-ChambeaYa" src="https://github.com/user-attachments/assets/0502f27f-b8a4-43d3-8807-3707745d04c8" />
 
-
-## 7.3 Distribución de responsabilidades
+## 7.2 Distribución de responsabilidades
 
 | Integrante | Rango asignado | Módulo |
 |------------|----------------|--------|
@@ -1190,50 +1214,38 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 
 # 8. Tecnologías
 
-- Python 3.12 o superior
-- Flask 3
-- SQLAlchemy y Flask-SQLAlchemy
-- Alembic y Flask-Migrate
-- SQLite
-- ReportLab y QRCode
+| Área | Herramientas |
+|------|--------------|
+| Lenguaje | Python 3.12 o superior |
+| Web | Flask 3, Flask-WTF (CSRF), plantillas Jinja, CSS y JavaScript nativo |
+| Persistencia | SQLAlchemy, Flask-SQLAlchemy, Alembic, Flask-Migrate, SQLite |
+| Documentos | ReportLab (PDF) y QRCode |
+| Dependencias y build | Poetry 2.4.3 |
+| Pruebas | pytest, pytest-cov, pytest-html, Selenium WebDriver |
+| Calidad | Ruff, SonarQube |
+| CI/CD | Jenkins |
 
 ---
 
 # 9. Ejecución local
 
-`.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del
-repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
-`.env` es un archivo distinto: contiene configuración local de Flask, como la
-clave secreta y los datos SMTP.
+El proyecto requiere **Python 3.12 o superior** y **Poetry 2.4.3**, la versión registrada en `poetry.lock`.
 
-### Windows (PowerShell)
+- `.venv` es el entorno de Python del proyecto. Poetry lo crea dentro del repositorio porque `poetry.toml` configura `virtualenvs.in-project = true`.
+- `.env` es un archivo distinto: contiene la configuración local de Flask, como la clave secreta y los datos SMTP. No se sube al repositorio.
 
-Instalar las dependencias en el entorno `.venv` de Poetry y copiar la configuración local:
+## 9.1 Instalación y arranque
+
+**Windows (PowerShell):**
 
 ```powershell
 poetry install
 Copy-Item .env.example .env
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
-Crear o actualizar la base de datos:
-
-```powershell
-poetry run flask `
-  --app frameworks.flask_mvc.app:create_app `
-  db upgrade
-```
-
-Iniciar la aplicación:
-
-```powershell
-poetry run flask `
-  --app frameworks.flask_mvc.app:create_app `
-  run --debug
-```
-
-### Linux o macOS
-
-Crear y activar el entorno:
+**Linux o macOS:**
 
 ```bash
 poetry install
@@ -1242,23 +1254,93 @@ poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
 poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```
 
-La aplicación estará disponible en `http://127.0.0.1:5000`. Para comprobarla:
+La aplicación queda disponible en `http://127.0.0.1:5000`. Para comprobarla:
 
 ```bash
 curl http://127.0.0.1:5000/health
+# {"service":"ChambeaYa","status":"ok"}
 ```
 
-La respuesta esperada es:
+**Instalar la versión correcta de Poetry.** Comprueba que `poetry --version` muestre exactamente `2.4.3` antes de instalar las dependencias. En Ubuntu, si la versión del sistema es antigua, instala la requerida con pipx y usa su ruta explícita para no seleccionar la de `/usr/bin/poetry`:
 
-```json
-{"service":"ChambeaYa","status":"ok"}
+```bash
+# El sudo se usa solo para instalar pipx desde los paquetes de Ubuntu.
+sudo apt install pipx
+pipx ensurepath
+pipx install "poetry==2.4.3"
+~/.local/bin/poetry --version
+~/.local/bin/poetry install
 ```
 
-### Verificación de correo
+En Windows y macOS, instala Poetry 2.4.3 siguiendo la [guía oficial de instalación](https://python-poetry.org/docs/#installation).
 
-Las cuentas nuevas permanecen en estado `pendiente` hasta que el usuario abre
-el enlace de activación enviado a su correo. Para utilizar un servidor SMTP
-real, configura en `.env`:
+## 9.2 Modo demo
+
+La demo usa una base SQLite independiente (`instance/chambeaya-demo.db`) con datos precargados. No modifica `chambeaya.db` ni requiere servicios externos.
+
+| Sistema | Iniciar | Reiniciar los datos e iniciar |
+|---------|---------|-------------------------------|
+| Windows (PowerShell) | `.\demo.ps1` | `.\demo.ps1 -Reset` |
+| Linux / macOS | `scripts/demo_reset.sh --no-reset` | `scripts/demo_reset.sh` |
+
+El reinicio elimina únicamente `instance/chambeaya-demo.db`, vuelve a aplicar las migraciones y restaura el escenario inicial. Úsalo antes de presentar si en un ensayo se finalizaron prácticas, se emitieron certificados o se modificaron datos.
+
+En el login aparecen accesos rápidos que completan las credenciales:
+
+| Rol | Correo | Contraseña |
+|-----|--------|------------|
+| Practicante | `practicante@demo.local` | `Demo1234` |
+| Empresa | `empresa@demo.local` | `Demo1234` |
+
+La contraseña sale de la variable `DEMO_PASSWORD`. Los scripts la definen como `Demo1234` si no existe. Si ejecutas `flask seed-demo` a mano, agrega `DEMO_PASSWORD=Demo1234` a tu `.env` (ver `.env.example`).
+
+En modo demo los tokens de activación y recuperación se muestran en pantalla, así que no hace falta configurar correo.
+
+### Recorrido recomendado
+
+**1. Vista pública**
+
+1. Mostrar la landing.
+2. Abrir la validación pública de certificados.
+3. Explicar el registro separado para practicantes y empresas.
+
+**2. Practicante**
+
+1. En el login, pulsar **Practicante** e ingresar.
+2. Mostrar el resumen y el perfil verificado de Andrea Quispe.
+3. Explorar las convocatorias publicadas.
+4. Abrir **Para ti** para mostrar el matching por habilidades.
+5. Mostrar las postulaciones seleccionada y pendiente.
+6. Abrir la práctica para enseñar el entregable y la evaluación de 85 puntos.
+7. Revisar las notificaciones.
+8. Cerrar sesión.
+
+**3. Empresa**
+
+1. En el login, pulsar **Empresa** e ingresar.
+2. Mostrar las convocatorias publicadas y el borrador editable.
+3. Abrir los candidatos de la convocatoria de calidad.
+4. Seleccionar al candidato e iniciar una nueva práctica si se desea.
+5. Abrir la práctica backend existente.
+6. Finalizarla: ya cuenta con entregable y evaluación aprobada.
+7. Emitir el certificado y abrir el PDF y el QR.
+8. Cerrar sesión.
+
+**4. Certificado público**
+
+1. Copiar el código emitido.
+2. Cerrar sesión.
+3. Abrir `/verificar-certificado`.
+4. Validar el código para demostrar la consulta pública de integridad.
+
+### Problemas frecuentes
+
+- **El puerto 5000 está ocupado:** detén la otra aplicación con `Ctrl+C`.
+- **Cambió el esquema de la base:** vuelve a iniciar la demo con reinicio (`.\demo.ps1 -Reset` o `scripts/demo_reset.sh`).
+
+## 9.3 Verificación de correo (SMTP)
+
+Las cuentas nuevas permanecen en estado `pendiente` hasta que el usuario abre el enlace de activación enviado a su correo. Para usar un servidor SMTP real, configura en `.env`:
 
 ```env
 APP_URL=http://127.0.0.1:5000
@@ -1273,13 +1355,9 @@ MAIL_SENDER=ChambeaYa <no-reply@tu-dominio.com>
 EXPOSE_AUTH_TOKENS=false
 ```
 
-`APP_URL` debe ser la dirección desde la que el usuario puede abrir la
-aplicación. Si el correo se abre en otro dispositivo, utiliza una dirección de
-red o URL pública accesible en lugar de `127.0.0.1`.
+`APP_URL` debe ser la dirección desde la que el usuario puede abrir la aplicación. Si el correo se abre en otro dispositivo, usa una dirección de red o una URL pública en lugar de `127.0.0.1`.
 
-En los modos `console` y `demo` los tokens pueden exponerse para facilitar las
-pruebas locales. Este comportamiento debe permanecer desactivado cuando se
-envían correos reales.
+En los modos `console` y `demo` los tokens pueden exponerse para facilitar las pruebas locales. Ese comportamiento debe permanecer desactivado cuando se envían correos reales.
 
 Para comprobar la conexión después de configurar SMTP:
 
@@ -1287,207 +1365,320 @@ Para comprobar la conexión después de configurar SMTP:
 poetry run flask --app frameworks.flask_mvc.app:create_app test-email --to tu_correo@gmail.com
 ```
 
-No utilices la contraseña normal de Gmail ni subas el archivo `.env` al
-repositorio.
+No uses la contraseña normal de Gmail ni subas el archivo `.env` al repositorio.
 
 ---
 
-# 10. Pruebas
+# 10. Interfaz web
 
-El comando oficial usa pytest y descubre tanto las clases `unittest.TestCase`
-como las pruebas pytest. Desde PowerShell, Ubuntu/Linux o macOS:
+La interfaz está implementada directamente sobre Flask con plantillas Jinja, CSS y JavaScript nativo. No requiere un proceso de compilación adicional.
 
-```sh
-poetry --version
-poetry install
-poetry run pytest -v
-```
+| Ruta | Vista |
+|------|-------|
+| `/` | Página de presentación |
+| `/ingresar` | Inicio de sesión |
+| `/registro` | Registro con confirmación y requisitos de contraseña |
+| `/activar` | Activación mediante el enlace enviado al correo, y reenvío |
+| `/recuperar` | Solicitud de recuperación de contraseña |
+| `/restablecer` | Restablecimiento de contraseña |
+| `/verificar-certificado` | Validación pública de certificados |
+| `/app` | Aplicación autenticada según el rol |
 
-Este repositorio usa Poetry 2.4.3, la versión registrada en `poetry.lock`.
-Comprueba que `poetry --version` muestre exactamente `2.4.3` antes de instalar
-las dependencias. En Ubuntu, si la versión del sistema es antigua, instala la
-versión requerida con pipx y usa su ruta explícita para evitar seleccionar la
-versión de `/usr/bin/poetry`:
+La ruta `/app` detecta el rol de la sesión y presenta únicamente sus funciones:
 
-```bash
-# El sudo se usa solo para instalar pipx desde los paquetes de Ubuntu.
-sudo apt install pipx
-pipx ensurepath
-pipx install "poetry==2.4.3"
-~/.local/bin/poetry --version
-~/.local/bin/poetry install
-~/.local/bin/poetry run pytest -v
-```
+- **Practicante:** perfil, oportunidades, sugerencias, postulaciones, prácticas, entregables, evaluaciones, certificados y notificaciones.
+- **Empresa:** perfil, convocatorias, candidatos, selección, prácticas, evaluaciones, emisión de certificados y notificaciones.
 
-En Windows y macOS, instala Poetry 2.4.3 siguiendo la
-[guía oficial de instalación](https://python-poetry.org/docs/#installation),
-y comprueba su versión antes de ejecutar `poetry install`.
+Las vistas consumen los endpoints de la [API REST](#11-api-rest) con la sesión de Flask. Los errores de validación y de autorización se muestran en contexto, y las acciones incluyen estados de carga, confirmaciones y estados vacíos.
 
-La suite actual contiene 12 métodos de integración que cubren el flujo de
-negocio. Los reportes globales y unitarios se generan en `reports/`; consulta
-los comandos exactos en [Reportes y entrega](.docs/11-reportes-y-entrega.md).
+**Diseño.** Paleta sobria de azul profundo y grises fríos, con `#0062fc` como color primario, tomado de la identidad gráfica de ChambeaYa. No usa degradados. Las pantallas priorizan tablas, listas y secciones amplias sobre grupos repetitivos de tarjetas, con navegación adaptable para escritorio, tableta y móvil.
 
----
-
-# 11. Migraciones
-
-El entorno de migraciones ya está inicializado en `src/main/frameworks/migrations`.
-Ejecuta los comandos desde el entorno Poetry del proyecto.
-
-Crear una nueva migración después de modificar modelos:
-
-```bash
-poetry run flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
-```
-
-Aplicar migraciones:
-
-```bash
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-```
-
-Revertir la última migración:
-
-```bash
-poetry run flask --app frameworks.flask_mvc.app:create_app db downgrade
-```
-
-La base SQLite de desarrollo se guarda en `instance/chambeaya.db`. Para
-reiniciarla, detén la aplicación, elimina únicamente ese archivo y vuelve a
-ejecutar `db upgrade`. Los archivos subidos se almacenan por separado en
-`instance/uploads/entregables`.
+| Archivo | Contenido |
+|---------|-----------|
+| `src/main/frameworks/flask_mvc/templates/` | Estructura de las vistas |
+| `src/main/frameworks/flask_mvc/static/css/app.css` | Sistema visual y responsive |
+| `src/main/frameworks/flask_mvc/static/icons.svg` | Iconografía SVG reutilizable |
+| `src/main/frameworks/flask_mvc/static/img/` | Logos horizontal y cuadrado |
+| `src/main/frameworks/flask_mvc/static/js/common.js` | Utilidades y cliente HTTP |
+| `src/main/frameworks/flask_mvc/static/js/app.js` | Interacción de la aplicación |
+| `src/main/frameworks/flask_mvc/static/js/auth.js` | Flujos de autenticación |
+| `src/main/frameworks/flask_mvc/static/js/verify.js` | Validación de certificados |
 
 ---
 
-# 12. Endpoints iniciales
+# 11. API REST
 
-Salud de la aplicación:
+El backend usa Flask, SQLAlchemy y sesiones HTTP. La autenticación usa la cookie de sesión de Flask: las rutas protegidas requieren haber iniciado sesión con `POST /auth/login`. En los ejemplos con `curl`, la cookie se guarda con `-c cookies.txt` y se envía con `-b cookies.txt`.
+
+Las respuestas siguen los códigos descritos en [6.1.5 Restful](#615-restful): 400 validación, 401 sin sesión, 404 no encontrado, 409 conflicto y 503 error de correo.
+
+### Salud
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/health` | Comprobar que la aplicación responde |
+
+### Autenticación
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/auth/register` | Registrar empresa o practicante |
+| POST | `/auth/activate` | Activar la cuenta |
+| POST | `/auth/resend-activation` | Reenviar el enlace de activación |
+| POST | `/auth/login` | Iniciar sesión |
+| GET | `/auth/me` | Consultar el usuario autenticado |
+| POST | `/auth/logout` | Cerrar sesión |
+| POST | `/auth/recover-password` | Solicitar recuperación de contraseña |
+| POST | `/auth/reset-password` | Cambiar la contraseña con un token |
+
+Los tokens (`activation_token`, `password_reset_token`) se incluyen en la respuesta solo cuando `EXPOSE_AUTH_TOKENS=true` (desarrollo, demo y pruebas). Con SMTP, el token llega dentro del enlace enviado al correo.
 
 ```bash
-curl http://127.0.0.1:5000/health
-```
-
-Registro de usuario:
-
-```bash
+# Registro
 curl -X POST http://127.0.0.1:5000/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"practicante@example.com","password":"Secret123","password_confirmation":"Secret123","tipo":"practicante"}'
-```
 
-La respuesta incluye `activation_token` únicamente en los modos locales que
-tienen `EXPOSE_AUTH_TOKENS=true`. Con SMTP, el token se entrega dentro del
-enlace enviado al correo.
-
-Activación de cuenta:
-
-```bash
+# Activación
 curl -X POST http://127.0.0.1:5000/auth/activate \
   -H "Content-Type: application/json" \
   -d '{"token":"TOKEN_DE_ACTIVACION"}'
-```
 
-Reenviar el enlace de activación:
-
-```bash
+# Reenviar el enlace de activación
 curl -X POST http://127.0.0.1:5000/auth/resend-activation \
   -H "Content-Type: application/json" \
   -d '{"email":"practicante@example.com"}'
-```
 
-Inicio de sesión:
-
-```bash
+# Inicio de sesión (guarda la cookie)
 curl -X POST http://127.0.0.1:5000/auth/login \
   -c cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"email":"practicante@example.com","password":"Secret123"}'
-```
 
-Usuario autenticado:
-
-```bash
+# Usuario autenticado
 curl -b cookies.txt http://127.0.0.1:5000/auth/me
-```
 
-Cierre de sesión:
-
-```bash
+# Cierre de sesión
 curl -X POST -b cookies.txt http://127.0.0.1:5000/auth/logout
-```
 
-Solicitud de recuperación de contraseña:
-
-```bash
+# Solicitud de recuperación de contraseña
 curl -X POST http://127.0.0.1:5000/auth/recover-password \
   -H "Content-Type: application/json" \
   -d '{"email":"practicante@example.com"}'
-```
 
-La respuesta incluye `password_reset_token` solamente cuando
-`EXPOSE_AUTH_TOKENS=true`. En el flujo SMTP se envía un enlace de recuperación
-al correo registrado.
-
-Restablecimiento de contraseña:
-
-```bash
+# Restablecimiento de contraseña
 curl -X POST http://127.0.0.1:5000/auth/reset-password \
   -H "Content-Type: application/json" \
   -d '{"token":"TOKEN_DE_RECUPERACION","new_password":"nuevaClave123"}'
 ```
 
-Perfil del practicante autenticado:
+### Perfiles
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/perfil/me` | Obtener el perfil según el tipo de usuario |
+| PUT | `/perfil/me` | Crear o actualizar el perfil de practicante |
+| PUT | `/perfil/me/empresa` | Crear o actualizar la empresa y validar el RUC |
+| POST | `/perfil/me/habilidades` | Añadir una habilidad |
+| POST | `/perfil/me/formacion` | Añadir formación educativa |
+| POST | `/perfil/me/identidad` | Registrar y verificar DNI o carnet |
+| GET | `/perfil/me/reputacion` | Consultar el score de reputación |
 
 ```bash
+# Perfil del usuario autenticado
 curl -b cookies.txt http://127.0.0.1:5000/perfil/me
-```
 
-Crear o actualizar perfil de practicante:
-
-```bash
+# Crear o actualizar perfil de practicante
 curl -X PUT http://127.0.0.1:5000/perfil/me \
   -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"nombres":"Diego","apellidos":"Perez","habilidades":["Python"],"formacion_educativa":["Ingenieria de Sistemas"]}'
-```
 
-Agregar habilidad:
-
-```bash
+# Agregar habilidad
 curl -X POST http://127.0.0.1:5000/perfil/me/habilidades \
   -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"habilidad":"Flask"}'
-```
 
-Agregar formación educativa:
-
-```bash
+# Agregar formación educativa
 curl -X POST http://127.0.0.1:5000/perfil/me/formacion \
   -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"formacion":"UNSA"}'
-```
 
-Registrar y verificar identidad:
-
-```bash
+# Registrar y verificar identidad
 curl -X POST http://127.0.0.1:5000/perfil/me/identidad \
   -b cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"dni":"12345678","carnet_universitario":"20260001"}'
-```
 
-Consultar score de reputación:
-
-```bash
+# Consultar score de reputación
 curl -b cookies.txt http://127.0.0.1:5000/perfil/me/reputacion
 ```
 
+### Convocatorias y matching
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/convocatorias?q=python` | Buscar convocatorias publicadas |
+| GET | `/convocatorias/<id>` | Ver una convocatoria publicada |
+| GET | `/convocatorias/mis` | Listar las convocatorias de la empresa |
+| POST | `/convocatorias` | Crear un borrador |
+| PUT | `/convocatorias/<id>` | Editar un borrador propio |
+| DELETE | `/convocatorias/<id>` | Eliminar un borrador propio |
+| POST | `/convocatorias/<id>/publicar` | Publicar un borrador |
+| POST | `/convocatorias/<id>/cerrar` | Cerrar una convocatoria |
+| POST | `/convocatorias/<id>/reabrir` | Reabrir una convocatoria cerrada (vuelve a publicada) |
+| POST | `/convocatorias/<id>/duplicar` | Duplicar como nuevo borrador ("Copia de …") |
+| GET | `/matching/sugerencias` | Calcular sugerencias sin persistir |
+| POST | `/matching/calcular` | Calcular y guardar sugerencias |
+
+El matching compara habilidades sin distinguir mayúsculas y solo considera convocatorias publicadas.
+
+### Postulaciones
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/postulaciones/convocatorias/<id>` | Postular a una convocatoria |
+| GET | `/postulaciones/me` | Listar las postulaciones del practicante |
+| POST | `/postulaciones/<id>/cancelar` | Retirar una postulación pendiente (practicante) |
+| GET | `/postulaciones/convocatorias/<id>` | Listar los candidatos de la empresa |
+| POST | `/postulaciones/<id>/seleccionar` | Seleccionar a un candidato |
+| POST | `/postulaciones/<id>/rechazar` | Rechazar a un candidato |
+| POST | `/postulaciones/<id>/reconsiderar` | Devolver a pendiente una postulación seleccionada o rechazada, si aún no se inició la práctica |
+
+No se permiten postulaciones duplicadas. Al seleccionar a un candidato, las demás postulaciones pendientes de la convocatoria se rechazan.
+
+### Prácticas, entregables y evaluaciones
+
+| Método | Ruta | Uso |
+|---|---|---|
+| POST | `/practicas` | Iniciar una práctica desde una postulación seleccionada |
+| GET | `/practicas` | Listar las prácticas visibles para el usuario |
+| GET | `/practicas/<id>` | Consultar una práctica autorizada |
+| POST | `/practicas/<id>/entregables` | Subir PDF, DOC, DOCX o ZIP (máx. 10 MB) |
+| GET | `/practicas/<id>/entregables` | Historial de entregables |
+| GET | `/practicas/<id>/entregables/<id>/archivo` | Descargar un entregable |
+| DELETE | `/practicas/<id>/entregables/<id>` | Eliminar un entregable |
+| POST | `/practicas/<id>/evaluar` | Registrar una evaluación de 0 a 100 |
+| GET | `/practicas/<id>/evaluaciones` | Historial de evaluaciones |
+| DELETE | `/practicas/<id>/evaluaciones/<id>` | Eliminar una evaluación (empresa) |
+| POST | `/practicas/<id>/finalizar` | Finalizar la práctica |
+
+Para finalizar se exige al menos un entregable y una evaluación aprobada (puntaje mínimo: 60).
+
+```bash
+# Subir un entregable (en PowerShell usa curl.exe y ` para continuar la línea)
+curl -X POST http://127.0.0.1:5000/practicas/1/entregables \
+  -b cookies.txt \
+  -F "archivo=@informe.pdf"
+```
+
+### Notificaciones y certificados
+
+| Método | Ruta | Uso |
+|---|---|---|
+| GET | `/notificaciones` | Listar las notificaciones propias |
+| GET | `/notificaciones/no-leidas` | Contar las no leídas |
+| PUT | `/notificaciones/<id>/leer` | Marcar una notificación propia como leída |
+| PUT | `/notificaciones/leer-todas` | Marcar todas como leídas |
+| POST | `/certificados/<practica_id>/emitir` | Emitir el certificado |
+| GET | `/certificados/practica/<practica_id>` | Consultar un certificado autorizado |
+| GET | `/certificados/verificar/<codigo>` | Verificación pública |
+| GET | `/certificados/practica/<practica_id>/pdf` | Descargar el PDF |
+| GET | `/certificados/<codigo>/qr` | Descargar el QR |
+
+La emisión es idempotente: una práctica tiene como máximo un certificado. La verificación comprueba tanto el QR como la integridad del contenido persistido.
+
 ---
 
-# 13. Documentación complementaria
+# 12. Persistencia y migraciones
 
-- [`BACKEND.md`](BACKEND.md) — Referencia completa de endpoints, flujos de la API y ejemplos
-- [`VISTAS.md`](VISTAS.md) — Guía de vistas web, rutas públicas y estructura de la interfaz
-- [`DEMO.md`](DEMO.md) — Guía de presentación local con datos precargados y recorrido recomendado
+- La base SQLite de desarrollo vive en `instance/chambeaya.db`, y la de la demo en `instance/chambeaya-demo.db`.
+- Los entregables subidos se guardan en `instance/uploads/entregables`.
+- Las claves foráneas de SQLite se habilitan en cada conexión.
+- La revisión `9f12c0a8d4e1` completa el esquema de todas las funcionalidades.
+- `instance/` está ignorado por Git y no debe versionarse.
+
+El entorno de migraciones está en `src/main/frameworks/migrations`. Ejecuta los comandos desde el entorno Poetry del proyecto:
+
+```bash
+# Crear una migración después de modificar modelos
+poetry run flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
+
+# Aplicar migraciones
+poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
+
+# Revertir la última migración
+poetry run flask --app frameworks.flask_mvc.app:create_app db downgrade
+```
+
+Para reiniciar la base de desarrollo, detén la aplicación, elimina únicamente `instance/chambeaya.db` y vuelve a ejecutar `db upgrade`.
+
+---
+
+# 13. Pruebas
+
+La suite está en `src/test/` y se divide por capa:
+
+| Carpeta | Tipo | Necesita la app levantada |
+|---------|------|---------------------------|
+| `domain/`, `application/`, `infrastructure/` | Unitarias | No |
+| `integration/` | Integración (flujos de negocio con Flask y SQLite en memoria) | No |
+| `functional/` | Funcionales de caja negra con Selenium | Sí, en modo demo |
+
+pytest descubre tanto las clases `unittest.TestCase` como las pruebas pytest. Los comandos funcionan igual en PowerShell, Linux y macOS.
+
+**Unitarias e integración** (no requieren navegador ni app):
+
+```sh
+poetry run pytest --ignore=src/test/functional
+```
+
+**Con cobertura.** El XML lo usa SonarQube; el HTML es para revisarla en el navegador:
+
+```sh
+poetry run pytest --ignore=src/test/functional --cov --cov-report=xml --cov-report=html
+# reports/coverage.xml y reports/htmlcov/index.html
+```
+
+**Funcionales (Selenium).** Primero levanta la [demo](#92-modo-demo) en otra terminal y luego ejecuta:
+
+```sh
+poetry run pytest src/test/functional
+```
+
+La guía completa de las funcionales (Page Objects, reportes HTML, casos de prueba y cómo usar otra URL) está en [`src/test/functional/README.md`](src/test/functional/README.md).
+
+`poetry run pytest` sin argumentos ejecuta **toda** la suite, funcionales incluidas, así que necesita la demo levantada.
+
+---
+
+# 14. Integración y despliegue continuo (Jenkins)
+
+El `Jenkinsfile` de la raíz define el pipeline. Jenkins lo ejecuta automáticamente cuando detecta cambios en la rama configurada (*Poll SCM*):
+
+| # | Etapa | Qué hace | Si falla |
+|---|-------|----------|----------|
+| 1 | Build (Poetry) | `poetry install` y `poetry build`. Archiva el wheel | Se detiene |
+| 2 | Pruebas unitarias | pytest sin funcionales, con cobertura y reporte JUnit | Se detiene |
+| 3 | Análisis SonarQube | `sonar-scanner` con `sonar-project.properties` | Se detiene |
+| 4 | Quality Gate | Espera el veredicto de SonarQube (máx. 5 min) | Se detiene |
+| 5 | Staging efímero | Instala el wheel en el workspace con BD nueva, en `127.0.0.1:5001` | Se detiene |
+| 6 | Pruebas funcionales | Selenium contra staging; luego se apaga staging | Se detiene |
+| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`, en `127.0.0.1:5000` | Rollback automático |
+
+**Despliegue (`scripts/ci/deploy.sh`).** Lo usan staging y el despliegue final:
+
+- Cada versión se instala en `releases/<timestamp>`, y el symlink `current` apunta a la activa. Se conservan la versión activa y la anterior.
+- La base de datos persiste entre despliegues: solo se aplican `db upgrade` y `seed-demo` (que es idempotente). Antes de migrar se respalda.
+- Si la versión nueva no responde en `/health`, se restauran la versión anterior y su base de datos.
+- El servidor corre en modo demo y solo en localhost, porque `ProductionConfig` exige cookies `Secure` (HTTPS).
+
+**Configuración necesaria en Jenkins:**
+
+- Plugins: SonarQube Scanner, JUnit, Pipeline, Workspace Cleanup y Timestamper.
+- **Manage Jenkins → System → SonarQube servers:** un servidor llamado `SonarQube`, con la URL de SonarQube y una credencial *Secret text* `sonar-token`.
+- **Manage Jenkins → Tools:** un *SonarQube Scanner* llamado `sonar-scanner`.
+- **En SonarQube:** un webhook hacia `http://<jenkins>/sonarqube-webhook/`. Si Jenkins y SonarQube corren en la misma máquina, agrega `sonar.validateWebhooks=false` a `conf/sonar.properties`.
+- **El job:** *Pipeline script from SCM*, apuntando a este repositorio y a la rama `*/main`, con Script Path `Jenkinsfile`.
