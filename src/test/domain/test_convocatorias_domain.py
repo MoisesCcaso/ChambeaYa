@@ -224,11 +224,6 @@ class TestPostulacionDomain(unittest.TestCase):
         self.assertIs(resultado, self.postulacion)
         self.assertEqual(self.postulacion.estado, Postulacion.ESTADO_SELECCIONADA)
 
-    def test_aceptar_como_alias_de_seleccionar(self):
-        resultado = self.postulacion.aceptar()
-        self.assertIs(resultado, self.postulacion)
-        self.assertEqual(self.postulacion.estado, Postulacion.ESTADO_SELECCIONADA)
-
     def test_rechazar_desde_pendiente_cambia_a_rechazada(self):
         resultado = self.postulacion.rechazar()
         self.assertIs(resultado, self.postulacion)

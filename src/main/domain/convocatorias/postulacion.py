@@ -10,9 +10,6 @@ class Postulacion:
        self.practicante_id = practicante_id
        self.estado = estado or self.ESTADO_PENDIENTE
 
-    def aceptar(self):
-        return self.seleccionar()
-
     def rechazar(self):
         if self.estado != self.ESTADO_PENDIENTE:
             raise ValueError("Solo una postulación pendiente puede rechazarse")
