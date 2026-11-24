@@ -161,7 +161,7 @@ Las entidades tienen identidad propia (id) y encapsulan comportamiento de negoci
 | `Practicante` | perfil | nombres, apellidos, dni, habilidades, score_reputacion | actualizar_datos(), agregar_habilidad(), verificar_identidad(), calcular_score() |
 | `Empresa` | perfil | razon_social, ruc, verificada | verificar_ruc() |
 | `Convocatoria` | convocatorias | titulo, descripcion, estado, habilidades_requeridas, beneficios | publicar(), cerrar(), reabrir(), actualizar(), validar_eliminacion() |
-| `Postulacion` | convocatorias | estado (pendiente/seleccionada/rechazada/cancelada) | aceptar(), rechazar(), cancelar(), reactivar(), reconsiderar() |
+| `Postulacion` | convocatorias | estado (pendiente/seleccionada/rechazada/cancelada) | seleccionar(), rechazar(), cancelar(), reactivar(), reconsiderar() |
 | `Sugerencia` | matching | puntaje_match, habilidades_coincidentes | calcular_compatibilidad() |
 | `Practica` | practica_evaluacion | estado (EN_CURSO/FINALIZADA), entregables, evaluaciones | subir_entregable(), registrar_evaluacion(), finalizar() |
 | `Entregable` | practica_evaluacion | archivo, fecha_subida | (creado por factory estática) |
