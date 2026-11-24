@@ -1,14 +1,14 @@
-"""I-06 - Pruebas unitarias del servicio de aplicación de perfil con dobles (autospec).
+"""I-06 - Pruebas unitarias de los servicios de aplicación de perfil con dobles (autospec).
 
 Código bajo prueba:
-- src/main/application/perfil_application_service.py
+- src/main/application/practicante_application_service.py
+- src/main/application/empresa_application_service.py
 """
 
 import unittest
 from unittest.mock import create_autospec
 
 from application.empresa_application_service import EmpresaApplicationService
-from application.perfil_application_service import PerfilApplicationService
 from application.practicante_application_service import PracticanteApplicationService
 from domain.auth.i_usuario_repository import IUsuarioRepository
 from domain.auth.usuario import Usuario
@@ -21,7 +21,7 @@ from domain.perfil.ruc import RUC
 
 
 class TestPerfilService(unittest.TestCase):
-    """Pruebas aisladas de PerfilApplicationService usando autospecs de sus repositorios."""
+    """Practicante y Empresa con el IPerfilRepository unificado, como los cablea dependencies.py."""
 
     def setUp(self):
         self.perfil_repository = create_autospec(
@@ -30,8 +30,12 @@ class TestPerfilService(unittest.TestCase):
         self.usuario_repository = create_autospec(
             IUsuarioRepository, instance=True, spec_set=True
         )
-        self.service = PerfilApplicationService(
-            perfil_repository=self.perfil_repository,
+        self.practicante_service = PracticanteApplicationService(
+            practicante_repository=self.perfil_repository,
+            usuario_repository=self.usuario_repository,
+        )
+        self.empresa_service = EmpresaApplicationService(
+            empresa_repository=self.perfil_repository,
             usuario_repository=self.usuario_repository,
         )
 
@@ -68,7 +72,7 @@ class TestPerfilService(unittest.TestCase):
             "formacion_educativa": [" UNSA ", "Inglés"],
         }
 
-        resultado = self.service.update_practicante(10, datos)
+        resultado = self.practicante_service.update_practicante(10, datos)
 
         self.usuario_repository.find_by_id.assert_called_once_with(10)
         self.perfil_repository.find_practicante_by_user_id.assert_called_once_with(10)
@@ -102,7 +106,7 @@ class TestPerfilService(unittest.TestCase):
         self.perfil_repository.find_practicante_by_user_id.return_value = existente
         self.perfil_repository.save_practicante.side_effect = lambda p: p
 
-        resultado = self.service.update_practicante(
+        resultado = self.practicante_service.update_practicante(
             10, {"dni": "   ", "carnet_universitario": None}
         )
 
@@ -117,7 +121,7 @@ class TestPerfilService(unittest.TestCase):
         self.usuario_repository.find_by_id.return_value = None
 
         with self.assertRaisesRegex(ValueError, "Usuario no encontrado"):
-            self.service.update_practicante(99, {"nombres": "Ana"})
+            self.practicante_service.update_practicante(99, {"nombres": "Ana"})
 
         self.usuario_repository.find_by_id.assert_called_once_with(99)
         self.perfil_repository.find_practicante_by_user_id.assert_not_called()
@@ -134,7 +138,7 @@ class TestPerfilService(unittest.TestCase):
         self.usuario_repository.find_by_id.return_value = usuario_inactivo
 
         with self.assertRaisesRegex(ValueError, "La cuenta no está activa"):
-            self.service.update_practicante(10, {"nombres": "Ana"})
+            self.practicante_service.update_practicante(10, {"nombres": "Ana"})
 
         self.usuario_repository.find_by_id.assert_called_once_with(10)
         self.perfil_repository.find_practicante_by_user_id.assert_not_called()
@@ -145,7 +149,7 @@ class TestPerfilService(unittest.TestCase):
         self.usuario_repository.find_by_id.return_value = usuario_empresa
 
         with self.assertRaisesRegex(ValueError, "El usuario no es practicante"):
-            self.service.update_practicante(20, {"nombres": "Ana"})
+            self.practicante_service.update_practicante(20, {"nombres": "Ana"})
 
         self.usuario_repository.find_by_id.assert_called_once_with(20)
         self.perfil_repository.find_practicante_by_user_id.assert_not_called()
@@ -157,18 +161,18 @@ class TestPerfilService(unittest.TestCase):
         self.perfil_repository.find_practicante_by_user_id.return_value = None
         self.perfil_repository.save_practicante.side_effect = lambda p: p
 
-        self.assertIsNone(self.service.get_practicante_profile(10))
+        self.assertIsNone(self.practicante_service.get_practicante_profile(10))
 
-        con_habilidad = self.service.add_habilidad(10, "  Python  ")
+        con_habilidad = self.practicante_service.add_habilidad(10, "  Python  ")
         self.assertEqual(con_habilidad.habilidades, ["Python"])
         self.assertEqual(con_habilidad.score_reputacion, 5.0)
 
         self.perfil_repository.find_practicante_by_user_id.return_value = con_habilidad
-        con_formacion = self.service.add_formacion(10, "  UNSA  ")
+        con_formacion = self.practicante_service.add_formacion(10, "  UNSA  ")
         self.assertEqual(con_formacion.formacion_educativa, ["UNSA"])
         self.assertEqual(con_formacion.score_reputacion, 10.0)
 
-        con_identidad = self.service.register_identity(
+        con_identidad = self.practicante_service.register_identity(
             10, dni="71234567", carnet_universitario="20210001"
         )
         self.assertTrue(con_identidad.identidad_verificada)
@@ -181,7 +185,7 @@ class TestPerfilService(unittest.TestCase):
         self.perfil_repository.save_empresa.side_effect = lambda e: e
 
         # Guardado válido de empresa
-        empresa_guardada = self.service.update_empresa(
+        empresa_guardada = self.empresa_service.update_empresa(
             20, {"razon_social": "  Acme S.A.C.  ", "ruc": "20100070970"}
         )
         self.assertEqual(empresa_guardada.usuario_id, 20)
@@ -191,14 +195,14 @@ class TestPerfilService(unittest.TestCase):
         self.perfil_repository.save_empresa.assert_called_once_with(empresa_guardada)
 
         self.perfil_repository.find_empresa_by_user_id.return_value = empresa_guardada
-        self.assertIs(self.service.get_empresa_profile(20), empresa_guardada)
+        self.assertIs(self.empresa_service.get_empresa_profile(20), empresa_guardada)
 
         # Actualizar empresa ya existente
         existente = Empresa(
             id=3, usuario_id=20, razon_social="Anterior S.A.C.", ruc=RUC("20100070970")
         )
         self.perfil_repository.find_empresa_by_user_id.return_value = existente
-        actualizada = self.service.update_empresa(
+        actualizada = self.empresa_service.update_empresa(
             20, {"razon_social": "Nueva Razón S.A.C."}
         )
         self.assertIs(actualizada, existente)
@@ -207,22 +211,22 @@ class TestPerfilService(unittest.TestCase):
 
         # Razón social vacía
         with self.assertRaisesRegex(ValueError, "La razón social es obligatoria"):
-            self.service.update_empresa(20, {"razon_social": "   ", "ruc": "20100070970"})
+            self.empresa_service.update_empresa(20, {"razon_social": "   ", "ruc": "20100070970"})
 
         # RUC inválido
         with self.assertRaisesRegex(ValueError, "El RUC no es válido"):
-            self.service.update_empresa(
+            self.empresa_service.update_empresa(
                 20, {"razon_social": "Acme S.A.C.", "ruc": "20100070975"}
             )
 
         # Guardas de usuario para empresa: inexistente, tipo practicante, inactivo
         self.usuario_repository.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Usuario no encontrado"):
-            self.service.update_empresa(99, {"razon_social": "X", "ruc": "20100070970"})
+            self.empresa_service.update_empresa(99, {"razon_social": "X", "ruc": "20100070970"})
 
         self.usuario_repository.find_by_id.return_value = self._usuario_practicante_activo(10)
         with self.assertRaisesRegex(ValueError, "El usuario no es empresa"):
-            self.service.update_empresa(10, {"razon_social": "X", "ruc": "20100070970"})
+            self.empresa_service.update_empresa(10, {"razon_social": "X", "ruc": "20100070970"})
 
         self.usuario_repository.find_by_id.return_value = Usuario(
             id=20,
@@ -232,37 +236,45 @@ class TestPerfilService(unittest.TestCase):
             estado=Usuario.ESTADO_PENDIENTE,
         )
         with self.assertRaisesRegex(ValueError, "La cuenta no está activa"):
-            self.service.update_empresa(20, {"razon_social": "X", "ruc": "20100070970"})
+            self.empresa_service.update_empresa(20, {"razon_social": "X", "ruc": "20100070970"})
 
     def test_verify_profile_y_get_reputation_score(self):
         self.perfil_repository.find_practicante_by_user_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Perfil de practicante no encontrado"):
-            self.service.verify_profile(10)
-        self.assertEqual(self.service.get_reputation_score(10), 0.0)
+            self.practicante_service.verify_profile(10)
+        self.assertEqual(self.practicante_service.get_reputation_score(10), 0.0)
 
         practicante = Practicante(
             usuario_id=10, identidad_verificada=True, score_reputacion=65.0
         )
         self.perfil_repository.find_practicante_by_user_id.return_value = practicante
-        self.assertTrue(self.service.verify_profile(10))
-        self.assertEqual(self.service.get_reputation_score(10), 65.0)
+        self.assertTrue(self.practicante_service.verify_profile(10))
+        self.assertEqual(self.practicante_service.get_reputation_score(10), 65.0)
 
     def test_requiere_repositorios_configurados(self):
-        sin_perfil_repo = PerfilApplicationService(
-            perfil_repository=None, usuario_repository=self.usuario_repository
+        sin_perfil_repo = PracticanteApplicationService(
+            practicante_repository=None, usuario_repository=self.usuario_repository
         )
         with self.assertRaisesRegex(
-            RuntimeError, "requiere un repositorio de perfil"
+            RuntimeError, "requiere un repositorio de practicante"
         ):
             sin_perfil_repo.get_practicante_profile(10)
 
-        sin_usuario_repo = PerfilApplicationService(
-            perfil_repository=self.perfil_repository, usuario_repository=None
+        sin_usuario_repo = PracticanteApplicationService(
+            practicante_repository=self.perfil_repository, usuario_repository=None
         )
         with self.assertRaisesRegex(
             RuntimeError, "requiere un repositorio de usuario"
         ):
             sin_usuario_repo.get_practicante_profile(10)
+
+        sin_empresa_repo = EmpresaApplicationService(
+            empresa_repository=None, usuario_repository=self.usuario_repository
+        )
+        with self.assertRaisesRegex(
+            RuntimeError, "requiere un repositorio de empresa"
+        ):
+            sin_empresa_repo.get_empresa_profile(20)
 
 
 class TestPracticanteApplicationService(unittest.TestCase):
