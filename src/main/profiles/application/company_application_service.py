@@ -8,9 +8,9 @@ from shared.errors import DomainError, ForbiddenError, NotFoundError
 class CompanyApplicationService:
     """Application service for the company profile lifecycle (SOLID-SRP)."""
 
-    def __init__(self, company_repository=None, user_repository=None):
+    def __init__(self, company_repository=None, identity=None):
         self.company_repository = company_repository
-        self.user_repository = user_repository
+        self.identity = identity
 
     def update_company(self, user_id, data):
         self._require_repositories()
@@ -41,7 +41,7 @@ class CompanyApplicationService:
     get_profile = get_company_profile
 
     def _require_company_user(self, user_id):
-        user = self.user_repository.find_by_id(user_id)
+        user = self.identity.find_user(user_id)
         if user is None:
             raise NotFoundError("Usuario no encontrado")
         if user.role != User.ROLE_COMPANY:
@@ -54,5 +54,5 @@ class CompanyApplicationService:
     def _require_repositories(self):
         if self.company_repository is None:
             raise RuntimeError("CompanyApplicationService requires a company repository")
-        if self.user_repository is None:
-            raise RuntimeError("CompanyApplicationService requires a user repository")
+        if self.identity is None:
+            raise RuntimeError("CompanyApplicationService requires the identity API")

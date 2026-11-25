@@ -205,20 +205,15 @@ def test_save_removes_children_dropped_from_the_aggregate(
     assert db.session.get(EvaluationModel, removed_evaluation_id) is None
 
 
-def test_find_by_company_id_returns_internships_linked_via_join(
+def test_find_by_job_application_ids_filters_and_orders_by_id(
     app_context,
     repository,
     internship_data,
 ):
-    job_application = db.session.get(JobApplicationModel, internship_data["postulacion_id"])
-    job_posting = db.session.get(JobPostingModel, job_application.job_posting_id)
-    company_id = job_posting.company_id
+    saved = repository.save(make_internship(internship_data))
 
-    internship = make_internship(internship_data)
-    saved = repository.save(internship)
+    result = repository.find_by_job_application_ids([99999, internship_data["postulacion_id"]])
+    assert [item.id for item in result] == [saved.id]
 
-    result = repository.find_by_company_id(company_id)
-    assert len(result) == 1
-    assert result[0].id == saved.id
-
-    assert repository.find_by_company_id(99999) == []
+    assert repository.find_by_job_application_ids([99999]) == []
+    assert repository.find_by_job_application_ids([]) == []

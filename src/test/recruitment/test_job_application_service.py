@@ -11,8 +11,8 @@ from recruitment.domain.job_posting import JobPosting
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 from recruitment.domain.i_job_application_repository import IJobApplicationRepository
 from recruitment.domain.job_application import JobApplication
-from profiles.domain.i_intern_repository import IInternRepository
-from internships.domain.i_internship_repository import IInternshipRepository
+from profiles.api import ProfilesApi
+from internships.api import InternshipsApi
 from shared.error_messages import JOB_POSTING_NOT_FOUND
 
 
@@ -22,22 +22,22 @@ class TestJobApplicationService(unittest.TestCase):
     def setUp(self):
         self.mock_job_application_repo = create_autospec(IJobApplicationRepository, instance=True)
         self.mock_job_posting_repo = create_autospec(IJobPostingRepository, instance=True)
-        self.mock_profile_repo = create_autospec(IInternRepository, instance=True)
-        self.mock_internship_repo = create_autospec(IInternshipRepository, instance=True)
+        self.mock_profiles = create_autospec(ProfilesApi, instance=True)
+        self.mock_internships = create_autospec(InternshipsApi, instance=True)
 
         self.service = JobApplicationService(
             job_application_repository=self.mock_job_application_repo,
             job_posting_repository=self.mock_job_posting_repo,
-            intern_repository=self.mock_profile_repo,
-            internship_repository=self.mock_internship_repo,
+            profiles=self.mock_profiles,
+            internships=self.mock_internships,
         )
 
     def test_require_repositories_raises_if_any_is_missing(self):
         incomplete_services = [
-            JobApplicationService(None, self.mock_job_posting_repo, self.mock_profile_repo, self.mock_internship_repo),
-            JobApplicationService(self.mock_job_application_repo, None, self.mock_profile_repo, self.mock_internship_repo),
-            JobApplicationService(self.mock_job_application_repo, self.mock_job_posting_repo, None, self.mock_internship_repo),
-            JobApplicationService(self.mock_job_application_repo, self.mock_job_posting_repo, self.mock_profile_repo, None),
+            JobApplicationService(None, self.mock_job_posting_repo, self.mock_profiles, self.mock_internships),
+            JobApplicationService(self.mock_job_application_repo, None, self.mock_profiles, self.mock_internships),
+            JobApplicationService(self.mock_job_application_repo, self.mock_job_posting_repo, None, self.mock_internships),
+            JobApplicationService(self.mock_job_application_repo, self.mock_job_posting_repo, self.mock_profiles, None),
         ]
 
         for s in incomplete_services:
@@ -69,7 +69,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.assertEqual(INTERN_PROFILE_NOT_FOUND, "Perfil de practicante no encontrado")
 
     def test_apply_intern_profile_not_found(self):
-        self.mock_profile_repo.find_intern_by_user_id.return_value = None
+        self.mock_profiles.find_intern_by_user_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(user_id=1, job_posting_id=10)
@@ -77,14 +77,14 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_with_incomplete_profile_without_names(self):
         intern_without_first_names = MagicMock(first_names="", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern_without_first_names
+        self.mock_profiles.find_intern_by_user_id.return_value = intern_without_first_names
 
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(user_id=1, job_posting_id=10)
         self.assertIn("Completa tus nombres y apellidos antes de postular", str(ctx.exception))
 
         intern_without_last_names = MagicMock(first_names="Juan", last_names="")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern_without_last_names
+        self.mock_profiles.find_intern_by_user_id.return_value = intern_without_last_names
 
         with self.assertRaises(ValueError) as ctx2:
             self.service.apply(user_id=1, job_posting_id=10)
@@ -92,7 +92,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_job_posting_not_found(self):
         intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         self.mock_job_posting_repo.find_by_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
@@ -101,7 +101,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_to_unpublished_job_posting_raises(self):
         intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         draft_job_posting = JobPosting(id=10, status=JobPosting.STATUS_DRAFT)
         self.mock_job_posting_repo.find_by_id.return_value = draft_job_posting
 
@@ -111,7 +111,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_existing_active_application_raises(self):
         intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         job_posting = JobPosting(id=10, status=JobPosting.STATUS_PUBLISHED)
         self.mock_job_posting_repo.find_by_id.return_value = job_posting
 
@@ -124,7 +124,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_existing_cancelled_application_is_reactivated_and_saved(self):
         intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         job_posting = JobPosting(id=10, status=JobPosting.STATUS_PUBLISHED)
         self.mock_job_posting_repo.find_by_id.return_value = job_posting
 
@@ -139,7 +139,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_apply_new_job_application_succeeds(self):
         intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         job_posting = JobPosting(id=10, status=JobPosting.STATUS_PUBLISHED)
         self.mock_job_posting_repo.find_by_id.return_value = job_posting
         self.mock_job_application_repo.find_by_job_posting_and_intern.return_value = None
@@ -159,7 +159,7 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_list_for_intern(self):
         intern = MagicMock(id=5)
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
 
         p1 = JobApplication(id=1, job_posting_id=100, intern_id=5)
         p2 = JobApplication(id=2, job_posting_id=101, intern_id=5)
@@ -176,7 +176,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.assertEqual(result[1], (p2, c2))
 
     def test_list_for_intern_without_profile_raises(self):
-        self.mock_profile_repo.find_intern_by_user_id.return_value = None
+        self.mock_profiles.find_intern_by_user_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
             self.service.list_for_intern(user_id=2)
         self.assertIn("Perfil de practicante no encontrado", str(ctx.exception))
@@ -189,10 +189,10 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [p1]
 
         intern = MagicMock(id=50, first_names="Carlos")
-        self.mock_profile_repo.find_intern_by_id.return_value = intern
+        self.mock_profiles.find_intern_by_id.return_value = intern
 
         internship = MagicMock(id=1000)
-        self.mock_internship_repo.find_by_job_application_id.return_value = internship
+        self.mock_internships.find_by_job_application_id.return_value = internship
 
         result = self.service.list_for_job_posting(company_id=3, job_posting_id=10)
 
@@ -200,7 +200,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.assertEqual(result[0], (p1, intern, internship))
         
     def test_list_for_intern_returns_named_attributes(self):
-        self.mock_profile_repo.find_intern_by_user_id.return_value = MagicMock(id=5)
+        self.mock_profiles.find_intern_by_user_id.return_value = MagicMock(id=5)
         p1 = JobApplication(id=1, job_posting_id=100, intern_id=5)
         self.mock_job_application_repo.find_by_intern_id.return_value = [p1]
         c1 = JobPosting(id=100, title="Convo 100")
@@ -217,8 +217,8 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [p1]
         intern = MagicMock(id=50)
         internship = MagicMock(id=1000)
-        self.mock_profile_repo.find_intern_by_id.return_value = intern
-        self.mock_internship_repo.find_by_job_application_id.return_value = internship
+        self.mock_profiles.find_intern_by_id.return_value = intern
+        self.mock_internships.find_by_job_application_id.return_value = internship
 
         result = self.service.list_for_job_posting(company_id=3, job_posting_id=10)
 
@@ -274,7 +274,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [application_to_select, another_application]
 
         # Simulate that another one already has a started internship
-        self.mock_internship_repo.find_by_job_application_id.return_value = MagicMock(id=555)
+        self.mock_internships.find_by_job_application_id.return_value = MagicMock(id=555)
 
         with self.assertRaises(ValueError) as ctx:
             self.service.select_candidate(company_id=1, job_application_id=1)
@@ -288,7 +288,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_application_repo.find_by_id.return_value = job_application_1
         self.mock_job_posting_repo.find_by_id.return_value = JobPosting(id=10, company_id=1)
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [job_application_1, job_application_2, job_application_3]
-        self.mock_internship_repo.find_by_job_application_id.return_value = None
+        self.mock_internships.find_by_job_application_id.return_value = None
         self.mock_job_application_repo.save_all.side_effect = lambda items: list(items)
 
         result = self.service.select_candidate(company_id=1, job_application_id=1)
@@ -305,33 +305,33 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_select_candidate_sends_notifications_to_candidates(self):
         mock_notif = unittest.mock.Mock()
-        self.service.notification_service = mock_notif
+        self.service.notifications = mock_notif
         job_application_1 = JobApplication(id=1, job_posting_id=10, intern_id=101, status=JobApplication.STATUS_PENDING)
         job_application_2 = JobApplication(id=2, job_posting_id=10, intern_id=102, status=JobApplication.STATUS_PENDING)
 
         self.mock_job_application_repo.find_by_id.return_value = job_application_1
         self.mock_job_posting_repo.find_by_id.return_value = JobPosting(id=10, company_id=1)
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [job_application_1, job_application_2]
-        self.mock_internship_repo.find_by_job_application_id.return_value = None
+        self.mock_internships.find_by_job_application_id.return_value = None
         self.mock_job_application_repo.save_all.side_effect = lambda items: list(items)
 
         intern_1 = unittest.mock.Mock(user_id=201)
         intern_2 = unittest.mock.Mock(user_id=202)
-        self.mock_profile_repo.find_intern_by_id.side_effect = lambda pid: (
+        self.mock_profiles.find_intern_by_id.side_effect = lambda pid: (
             intern_1 if pid == 101 else intern_2
         )
 
         result = self.service.select_candidate(company_id=1, job_application_id=1)
 
         self.assertEqual(result.id, 1)
-        self.assertEqual(mock_notif.create_notification.call_count, 2)
-        mock_notif.create_notification.assert_any_call(
+        self.assertEqual(mock_notif.notify.call_count, 2)
+        mock_notif.notify.assert_any_call(
             recipient_user_id=201,
             notification_type="POSTULACION_SELECCIONADA",
             message="Has sido seleccionado para una convocatoria",
             metadata={"postulacion_id": 1},
         )
-        mock_notif.create_notification.assert_any_call(
+        mock_notif.notify.assert_any_call(
             recipient_user_id=202,
             notification_type="POSTULACION_RECHAZADA",
             message="Tu postulación no fue seleccionada",
@@ -340,16 +340,16 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_select_candidate_tolerates_notification_error(self):
         mock_notif = unittest.mock.Mock()
-        mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
-        self.service.notification_service = mock_notif
+        mock_notif.notify.side_effect = RuntimeError("Notification Error")
+        self.service.notifications = mock_notif
         job_application = JobApplication(id=1, job_posting_id=10, intern_id=101, status=JobApplication.STATUS_PENDING)
 
         self.mock_job_application_repo.find_by_id.return_value = job_application
         self.mock_job_posting_repo.find_by_id.return_value = JobPosting(id=10, company_id=1)
         self.mock_job_application_repo.find_by_job_posting_id.return_value = [job_application]
-        self.mock_internship_repo.find_by_job_application_id.return_value = None
+        self.mock_internships.find_by_job_application_id.return_value = None
         self.mock_job_application_repo.save_all.side_effect = lambda items: list(items)
-        self.mock_profile_repo.find_intern_by_id.return_value = unittest.mock.Mock(user_id=201)
+        self.mock_profiles.find_intern_by_id.return_value = unittest.mock.Mock(user_id=201)
 
         result = self.service.select_candidate(company_id=1, job_application_id=1)
         self.assertEqual(result.id, 1)
@@ -375,14 +375,14 @@ class TestJobApplicationService(unittest.TestCase):
 
     def test_cancel_success_and_errors(self):
         # Intern not found
-        self.mock_profile_repo.find_intern_by_user_id.return_value = None
+        self.mock_profiles.find_intern_by_user_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
             self.service.cancel(user_id=1, job_application_id=10)
         self.assertIn("Perfil de practicante no encontrado", str(ctx.exception))
 
         # Job application not found
         intern = MagicMock(id=5)
-        self.mock_profile_repo.find_intern_by_user_id.return_value = intern
+        self.mock_profiles.find_intern_by_user_id.return_value = intern
         self.mock_job_application_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx2:
             self.service.cancel(user_id=1, job_application_id=10)
@@ -416,13 +416,13 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_posting_repo.find_by_id.return_value = JobPosting(id=10, company_id=1)
 
         # With an internship already started
-        self.mock_internship_repo.find_by_job_application_id.return_value = MagicMock(id=123)
+        self.mock_internships.find_by_job_application_id.return_value = MagicMock(id=123)
         with self.assertRaises(ValueError) as ctx2:
             self.service.reconsider_candidate(company_id=1, job_application_id=1)
         self.assertIn("No se puede cambiar la decisión porque la práctica ya fue iniciada", str(ctx2.exception))
 
         # Successful reconsideration
-        self.mock_internship_repo.find_by_job_application_id.return_value = None
+        self.mock_internships.find_by_job_application_id.return_value = None
         self.mock_job_application_repo.save.return_value = job_application
 
         result = self.service.reconsider_candidate(company_id=1, job_application_id=1)
@@ -430,7 +430,7 @@ class TestJobApplicationService(unittest.TestCase):
         self.mock_job_application_repo.save.assert_called_once_with(job_application)
         
     def test_apply_to_missing_job_posting_uses_standard_message(self):
-        self.mock_profile_repo.find_intern_by_user_id.return_value = MagicMock(
+        self.mock_profiles.find_intern_by_user_id.return_value = MagicMock(
             id=5, first_names="Ana", last_names="Perez"
         )
         self.mock_job_posting_repo.find_by_id.return_value = None

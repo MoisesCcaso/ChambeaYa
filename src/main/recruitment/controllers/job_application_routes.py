@@ -60,7 +60,7 @@ def get_authenticated_company():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return None
-    return container.get_profile_repository().find_company_by_user_id(user_id)
+    return container.get_profiles_api().find_company_by_user_id(user_id)
 
 
 @job_application_bp.post("/convocatorias/<int:job_posting_id>")
@@ -128,11 +128,11 @@ def reject_job_application(job_application_id):
     job_application = build_job_application_service().reject_candidate(company.id, job_application_id)
     data = serialize_job_application(job_application)
 
-    intern = container.get_profile_repository().find_intern_by_id(
+    intern = container.get_profiles_api().find_intern_by_id(
         data["practicante_id"]
     )
     if intern:
-        container.get_notification_service().create_notification(
+        container.get_notifications_api().notify(
             recipient_user_id=intern.user_id,
             notification_type="POSTULACION_RECHAZADA",
             message="Tu postulación no fue seleccionada",
@@ -164,11 +164,11 @@ def reconsider_job_application(job_application_id):
         build_job_application_service().reconsider_candidate(company.id, job_application_id)
     )
     try:
-        intern = container.get_profile_repository().find_intern_by_id(
+        intern = container.get_profiles_api().find_intern_by_id(
             data["practicante_id"]
         )
         if intern:
-            container.get_notification_service().create_notification(
+            container.get_notifications_api().notify(
                 recipient_user_id=intern.user_id,
                 notification_type="POSTULACION_RECONSIDERADA",
                 message="La empresa volvió a considerar tu postulación",

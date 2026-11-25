@@ -14,21 +14,19 @@ class JobApplicationService:
         self,
         job_application_repository=None,
         job_posting_repository=None,
-        profile_repository=None,
-        internship_repository=None,
-        intern_repository=None,
-        notification_service=None,
+        profiles=None,
+        internships=None,
+        notifications=None,
     ):
         self.job_application_repository = job_application_repository
         self.job_posting_repository = job_posting_repository
-        self.intern_repository = intern_repository or profile_repository
-        self.profile_repository = self.intern_repository
-        self.internship_repository = internship_repository
-        self.notification_service = notification_service
+        self.profiles = profiles
+        self.internships = internships
+        self.notifications = notifications
 
     def apply(self, user_id, job_posting_id):
         self._require_repositories()
-        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        intern = self.profiles.find_intern_by_user_id(user_id)
         if intern is None:
             raise ForbiddenError(INTERN_PROFILE_NOT_FOUND)
         if not intern.first_names or not intern.last_names:
@@ -58,7 +56,7 @@ class JobApplicationService:
 
     def list_for_intern(self, user_id):
         self._require_repositories()
-        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        intern = self.profiles.find_intern_by_user_id(user_id)
         if intern is None:
             raise ForbiddenError(INTERN_PROFILE_NOT_FOUND)
         return [
@@ -77,8 +75,8 @@ class JobApplicationService:
         return [
             CandidateDTO(
                 job_application,
-                self.profile_repository.find_intern_by_id(job_application.intern_id),
-                self.internship_repository.find_by_job_application_id(job_application.id),
+                self.profiles.find_intern_by_id(job_application.intern_id),
+                self.internships.find_by_job_application_id(job_application.id),
             )
             for job_application in self.job_application_repository.find_by_job_posting_id(
                 job_posting_id
@@ -103,7 +101,7 @@ class JobApplicationService:
             if (
                 other.id != job_application.id
                 and other.status == JobApplication.STATUS_SELECTED
-                and self.internship_repository.find_by_job_application_id(other.id) is not None
+                and self.internships.find_by_job_application_id(other.id) is not None
             ):
                 raise ConflictError(
                     "No se puede cambiar al candidato porque la práctica seleccionada ya inició"
@@ -130,21 +128,21 @@ class JobApplicationService:
 
 
     def _notify_selection(self, selected, rejected_ones):
-        if self.notification_service is None or self.profile_repository is None:
+        if self.notifications is None or self.profiles is None:
             return
         try:
-            intern = self.profile_repository.find_intern_by_id(selected.intern_id)
+            intern = self.profiles.find_intern_by_id(selected.intern_id)
             if intern and getattr(intern, "user_id", None):
-                self.notification_service.create_notification(
+                self.notifications.notify(
                     recipient_user_id=intern.user_id,
                     notification_type="POSTULACION_SELECCIONADA",
                     message="Has sido seleccionado para una convocatoria",
                     metadata={"postulacion_id": selected.id},
                 )
             for rejected in rejected_ones:
-                other_intern = self.profile_repository.find_intern_by_id(rejected.intern_id)
+                other_intern = self.profiles.find_intern_by_id(rejected.intern_id)
                 if other_intern and getattr(other_intern, "user_id", None):
-                    self.notification_service.create_notification(
+                    self.notifications.notify(
                         recipient_user_id=other_intern.user_id,
                         notification_type="POSTULACION_RECHAZADA",
                         message="Tu postulación no fue seleccionada",
@@ -164,7 +162,7 @@ class JobApplicationService:
 
     def cancel(self, user_id, job_application_id):
         self._require_repositories()
-        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        intern = self.profiles.find_intern_by_user_id(user_id)
         if intern is None:
             raise ForbiddenError(INTERN_PROFILE_NOT_FOUND)
         job_application = self.job_application_repository.find_by_id(job_application_id)
@@ -181,7 +179,7 @@ class JobApplicationService:
         if job_application is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_job_posting(company_id, job_application.job_posting_id)
-        if self.internship_repository.find_by_job_application_id(job_application.id) is not None:
+        if self.internships.find_by_job_application_id(job_application.id) is not None:
             raise ConflictError(
                 "No se puede cambiar la decisión porque la práctica ya fue iniciada"
             )
@@ -200,7 +198,7 @@ class JobApplicationService:
         if (
             self.job_application_repository is None
             or self.job_posting_repository is None
-            or self.profile_repository is None
-            or self.internship_repository is None
+            or self.profiles is None
+            or self.internships is None
         ):
             raise RuntimeError("JobApplicationService requires all of its repositories")

@@ -53,8 +53,8 @@ def issue_certificate_route(internship_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    profile_repository = container.get_profile_repository()
-    company = profile_repository.find_company_by_user_id(user_id)
+    profiles = container.get_profiles_api()
+    company = profiles.find_company_by_user_id(user_id)
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
@@ -78,8 +78,7 @@ def get_certificate_by_internship(internship_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    internship_service = container.get_internship_service()
-    internship_service.get_for_user(user_id, internship_id)
+    container.get_internships_api().get_for_user(user_id, internship_id)
     certificate = build_certification_service().find_by_internship_id(internship_id)
     if certificate is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
@@ -91,7 +90,7 @@ def download_certificate_pdf(internship_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    container.get_internship_service().get_for_user(user_id, internship_id)
+    container.get_internships_api().get_for_user(user_id, internship_id)
     certificate = container.get_certificate_repository().find_by_internship_id(internship_id)
     if certificate is None or certificate.document is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404

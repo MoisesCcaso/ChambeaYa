@@ -10,7 +10,7 @@ from unittest.mock import create_autospec
 
 from profiles.application.company_application_service import CompanyApplicationService
 from profiles.application.intern_application_service import InternApplicationService
-from identity.domain.i_user_repository import IUserRepository
+from identity.api import IdentityApi
 from identity.domain.user import User
 from profiles.domain.company import Company
 from profiles.domain.i_company_repository import ICompanyRepository
@@ -27,16 +27,16 @@ class TestProfileService(unittest.TestCase):
         self.profile_repository = create_autospec(
             IProfileRepository, instance=True, spec_set=True
         )
-        self.user_repository = create_autospec(
-            IUserRepository, instance=True, spec_set=True
+        self.identity = create_autospec(
+            IdentityApi, instance=True, spec_set=True
         )
         self.intern_service = InternApplicationService(
             intern_repository=self.profile_repository,
-            user_repository=self.user_repository,
+            identity=self.identity,
         )
         self.company_service = CompanyApplicationService(
             company_repository=self.profile_repository,
-            user_repository=self.user_repository,
+            identity=self.identity,
         )
 
     def _active_intern_user(self, user_id=10):
@@ -59,7 +59,7 @@ class TestProfileService(unittest.TestCase):
 
     def test_update_active_intern_creates_or_updates_verifies_identity_and_saves(self):
         user = self._active_intern_user(user_id=10)
-        self.user_repository.find_by_id.return_value = user
+        self.identity.find_user.return_value = user
         self.profile_repository.find_intern_by_user_id.return_value = None
         self.profile_repository.save_intern.side_effect = lambda p: p
 
@@ -74,7 +74,7 @@ class TestProfileService(unittest.TestCase):
 
         result = self.intern_service.update_intern(10, details)
 
-        self.user_repository.find_by_id.assert_called_once_with(10)
+        self.identity.find_user.assert_called_once_with(10)
         self.profile_repository.find_intern_by_user_id.assert_called_once_with(10)
         self.profile_repository.save_intern.assert_called_once()
 
@@ -102,7 +102,7 @@ class TestProfileService(unittest.TestCase):
             identity_verified=True,
             reputation_score=25.0,
         )
-        self.user_repository.find_by_id.return_value = user
+        self.identity.find_user.return_value = user
         self.profile_repository.find_intern_by_user_id.return_value = existing
         self.profile_repository.save_intern.side_effect = lambda p: p
 
@@ -118,12 +118,12 @@ class TestProfileService(unittest.TestCase):
         self.profile_repository.save_intern.assert_called_once_with(existing)
 
     def test_update_intern_rejects_missing_user_before_saving(self):
-        self.user_repository.find_by_id.return_value = None
+        self.identity.find_user.return_value = None
 
         with self.assertRaisesRegex(ValueError, "Usuario no encontrado"):
             self.intern_service.update_intern(99, {"nombres": "Ana"})
 
-        self.user_repository.find_by_id.assert_called_once_with(99)
+        self.identity.find_user.assert_called_once_with(99)
         self.profile_repository.find_intern_by_user_id.assert_not_called()
         self.profile_repository.save_intern.assert_not_called()
 
@@ -135,29 +135,29 @@ class TestProfileService(unittest.TestCase):
             role=User.ROLE_INTERN,
             status=User.STATUS_PENDING,
         )
-        self.user_repository.find_by_id.return_value = inactive_user
+        self.identity.find_user.return_value = inactive_user
 
         with self.assertRaisesRegex(ValueError, "La cuenta no está activa"):
             self.intern_service.update_intern(10, {"nombres": "Ana"})
 
-        self.user_repository.find_by_id.assert_called_once_with(10)
+        self.identity.find_user.assert_called_once_with(10)
         self.profile_repository.find_intern_by_user_id.assert_not_called()
         self.profile_repository.save_intern.assert_not_called()
 
     def test_update_intern_rejects_company_user_before_saving(self):
         company_user = self._active_company_user(user_id=20)
-        self.user_repository.find_by_id.return_value = company_user
+        self.identity.find_user.return_value = company_user
 
         with self.assertRaisesRegex(ValueError, "El usuario no es practicante"):
             self.intern_service.update_intern(20, {"nombres": "Ana"})
 
-        self.user_repository.find_by_id.assert_called_once_with(20)
+        self.identity.find_user.assert_called_once_with(20)
         self.profile_repository.find_intern_by_user_id.assert_not_called()
         self.profile_repository.save_intern.assert_not_called()
 
     def test_get_intern_profile_and_skill_education_identity_operations(self):
         user = self._active_intern_user(user_id=10)
-        self.user_repository.find_by_id.return_value = user
+        self.identity.find_user.return_value = user
         self.profile_repository.find_intern_by_user_id.return_value = None
         self.profile_repository.save_intern.side_effect = lambda p: p
 
@@ -180,7 +180,7 @@ class TestProfileService(unittest.TestCase):
 
     def test_update_and_get_company_profile_and_company_guards(self):
         company_user = self._active_company_user(user_id=20)
-        self.user_repository.find_by_id.return_value = company_user
+        self.identity.find_user.return_value = company_user
         self.profile_repository.find_company_by_user_id.return_value = None
         self.profile_repository.save_company.side_effect = lambda e: e
 
@@ -220,15 +220,15 @@ class TestProfileService(unittest.TestCase):
             )
 
         # Company user guards: missing, intern role, inactive
-        self.user_repository.find_by_id.return_value = None
+        self.identity.find_user.return_value = None
         with self.assertRaisesRegex(ValueError, "Usuario no encontrado"):
             self.company_service.update_company(99, {"razon_social": "X", "ruc": "20100070970"})
 
-        self.user_repository.find_by_id.return_value = self._active_intern_user(10)
+        self.identity.find_user.return_value = self._active_intern_user(10)
         with self.assertRaisesRegex(ValueError, "El usuario no es empresa"):
             self.company_service.update_company(10, {"razon_social": "X", "ruc": "20100070970"})
 
-        self.user_repository.find_by_id.return_value = User(
+        self.identity.find_user.return_value = User(
             id=20,
             email="emp@test.local",
             password_hash="h",
@@ -253,23 +253,23 @@ class TestProfileService(unittest.TestCase):
 
     def test_requires_configured_repositories(self):
         without_profile_repo = InternApplicationService(
-            intern_repository=None, user_repository=self.user_repository
+            intern_repository=None, identity=self.identity
         )
         with self.assertRaisesRegex(
             RuntimeError, "requires an intern repository"
         ):
             without_profile_repo.get_intern_profile(10)
 
-        without_user_repo = InternApplicationService(
-            intern_repository=self.profile_repository, user_repository=None
+        without_identity = InternApplicationService(
+            intern_repository=self.profile_repository, identity=None
         )
         with self.assertRaisesRegex(
-            RuntimeError, "requires a user repository"
+            RuntimeError, "requires the identity API"
         ):
-            without_user_repo.get_intern_profile(10)
+            without_identity.get_intern_profile(10)
 
         without_company_repo = CompanyApplicationService(
-            company_repository=None, user_repository=self.user_repository
+            company_repository=None, identity=self.identity
         )
         with self.assertRaisesRegex(
             RuntimeError, "requires a company repository"
@@ -282,15 +282,15 @@ class TestInternApplicationService(unittest.TestCase):
 
     def setUp(self):
         self.intern_repo = create_autospec(IInternRepository, instance=True, spec_set=True)
-        self.user_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
+        self.user_repo = create_autospec(IdentityApi, instance=True, spec_set=True)
         self.service = InternApplicationService(
             intern_repository=self.intern_repo,
-            user_repository=self.user_repo,
+            identity=self.user_repo,
         )
 
     def test_updates_skills_and_reputation_with_segregated_repo(self):
         user = User(id=22, email="student@test.pe", password_hash="hash", role=User.ROLE_INTERN, status=User.STATUS_ACTIVE)
-        self.user_repo.find_by_id.return_value = user
+        self.user_repo.find_user.return_value = user
         self.intern_repo.find_intern_by_user_id.return_value = None
         self.intern_repo.save_intern.side_effect = lambda p: p
 
@@ -299,7 +299,7 @@ class TestInternApplicationService(unittest.TestCase):
         self.intern_repo.save_intern.assert_called_once()
 
     def test_requires_repositories(self):
-        without_repo = InternApplicationService(intern_repository=None, user_repository=self.user_repo)
+        without_repo = InternApplicationService(intern_repository=None, identity=self.user_repo)
         with self.assertRaises(RuntimeError):
             without_repo.get_profile(22)
 
@@ -309,15 +309,15 @@ class TestCompanyApplicationService(unittest.TestCase):
 
     def setUp(self):
         self.company_repo = create_autospec(ICompanyRepository, instance=True, spec_set=True)
-        self.user_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
+        self.user_repo = create_autospec(IdentityApi, instance=True, spec_set=True)
         self.service = CompanyApplicationService(
             company_repository=self.company_repo,
-            user_repository=self.user_repo,
+            identity=self.user_repo,
         )
 
     def test_updates_company_with_segregated_repo(self):
         user = User(id=33, email="empresa@test.pe", password_hash="hash", role=User.ROLE_COMPANY, status=User.STATUS_ACTIVE)
-        self.user_repo.find_by_id.return_value = user
+        self.user_repo.find_user.return_value = user
         self.company_repo.find_company_by_user_id.return_value = None
         self.company_repo.save_company.side_effect = lambda e: e
 
@@ -326,7 +326,7 @@ class TestCompanyApplicationService(unittest.TestCase):
         self.company_repo.save_company.assert_called_once()
 
     def test_requires_repositories(self):
-        without_repo = CompanyApplicationService(company_repository=None, user_repository=self.user_repo)
+        without_repo = CompanyApplicationService(company_repository=None, identity=self.user_repo)
         with self.assertRaises(RuntimeError):
             without_repo.get_profile(33)
 

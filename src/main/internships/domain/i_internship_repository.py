@@ -19,5 +19,5 @@ class IInternshipRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_company_id(self, company_id):
+    def find_by_job_application_ids(self, job_application_ids):
         pass

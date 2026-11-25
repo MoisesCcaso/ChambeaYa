@@ -53,8 +53,8 @@ def calculate_match():
 
     if data:
         try:
-            notif_service = container.get_notification_service()
-            notif_service.create_notification(
+            notifications = container.get_notifications_api()
+            notifications.notify(
                 recipient_user_id=user_id,
                 notification_type="NUEVAS_SUGERENCIAS",
                 message="Nuevas sugerencias de convocatorias disponibles",

@@ -1,5 +1,3 @@
-from sqlalchemy import column, table
-
 from internships.domain.i_internship_repository import IInternshipRepository
 from internships.domain.internship import Internship
 from internships.domain.deliverable import Deliverable
@@ -71,16 +69,13 @@ class SqlAlchemyInternshipRepository(IInternshipRepository):
         model = InternshipModel.query.filter_by(job_application_id=job_application_id).first()
         return self._to_internship_domain(model)
 
-    def find_by_company_id(self, company_id):
-        # Lightweight table constructs: same SQL join without importing recruitment's ORM models.
-        job_applications = table("postulaciones", column("id"), column("convocatoria_id"))
-        job_postings = table("convocatorias", column("id"), column("empresa_id"))
-
+    def find_by_job_application_ids(self, job_application_ids):
+        if not job_application_ids:
+            return []
         models = (
             InternshipModel.query
-            .join(job_applications, InternshipModel.job_application_id == job_applications.c.id)
-            .join(job_postings, job_applications.c.convocatoria_id == job_postings.c.id)
-            .filter(job_postings.c.empresa_id == company_id)
+            .filter(InternshipModel.job_application_id.in_(job_application_ids))
+            .order_by(InternshipModel.id)
             .all()
         )
         return [self._to_internship_domain(model) for model in models]
