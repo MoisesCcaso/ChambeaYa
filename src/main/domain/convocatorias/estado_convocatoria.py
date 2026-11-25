@@ -5,7 +5,7 @@ from shared.errors import ConflictError
 class EstadoConvocatoria(ABC):
     """Estado de una Convocatoria (patron State).
 
-    Cada transicion devuelve el estado siguiente; las no permitidas lanzan ValueError.
+    Cada transicion devuelve el estado siguiente; las no permitidas lanzan ConflictError (409).
     La fecha de cierre pertenece solo al estado cerrado.
     """
 

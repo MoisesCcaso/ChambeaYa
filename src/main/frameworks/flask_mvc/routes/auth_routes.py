@@ -1,4 +1,5 @@
 from flask import Blueprint, current_app, jsonify, request, session
+from flask_wtf.csrf import generate_csrf
 
 from bootstrap.dependencies import container
 from shared.http_messages import NOT_AUTHENTICATED
@@ -17,6 +18,12 @@ def serialize_usuario(usuario):
         "tipo": usuario.tipo,
         "estado": usuario.estado,
     }
+
+
+@auth_bp.get("/csrf-token")
+def csrf_token():
+    """Gives API clients the token to send in the X-CSRFToken header."""
+    return jsonify({"csrf_token": generate_csrf()}), 200
 
 
 @auth_bp.post("/register")

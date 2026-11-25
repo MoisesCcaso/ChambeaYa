@@ -76,7 +76,7 @@ def test_pos_03_no_permite_postular_dos_veces(driver, base_url):
 
     api = postulacion_data.login(base_url, user["email"], user["password"])
     codigo, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")
-    assert codigo == 400
+    assert codigo == 409
     assert "Ya existe una postulación" in cuerpo["error"]
 
 
@@ -92,7 +92,7 @@ def test_pos_04_no_permite_postular_a_convocatoria_cerrada(driver, base_url):
 
     api = postulacion_data.login(base_url, user["email"], user["password"])
     codigo, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")
-    assert codigo == 400
+    assert codigo == 409
     assert "Solo se puede postular a convocatorias publicadas" in cuerpo["error"]
 
 

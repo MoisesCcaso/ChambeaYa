@@ -27,7 +27,7 @@ def _error(message, status_code):
 
 
 def _wants_html():
-    # A browser navigating to a page gets the HTML error page; API clients (fetch, Postman) get JSON.
+    # A browser navigating to a page gets the HTML error page; API clients (fetch, scripts) get JSON.
     return request.accept_mimetypes.best == "text/html"
 
 
