@@ -1,6 +1,6 @@
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.practica import Practica
 from shared.errors import ConflictError
 
 class CertificacionDominioServicio:

@@ -4,19 +4,19 @@ from datetime import datetime, timezone
 
 import pytest
 
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.entregable import Entregable
+from internships.domain.evaluacion import Evaluacion
+from internships.domain.practica import Practica
 from shared.database import db
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
-from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
-from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
+from internships.infrastructure.models.entregable_model import EntregableModel
+from internships.infrastructure.models.evaluacion_model import EvaluacionModel
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
-from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
+from internships.infrastructure.models.practica_model import PracticaModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
+from internships.infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 
 
 @pytest.fixture

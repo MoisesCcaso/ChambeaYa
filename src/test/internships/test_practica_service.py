@@ -5,16 +5,16 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import call, create_autospec
 
-from application.practica_application_service import PracticaApplicationService
+from internships.application.practica_application_service import PracticaApplicationService
 from recruitment.domain.job_posting import JobPosting
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 from recruitment.domain.i_job_application_repository import IJobApplicationRepository
 from recruitment.domain.job_application import JobApplication
 from profiles.domain.i_profile_repository import IProfileRepository
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.entregable import Entregable
+from internships.domain.evaluacion import Evaluacion
+from internships.domain.i_practica_repository import IPracticaRepository
+from internships.domain.practica import Practica
 
 USUARIO_PRACTICANTE_ID = 5
 USUARIO_EMPRESA_ID = 6

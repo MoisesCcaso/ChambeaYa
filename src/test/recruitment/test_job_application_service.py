@@ -12,7 +12,7 @@ from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 from recruitment.domain.i_job_application_repository import IJobApplicationRepository
 from recruitment.domain.job_application import JobApplication
 from profiles.domain.i_intern_repository import IInternRepository
-from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
+from internships.domain.i_practica_repository import IPracticaRepository
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 
 

@@ -4,7 +4,7 @@ from bootstrap.health_routes import health_bp
 from matching.presentation.matching_routes import matching_bp
 from notifications.presentation.notification_routes import notification_bp
 from profiles.presentation.profile_routes import profile_bp
-from frameworks.flask_mvc.routes.practica_routes import practica_bp
+from internships.presentation.practica_routes import practica_bp
 from recruitment.presentation.job_posting_routes import job_posting_bp
 from recruitment.presentation.job_application_routes import job_application_bp
 from bootstrap.web_routes import web_bp

@@ -12,9 +12,9 @@ from domain.certificacion.i_certificado_repository import ICertificadoRepository
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 from recruitment.domain.i_job_application_repository import IJobApplicationRepository
 from profiles.domain.i_profile_repository import IProfileRepository
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.evaluacion import Evaluacion
+from internships.domain.i_practica_repository import IPracticaRepository
+from internships.domain.practica import Practica
 
 EMPRESA_ID = 10
 PRACTICA_ID = 7

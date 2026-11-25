@@ -1,7 +1,7 @@
 from typing import Final
 
 from recruitment.api import JobApplication
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.practica import Practica
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from shared.errors import ConflictError, ForbiddenError, NotFoundError
 

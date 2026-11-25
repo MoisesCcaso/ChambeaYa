@@ -13,8 +13,8 @@ from domain.certificacion.archivo_pdf import ArchivoPDF
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.evaluacion import Evaluacion
+from internships.domain.practica import Practica
 
 UUID4_PATH = "domain.certificacion.codigo_qr.uuid4"
 

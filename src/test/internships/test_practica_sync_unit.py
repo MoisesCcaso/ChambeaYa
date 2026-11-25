@@ -6,9 +6,9 @@ from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, patch
 
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.entregable import Entregable
+from internships.domain.evaluacion import Evaluacion
+from internships.domain.practica import Practica
 
 
 def _ensure_orm_stubs():
@@ -45,25 +45,24 @@ def _ensure_orm_stubs():
     db_mod = ModuleType("shared.database")
     db_mod.db = SimpleNamespace(session=MagicMock())
 
-    practica_mod = ModuleType("frameworks.sqlalchemy_orm.models.practica_model")
+    practica_mod = ModuleType("internships.infrastructure.models.practica_model")
     practica_mod.PracticaModel = DummyPracticaModel
 
-    entregable_mod = ModuleType("frameworks.sqlalchemy_orm.models.entregable_model")
+    entregable_mod = ModuleType("internships.infrastructure.models.entregable_model")
     entregable_mod.EntregableModel = DummyEntregableModel
 
-    evaluacion_mod = ModuleType("frameworks.sqlalchemy_orm.models.evaluacion_model")
+    evaluacion_mod = ModuleType("internships.infrastructure.models.evaluacion_model")
     evaluacion_mod.EvaluacionModel = DummyEvaluacionModel
 
-    sys.modules.setdefault("frameworks.sqlalchemy_orm", ModuleType("frameworks.sqlalchemy_orm"))
-    sys.modules.setdefault("frameworks.sqlalchemy_orm.models", ModuleType("frameworks.sqlalchemy_orm.models"))
+    sys.modules.setdefault("internships.infrastructure.models", ModuleType("internships.infrastructure.models"))
     sys.modules["shared.database"] = db_mod
-    sys.modules["frameworks.sqlalchemy_orm.models.practica_model"] = practica_mod
-    sys.modules["frameworks.sqlalchemy_orm.models.entregable_model"] = entregable_mod
-    sys.modules["frameworks.sqlalchemy_orm.models.evaluacion_model"] = evaluacion_mod
+    sys.modules["internships.infrastructure.models.practica_model"] = practica_mod
+    sys.modules["internships.infrastructure.models.entregable_model"] = entregable_mod
+    sys.modules["internships.infrastructure.models.evaluacion_model"] = evaluacion_mod
 
 
 _ensure_orm_stubs()
-from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository  # noqa: E402
+from internships.infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository  # noqa: E402
 
 
 class TestPracticaRepositorySyncCollection(unittest.TestCase):
@@ -94,8 +93,8 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
 
     def test_save_sincroniza_entregables_y_evaluaciones_mediante_sync_collection(self):
         from shared.database import db
-        from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
-        from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
+        from internships.infrastructure.models.entregable_model import EntregableModel
+        from internships.infrastructure.models.evaluacion_model import EvaluacionModel
 
         moment = datetime(2026, 11, 20, 10, 0, tzinfo=timezone.utc)
         entregable_keep = EntregableModel(archivo="keep.pdf", fecha_subida=moment)

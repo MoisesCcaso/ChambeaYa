@@ -1,11 +1,11 @@
-from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
-from domain.practica_evaluacion.practica import Practica
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
+from internships.domain.i_practica_repository import IPracticaRepository
+from internships.domain.practica import Practica
+from internships.domain.entregable import Entregable
+from internships.domain.evaluacion import Evaluacion
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
-from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
+from internships.infrastructure.models.practica_model import PracticaModel
+from internships.infrastructure.models.entregable_model import EntregableModel
+from internships.infrastructure.models.evaluacion_model import EvaluacionModel
 
 
 class SqlAlchemyPracticaRepository(IPracticaRepository):

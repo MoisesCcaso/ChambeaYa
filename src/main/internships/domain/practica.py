@@ -1,5 +1,5 @@
-from domain.practica_evaluacion.entregable import Entregable
-from domain.practica_evaluacion.evaluacion import Evaluacion
+from internships.domain.entregable import Entregable
+from internships.domain.evaluacion import Evaluacion
 from shared.errors import ConflictError, DomainError, NotFoundError
 
 

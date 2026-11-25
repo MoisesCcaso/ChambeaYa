@@ -10,7 +10,7 @@ from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
-from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
+from internships.infrastructure.models.practica_model import PracticaModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_certificado_repository import (
