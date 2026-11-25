@@ -1,9 +1,9 @@
 from typing import Final
 
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.postulacion import Postulacion
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
-from application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
+from recruitment.application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
 from shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"

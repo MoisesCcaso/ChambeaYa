@@ -1,6 +1,6 @@
 from typing import Final
 
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.postulacion import Postulacion
 from domain.practica_evaluacion.practica import Practica
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from shared.errors import ConflictError, ForbiddenError, NotFoundError

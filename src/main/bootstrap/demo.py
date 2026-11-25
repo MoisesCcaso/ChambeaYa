@@ -9,12 +9,12 @@ from reportlab.pdfgen import canvas
 from werkzeug.security import generate_password_hash
 
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from notifications.infrastructure.models.notification_model import NotificationModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.postulacion_model import PostulacionModel
 from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel

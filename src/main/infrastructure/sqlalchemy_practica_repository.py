@@ -70,8 +70,8 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
         return self._to_practica_domain(model)
 
     def find_by_empresa_id(self, company_id):
-        from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-        from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+        from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
+        from recruitment.infrastructure.models.postulacion_model import PostulacionModel
 
         models = (
             PracticaModel.query

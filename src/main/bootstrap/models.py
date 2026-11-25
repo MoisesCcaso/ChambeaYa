@@ -1,5 +1,5 @@
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from profiles.infrastructure.models.intern_model import InternModel
@@ -8,7 +8,7 @@ from identity.infrastructure.models.user_model import UserModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.postulacion_model import PostulacionModel
 
 
 __all__ = [

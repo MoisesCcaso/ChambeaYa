@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from domain.convocatorias.estado_convocatoria import estado_desde_nombre
+from recruitment.domain.estado_convocatoria import estado_desde_nombre
 from shared.errors import ConflictError, DomainError
 
 

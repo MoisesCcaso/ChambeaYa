@@ -1,9 +1,9 @@
 import json
 
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
-from domain.convocatorias.convocatoria import Convocatoria
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.convocatoria import Convocatoria
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 
 
 class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):

@@ -2,14 +2,14 @@
 
 import unittest
 
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.postulacion import Postulacion
 from bootstrap.app import create_app
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
+from recruitment.infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 
 
 class TestPostulacionRepository(unittest.TestCase):

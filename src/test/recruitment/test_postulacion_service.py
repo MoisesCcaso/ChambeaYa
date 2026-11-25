@@ -3,14 +3,14 @@
 import unittest
 from unittest.mock import MagicMock, create_autospec
 
-from application.postulacion_application_service import (
+from recruitment.application.postulacion_application_service import (
     NOT_FOUND_PRACTICANTE,
     PostulacionApplicationService,
 )
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
-from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.i_postulacion_repository import IPostulacionRepository
+from recruitment.domain.postulacion import Postulacion
 from profiles.domain.i_intern_repository import IInternRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND

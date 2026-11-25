@@ -5,7 +5,7 @@ from unittest import TestCase
 from unittest.mock import Mock, call
 
 from application.matching_application_service import MatchingApplicationService
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
 from domain.matching.i_sugerencia_repository import ISugerenciaRepository
 from profiles.domain.i_intern_repository import IInternRepository
 

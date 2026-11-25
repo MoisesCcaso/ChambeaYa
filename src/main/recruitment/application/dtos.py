@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.postulacion import Postulacion
 
 @dataclass(frozen=True)
 class ConvocatoriaCommand:

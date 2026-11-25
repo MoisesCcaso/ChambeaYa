@@ -1,6 +1,6 @@
 from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStrategy
 from domain.matching.sugerencia import Sugerencia
-from domain.convocatorias.convocatoria import Convocatoria
+from recruitment.domain.convocatoria import Convocatoria
 
 
 class MatchingDominioServicio:

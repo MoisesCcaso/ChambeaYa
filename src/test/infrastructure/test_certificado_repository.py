@@ -7,9 +7,9 @@ from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 from profiles.infrastructure.models.company_model import CompanyModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel

@@ -5,8 +5,8 @@ from frameworks.flask_mvc.routes.matching_routes import matching_bp
 from notifications.presentation.notification_routes import notification_bp
 from profiles.presentation.profile_routes import profile_bp
 from frameworks.flask_mvc.routes.practica_routes import practica_bp
-from frameworks.flask_mvc.routes.convocatoria_routes import convocatoria_bp
-from frameworks.flask_mvc.routes.postulacion_routes import postulacion_bp
+from recruitment.presentation.convocatoria_routes import convocatoria_bp
+from recruitment.presentation.postulacion_routes import postulacion_bp
 from bootstrap.web_routes import web_bp
 
 

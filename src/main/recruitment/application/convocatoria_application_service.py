@@ -1,5 +1,5 @@
-from application.dtos import ConvocatoriaCommand
-from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
+from recruitment.application.dtos import ConvocatoriaCommand
+from recruitment.domain.convocatoria_fabrica import ConvocatoriaFabrica
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from shared.errors import ForbiddenError, NotFoundError
 

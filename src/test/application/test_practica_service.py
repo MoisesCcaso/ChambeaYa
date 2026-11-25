@@ -6,10 +6,10 @@ from types import SimpleNamespace
 from unittest.mock import call, create_autospec
 
 from application.practica_application_service import PracticaApplicationService
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
-from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.i_postulacion_repository import IPostulacionRepository
+from recruitment.domain.postulacion import Postulacion
 from profiles.domain.i_profile_repository import IProfileRepository
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion

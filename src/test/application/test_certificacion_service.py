@@ -9,8 +9,8 @@ from unittest.mock import create_autospec
 from application.certificacion_application_service import CertificacionApplicationService
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.i_certificado_repository import ICertificadoRepository
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
-from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.i_postulacion_repository import IPostulacionRepository
 from profiles.domain.i_profile_repository import IProfileRepository
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository

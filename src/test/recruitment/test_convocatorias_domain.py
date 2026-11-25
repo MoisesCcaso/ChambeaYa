@@ -4,10 +4,10 @@ import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
-from domain.convocatorias.postulacion import Postulacion
-from domain.convocatorias.estado_convocatoria import BorradorState, CerradaState, PublicadaState
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.convocatoria_fabrica import ConvocatoriaFabrica
+from recruitment.domain.postulacion import Postulacion
+from recruitment.domain.estado_convocatoria import BorradorState, CerradaState, PublicadaState
 
 
 class TestConvocatoriaDomain(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestConvocatoriaDomain(unittest.TestCase):
 
     def test_publicar_desde_borrador_asigna_estado_y_fecha_utc(self):
         fecha_fija = datetime(2026, 10, 28, 12, 0, 0, tzinfo=timezone.utc)
-        with patch("domain.convocatorias.convocatoria.datetime") as mock_dt:
+        with patch("recruitment.domain.convocatoria.datetime") as mock_dt:
             mock_dt.now.return_value = fecha_fija
             result = self.convocatoria.publicar()
 
@@ -68,7 +68,7 @@ class TestConvocatoriaDomain(unittest.TestCase):
     def test_cerrar_desde_publicada_asigna_estado_y_fecha_cierre(self):
         self.convocatoria.status = Convocatoria.ESTADO_PUBLICADA
         fecha_cierre = datetime(2026, 11, 1, 18, 0, 0, tzinfo=timezone.utc)
-        with patch("domain.convocatorias.convocatoria.datetime") as mock_dt:
+        with patch("recruitment.domain.convocatoria.datetime") as mock_dt:
             mock_dt.now.return_value = fecha_cierre
             result = self.convocatoria.cerrar()
 
@@ -93,7 +93,7 @@ class TestConvocatoriaDomain(unittest.TestCase):
         )
         fecha_reapertura = datetime(2026, 11, 5, 10, 0, 0, tzinfo=timezone.utc)
 
-        with patch("domain.convocatorias.convocatoria.datetime") as mock_dt:
+        with patch("recruitment.domain.convocatoria.datetime") as mock_dt:
             mock_dt.now.return_value = fecha_reapertura
             result = self.convocatoria.reabrir()
 

@@ -3,12 +3,12 @@
 import unittest
 from unittest.mock import create_autospec
 
-from application.convocatoria_application_service import ConvocatoriaApplicationService
-from application.dtos import (
+from recruitment.application.convocatoria_application_service import ConvocatoriaApplicationService
+from recruitment.application.dtos import (
     ConvocatoriaCommand,
 )
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
 
 
 class TestConvocatoriaCommandDTO(unittest.TestCase):

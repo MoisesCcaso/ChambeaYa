@@ -3,12 +3,12 @@
 import unittest
 from datetime import datetime, timezone
 
-from domain.convocatorias.convocatoria import Convocatoria
+from recruitment.domain.convocatoria import Convocatoria
 from bootstrap.app import create_app
 from shared.database import db
 from profiles.infrastructure.models.company_model import CompanyModel
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from recruitment.infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 
 
 class TestConvocatoriaRepository(unittest.TestCase):

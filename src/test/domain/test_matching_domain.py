@@ -11,7 +11,7 @@ Cubre:
 
 import unittest
 
-from domain.convocatorias.convocatoria import Convocatoria
+from recruitment.domain.convocatoria import Convocatoria
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from domain.matching.sugerencia import Sugerencia
 from profiles.domain.intern import Intern

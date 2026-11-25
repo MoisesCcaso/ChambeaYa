@@ -3,10 +3,10 @@
 import unittest
 from unittest.mock import create_autospec
 
-from application.convocatoria_application_service import ConvocatoriaApplicationService
-from domain.convocatorias.convocatoria import Convocatoria
-from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
-from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.application.convocatoria_application_service import ConvocatoriaApplicationService
+from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.convocatoria_fabrica import ConvocatoriaFabrica
+from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
 
 
 class TestConvocatoriaApplicationService(unittest.TestCase):

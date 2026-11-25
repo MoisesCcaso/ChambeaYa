@@ -1,4 +1,4 @@
-from domain.convocatorias.convocatoria import Convocatoria
+from recruitment.domain.convocatoria import Convocatoria
 from shared.errors import DomainError
 
 class ConvocatoriaFabrica:

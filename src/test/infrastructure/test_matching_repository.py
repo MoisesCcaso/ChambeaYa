@@ -5,7 +5,7 @@ import unittest
 from domain.matching.sugerencia import Sugerencia
 from bootstrap.app import create_app
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.convocatoria_model import ConvocatoriaModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel

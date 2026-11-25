@@ -1,7 +1,7 @@
-from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
-from domain.convocatorias.postulacion import Postulacion
+from recruitment.domain.i_postulacion_repository import IPostulacionRepository
+from recruitment.domain.postulacion import Postulacion
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.postulacion_model import PostulacionModel
 
 class SqlAlchemyPostulacionRepository(IPostulacionRepository):
     def save(self, postulacion):
