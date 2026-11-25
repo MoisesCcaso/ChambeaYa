@@ -7,10 +7,9 @@ from unittest.mock import create_autospec
 
 from internships.application.internship_application_service import InternshipApplicationService
 from recruitment.domain.job_posting import JobPosting
-from recruitment.domain.i_job_posting_repository import IJobPostingRepository
-from recruitment.domain.i_job_application_repository import IJobApplicationRepository
+from recruitment.api import RecruitmentApi
 from recruitment.domain.job_application import JobApplication
-from profiles.domain.i_profile_repository import IProfileRepository
+from profiles.api import ProfilesApi
 from internships.domain.deliverable import Deliverable
 from internships.domain.evaluation import Evaluation
 from internships.domain.i_internship_repository import IInternshipRepository
@@ -28,14 +27,12 @@ INTERNSHIP_ID = 7
 class TestInternshipApplicationService(unittest.TestCase):
     def setUp(self):
         self.internship_list = create_autospec(IInternshipRepository, instance=True)
-        self.profiles_repo = create_autospec(IProfileRepository, instance=True)
-        self.job_applications = create_autospec(IJobApplicationRepository, instance=True)
-        self.job_postings = create_autospec(IJobPostingRepository, instance=True)
+        self.profiles = create_autospec(ProfilesApi, instance=True)
+        self.recruitment = create_autospec(RecruitmentApi, instance=True)
         self.service = InternshipApplicationService(
             internship_repository=self.internship_list,
-            profile_repository=self.profiles_repo,
-            job_application_repository=self.job_applications,
-            job_posting_repository=self.job_postings,
+            profiles=self.profiles,
+            recruitment=self.recruitment,
         )
 
         self.internship = Internship(
@@ -60,17 +57,17 @@ class TestInternshipApplicationService(unittest.TestCase):
         self.internship_list.find_by_id.return_value = self.internship
         self.internship_list.find_by_job_application_id.return_value = None
         self.internship_list.save.side_effect = lambda internship: internship
-        self.profiles_repo.find_intern_by_user_id.return_value = self.intern
-        self.profiles_repo.find_company_by_user_id.return_value = None
-        self.job_applications.find_by_id.return_value = self.job_application
-        self.job_postings.find_by_id.return_value = self.job_posting
+        self.profiles.find_intern_by_user_id.return_value = self.intern
+        self.profiles.find_company_by_user_id.return_value = None
+        self.recruitment.find_job_application.return_value = self.job_application
+        self.recruitment.find_job_posting.return_value = self.job_posting
 
     # Internship start
     def test_starts_internship_and_saves_with_the_right_arguments(self):
         result = self.service.start_internship(COMPANY_ID, JOB_APPLICATION_ID)
 
-        self.job_applications.find_by_id.assert_called_once_with(JOB_APPLICATION_ID)
-        self.job_postings.find_by_id.assert_called_once_with(JOB_POSTING_ID)
+        self.recruitment.find_job_application.assert_called_once_with(JOB_APPLICATION_ID)
+        self.recruitment.find_job_posting.assert_called_once_with(JOB_POSTING_ID)
         self.internship_list.find_by_job_application_id.assert_called_once_with(JOB_APPLICATION_ID)
         saved_internship = self.internship_list.save.call_args.args[0]
         self.assertIs(result, saved_internship)
@@ -79,20 +76,20 @@ class TestInternshipApplicationService(unittest.TestCase):
         self.assertEqual(Internship.STATUS_IN_PROGRESS, saved_internship.status)
 
     def test_does_not_start_if_the_job_application_does_not_exist(self):
-        self.job_applications.find_by_id.return_value = None
+        self.recruitment.find_job_application.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.start_internship(COMPANY_ID, JOB_APPLICATION_ID)
-        self.job_postings.find_by_id.assert_not_called()
+        self.recruitment.find_job_posting.assert_not_called()
         self.internship_list.save.assert_not_called()
 
     def test_does_not_start_if_the_job_application_is_not_selected(self):
         self.job_application.status = JobApplication.STATUS_PENDING
         with self.assertRaisesRegex(ValueError, "debe estar seleccionada"):
             self.service.start_internship(COMPANY_ID, JOB_APPLICATION_ID)
-        self.job_postings.find_by_id.assert_not_called()
+        self.recruitment.find_job_posting.assert_not_called()
 
     def test_does_not_start_if_the_job_posting_does_not_exist(self):
-        self.job_postings.find_by_id.return_value = None
+        self.recruitment.find_job_posting.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.start_internship(COMPANY_ID, JOB_APPLICATION_ID)
         self.internship_list.find_by_job_application_id.assert_not_called()
@@ -114,7 +111,7 @@ class TestInternshipApplicationService(unittest.TestCase):
             INTERN_USER_ID, INTERNSHIP_ID, "informe.pdf"
         )
 
-        self.profiles_repo.find_intern_by_user_id.assert_called_once_with(
+        self.profiles.find_intern_by_user_id.assert_called_once_with(
             INTERN_USER_ID
         )
         self.internship_list.find_by_id.assert_called_once_with(INTERNSHIP_ID)
@@ -123,7 +120,7 @@ class TestInternshipApplicationService(unittest.TestCase):
         self.assertIs(result, self.internship)
 
     def test_upload_rejects_missing_profile(self):
-        self.profiles_repo.find_intern_by_user_id.return_value = None
+        self.profiles.find_intern_by_user_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Perfil de practicante no encontrado"):
             self.service.upload_deliverable(999, INTERNSHIP_ID, "informe.pdf")
         self.internship_list.find_by_id.assert_not_called()
@@ -188,22 +185,22 @@ class TestInternshipApplicationService(unittest.TestCase):
         result = self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
 
         self.internship_list.find_by_id.assert_called_once_with(INTERNSHIP_ID)
-        self.job_applications.find_by_id.assert_called_once_with(JOB_APPLICATION_ID)
-        self.job_postings.find_by_id.assert_called_once_with(JOB_POSTING_ID)
+        self.recruitment.find_job_application.assert_called_once_with(JOB_APPLICATION_ID)
+        self.recruitment.find_job_posting.assert_called_once_with(JOB_POSTING_ID)
         self.assertEqual(85, self.internship.evaluations[0].score)
         self.internship_list.save.assert_called_once_with(self.internship)
         self.assertIs(result, self.internship)
 
     def test_evaluate_internship_and_notify_the_intern(self):
         mock_notif = unittest.mock.Mock()
-        self.service.notification_service = mock_notif
+        self.service.notifications = mock_notif
         self.intern.user_id = 99
-        self.profiles_repo.find_intern_by_id.return_value = self.intern
+        self.profiles.find_intern_by_id.return_value = self.intern
 
         result = self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
 
         self.assertIs(result, self.internship)
-        mock_notif.create_notification.assert_called_once_with(
+        mock_notif.notify.assert_called_once_with(
             recipient_user_id=99,
             notification_type="EVALUACION_DISPONIBLE",
             message="Tu práctica tiene una nueva evaluación disponible",
@@ -212,10 +209,10 @@ class TestInternshipApplicationService(unittest.TestCase):
 
     def test_evaluate_internship_tolerates_notification_failure(self):
         mock_notif = unittest.mock.Mock()
-        mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
-        self.service.notification_service = mock_notif
+        mock_notif.notify.side_effect = RuntimeError("Notification Error")
+        self.service.notifications = mock_notif
         self.intern.user_id = 99
-        self.profiles_repo.find_intern_by_id.return_value = self.intern
+        self.profiles.find_intern_by_id.return_value = self.intern
 
         result = self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
         self.assertIs(result, self.internship)
@@ -224,16 +221,16 @@ class TestInternshipApplicationService(unittest.TestCase):
         self.internship_list.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):
             self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
-        self.job_applications.find_by_id.assert_not_called()
+        self.recruitment.find_job_application.assert_not_called()
 
     def test_evaluate_rejects_missing_job_application(self):
-        self.job_applications.find_by_id.return_value = None
+        self.recruitment.find_job_application.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
-        self.job_postings.find_by_id.assert_not_called()
+        self.recruitment.find_job_posting.assert_not_called()
 
     def test_evaluate_rejects_missing_job_posting(self):
-        self.job_postings.find_by_id.return_value = None
+        self.recruitment.find_job_posting.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.evaluate(COMPANY_ID, INTERNSHIP_ID, 85)
 
@@ -267,8 +264,8 @@ class TestInternshipApplicationService(unittest.TestCase):
 
         self.assertIs(evaluation, deleted)
         self.assertEqual([], self.internship.evaluations)
-        self.job_applications.find_by_id.assert_called_once_with(JOB_APPLICATION_ID)
-        self.job_postings.find_by_id.assert_called_once_with(JOB_POSTING_ID)
+        self.recruitment.find_job_application.assert_called_once_with(JOB_APPLICATION_ID)
+        self.recruitment.find_job_posting.assert_called_once_with(JOB_POSTING_ID)
         self.internship_list.save.assert_called_once_with(self.internship)
 
     def test_remove_evaluation_rejects_missing_internship(self):
@@ -303,13 +300,13 @@ class TestInternshipApplicationService(unittest.TestCase):
         self.internship_list.save.assert_not_called()
 
     def test_company_operation_rejects_missing_job_application(self):
-        self.job_applications.find_by_id.return_value = None
+        self.recruitment.find_job_application.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.finish(COMPANY_ID, INTERNSHIP_ID)
-        self.job_postings.find_by_id.assert_not_called()
+        self.recruitment.find_job_posting.assert_not_called()
 
     def test_company_operation_rejects_missing_job_posting(self):
-        self.job_postings.find_by_id.return_value = None
+        self.recruitment.find_job_posting.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.finish(COMPANY_ID, INTERNSHIP_ID)
 
@@ -327,44 +324,46 @@ class TestInternshipApplicationService(unittest.TestCase):
 
         self.assertIs(expected_items, result)
         self.internship_list.find_by_intern_id.assert_called_once_with(INTERN_ID)
-        self.profiles_repo.find_company_by_user_id.assert_not_called()
+        self.profiles.find_company_by_user_id.assert_not_called()
 
-    def test_lists_company_internships_and_skips_applications_without_internship(self):
+    def test_lists_company_internships_through_the_recruitment_api(self):
         internship_2 = Internship(id=8, job_application_id=22, intern_id=31)
-        self.profiles_repo.find_intern_by_user_id.return_value = None
-        self.profiles_repo.find_company_by_user_id.return_value = self.company
-        self.internship_list.find_by_company_id.return_value = [self.internship, internship_2]
+        self.profiles.find_intern_by_user_id.return_value = None
+        self.profiles.find_company_by_user_id.return_value = self.company
+        self.recruitment.job_application_ids_for_company.return_value = [JOB_APPLICATION_ID, 21, 22]
+        self.internship_list.find_by_job_application_ids.return_value = [self.internship, internship_2]
 
         result = self.service.list_for_user(COMPANY_USER_ID)
 
         self.assertEqual([self.internship, internship_2], result)
-        self.internship_list.find_by_company_id.assert_called_once_with(COMPANY_ID)
+        self.recruitment.job_application_ids_for_company.assert_called_once_with(COMPANY_ID)
+        self.internship_list.find_by_job_application_ids.assert_called_once_with([JOB_APPLICATION_ID, 21, 22])
 
     def test_list_rejects_user_without_profile(self):
-        self.profiles_repo.find_intern_by_user_id.return_value = None
-        self.profiles_repo.find_company_by_user_id.return_value = None
+        self.profiles.find_intern_by_user_id.return_value = None
+        self.profiles.find_company_by_user_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Perfil no encontrado"):
             self.service.list_for_user(999)
 
     def test_owner_company_can_query_internship(self):
-        self.profiles_repo.find_intern_by_user_id.return_value = None
-        self.profiles_repo.find_company_by_user_id.return_value = self.company
+        self.profiles.find_intern_by_user_id.return_value = None
+        self.profiles.find_company_by_user_id.return_value = self.company
 
         result = self.service.get_for_user(COMPANY_USER_ID, INTERNSHIP_ID)
 
         self.assertIs(self.internship, result)
-        self.profiles_repo.find_company_by_user_id.assert_called_once_with(COMPANY_USER_ID)
-        self.job_applications.find_by_id.assert_called_once_with(JOB_APPLICATION_ID)
+        self.profiles.find_company_by_user_id.assert_called_once_with(COMPANY_USER_ID)
+        self.recruitment.find_job_application.assert_called_once_with(JOB_APPLICATION_ID)
 
     def test_visible_query_rejects_missing_internship(self):
         self.internship_list.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):
             self.service.get_for_user(INTERN_USER_ID, INTERNSHIP_ID)
-        self.profiles_repo.find_intern_by_user_id.assert_not_called()
+        self.profiles.find_intern_by_user_id.assert_not_called()
 
     def test_query_rejects_foreign_intern_without_company_profile(self):
-        self.profiles_repo.find_intern_by_user_id.return_value = SimpleNamespace(id=999)
-        self.profiles_repo.find_company_by_user_id.return_value = None
+        self.profiles.find_intern_by_user_id.return_value = SimpleNamespace(id=999)
+        self.profiles.find_company_by_user_id.return_value = None
         with self.assertRaisesRegex(ValueError, "No autorizado"):
             self.service.get_for_user(INTERN_USER_ID, INTERNSHIP_ID)
 
@@ -372,9 +371,7 @@ class TestInternshipApplicationService(unittest.TestCase):
     def test_requires_every_repository_before_operating(self):
         incomplete_services = (
             InternshipApplicationService(),
-            InternshipApplicationService(
-                self.internship_list, self.profiles_repo, self.job_applications, None
-            ),
+            InternshipApplicationService(self.internship_list, self.profiles, None),
         )
         for service in incomplete_services:
             with self.subTest(service=service):

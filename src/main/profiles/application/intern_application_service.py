@@ -7,9 +7,9 @@ from shared.errors import ForbiddenError, NotFoundError
 class InternApplicationService:
     """Application service for the intern profile lifecycle (SOLID-SRP)."""
 
-    def __init__(self, intern_repository=None, user_repository=None):
+    def __init__(self, intern_repository=None, identity=None):
         self.intern_repository = intern_repository
-        self.user_repository = user_repository
+        self.identity = identity
 
     def get_intern_profile(self, user_id):
         self._require_repositories()
@@ -100,7 +100,7 @@ class InternApplicationService:
         return intern
 
     def _require_intern_user(self, user_id):
-        user = self.user_repository.find_by_id(user_id)
+        user = self.identity.find_user(user_id)
         if user is None:
             raise NotFoundError("Usuario no encontrado")
         if user.role != User.ROLE_INTERN:
@@ -113,8 +113,8 @@ class InternApplicationService:
     def _require_repositories(self):
         if self.intern_repository is None:
             raise RuntimeError("InternApplicationService requires an intern repository")
-        if self.user_repository is None:
-            raise RuntimeError("InternApplicationService requires a user repository")
+        if self.identity is None:
+            raise RuntimeError("InternApplicationService requires the identity API")
 
     def _optional_text(self, value):
         if value is None:

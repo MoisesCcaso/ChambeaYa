@@ -1,5 +1,11 @@
 from flask import current_app
 
+from identity.api import IdentityApi
+from internships.api import InternshipsApi
+from notifications.api import NotificationsApi
+from profiles.api import ProfilesApi
+from recruitment.api import RecruitmentApi
+
 from certification.application.certification_application_service import CertificationApplicationService
 from recruitment.application.job_posting_application_service import JobPostingApplicationService
 from profiles.application.company_application_service import CompanyApplicationService
@@ -79,27 +85,22 @@ class DependencyContainer:
     def get_internship_service(self):
         if "internship_service" in self._services:
             return self._services["internship_service"]
-        notif_repo = self.get_notification_repository()
-        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return InternshipApplicationService(
             self.get_internship_repository(),
-            self.get_profile_repository(),
-            self.get_job_application_repository(),
-            self.get_job_posting_repository(),
-            notification_service=notif_service,
+            profiles=self.get_profiles_api(),
+            recruitment=self.get_recruitment_api(),
+            notifications=self.get_notifications_api(),
         )
 
     def get_job_application_service(self):
         if "job_application_service" in self._services:
             return self._services["job_application_service"]
-        notif_repo = self.get_notification_repository()
-        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return JobApplicationService(
             self.get_job_application_repository(),
             self.get_job_posting_repository(),
-            self.get_profile_repository(),
-            self.get_internship_repository(),
-            notification_service=notif_service,
+            profiles=self.get_profiles_api(),
+            internships=self.get_internships_api(),
+            notifications=self.get_notifications_api(),
         )
 
     def get_matching_service(self):
@@ -107,9 +108,9 @@ class DependencyContainer:
             return self._services["matching_service"]
         return MatchingApplicationService(
             self.get_matching_repository(),
-            self.get_profile_repository(),
-            self.get_job_posting_repository(),
-            MatchingDomainService(),
+            profiles=self.get_profiles_api(),
+            recruitment=self.get_recruitment_api(),
+            matching_domain_service=MatchingDomainService(),
         )
 
     def get_notification_service(self):
@@ -121,32 +122,39 @@ class DependencyContainer:
     def get_certification_service(self):
         if "certification_service" in self._services:
             return self._services["certification_service"]
-        notif_repo = self.get_notification_repository()
-        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return CertificationApplicationService(
             self.get_certificate_repository(),
-            self.get_internship_repository(),
-            self.get_job_application_repository(),
-            self.get_job_posting_repository(),
-            self.get_profile_repository(),
-            notification_service=notif_service,
+            internships=self.get_internships_api(),
+            recruitment=self.get_recruitment_api(),
+            profiles=self.get_profiles_api(),
+            notifications=self.get_notifications_api(),
         )
 
     def get_intern_service(self):
         if "intern_service" in self._services:
             return self._services["intern_service"]
-        return InternApplicationService(
-            self.get_profile_repository(),
-            self.get_user_repository(),
-        )
+        return InternApplicationService(self.get_profile_repository(), identity=self.get_identity_api())
 
     def get_company_service(self):
         if "company_service" in self._services:
             return self._services["company_service"]
-        return CompanyApplicationService(
-            self.get_profile_repository(),
-            self.get_user_repository(),
-        )
+        return CompanyApplicationService(self.get_profile_repository(), identity=self.get_identity_api())
+
+    # Public APIs: the only way a context reaches another one
+    def get_identity_api(self):
+        return IdentityApi(self.get_user_repository())
+
+    def get_profiles_api(self):
+        return ProfilesApi(self.get_profile_repository())
+
+    def get_recruitment_api(self):
+        return RecruitmentApi(self.get_job_posting_repository(), self.get_job_application_repository())
+
+    def get_internships_api(self):
+        return InternshipsApi(self.get_internship_repository(), self.get_internship_service())
+
+    def get_notifications_api(self):
+        return NotificationsApi(self.get_notification_service())
 
     def override_repository(self, name, repository):
         self._repos[name] = repository

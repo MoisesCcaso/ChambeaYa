@@ -50,7 +50,7 @@ def get_my_profile():
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    user = container.get_user_repository().find_by_id(user_id)
+    user = container.get_identity_api().find_user(user_id)
     if user is None:
         return jsonify({"error": "Usuario no encontrado"}), 404
     if user.role == "empresa":

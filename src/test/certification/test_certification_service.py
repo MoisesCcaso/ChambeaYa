@@ -9,11 +9,10 @@ from unittest.mock import create_autospec
 from certification.application.certification_application_service import CertificationApplicationService
 from certification.domain.certificate import Certificate
 from certification.domain.i_certificate_repository import ICertificateRepository
-from recruitment.domain.i_job_posting_repository import IJobPostingRepository
-from recruitment.domain.i_job_application_repository import IJobApplicationRepository
-from profiles.domain.i_profile_repository import IProfileRepository
+from recruitment.api import RecruitmentApi
+from profiles.api import ProfilesApi
 from internships.domain.evaluation import Evaluation
-from internships.domain.i_internship_repository import IInternshipRepository
+from internships.api import InternshipsApi
 from internships.domain.internship import Internship
 
 COMPANY_ID = 10
@@ -23,16 +22,14 @@ INTERNSHIP_ID = 7
 class TestCertificationService(unittest.TestCase):
     def setUp(self):
         self.certificates = create_autospec(ICertificateRepository, instance=True)
-        self.internship_list = create_autospec(IInternshipRepository, instance=True)
-        self.job_applications = create_autospec(IJobApplicationRepository, instance=True)
-        self.job_postings = create_autospec(IJobPostingRepository, instance=True)
-        self.profiles_repo = create_autospec(IProfileRepository, instance=True)
+        self.internships = create_autospec(InternshipsApi, instance=True)
+        self.recruitment = create_autospec(RecruitmentApi, instance=True)
+        self.profiles = create_autospec(ProfilesApi, instance=True)
         self.service = CertificationApplicationService(
             certificate_repository=self.certificates,
-            internship_repository=self.internship_list,
-            job_application_repository=self.job_applications,
-            job_posting_repository=self.job_postings,
-            profile_repository=self.profiles_repo,
+            internships=self.internships,
+            recruitment=self.recruitment,
+            profiles=self.profiles,
         )
 
         self.internship = Internship(
@@ -44,10 +41,10 @@ class TestCertificationService(unittest.TestCase):
         self.job_posting = SimpleNamespace(id=40, company_id=COMPANY_ID, title="Practicas QA")
         self.intern = SimpleNamespace(id=30, first_names="Ana", last_names="Quispe")
 
-        self.internship_list.find_by_id.return_value = self.internship
-        self.job_applications.find_by_id.return_value = self.job_application
-        self.job_postings.find_by_id.return_value = self.job_posting
-        self.profiles_repo.find_intern_by_id.return_value = self.intern
+        self.internships.find_internship.return_value = self.internship
+        self.recruitment.find_job_application.return_value = self.job_application
+        self.recruitment.find_job_posting.return_value = self.job_posting
+        self.profiles.find_intern_by_id.return_value = self.intern
         self.certificates.find_by_internship_id.return_value = None
         self.certificates.save.side_effect = lambda certificate: certificate
 
@@ -67,22 +64,22 @@ class TestCertificationService(unittest.TestCase):
         self.assertTrue(created)
         self.assertEqual(INTERNSHIP_ID, certificate.internship_id)
         self.assertIn("Ana Quispe", certificate.document.content)
-        self.internship_list.find_by_id.assert_called_once_with(INTERNSHIP_ID)
-        self.job_applications.find_by_id.assert_called_once_with(20)
-        self.job_postings.find_by_id.assert_called_once_with(40)
-        self.profiles_repo.find_intern_by_id.assert_called_once_with(30)
+        self.internships.find_internship.assert_called_once_with(INTERNSHIP_ID)
+        self.recruitment.find_job_application.assert_called_once_with(20)
+        self.recruitment.find_job_posting.assert_called_once_with(40)
+        self.profiles.find_intern_by_id.assert_called_once_with(30)
         self.certificates.find_by_internship_id.assert_called_once_with(INTERNSHIP_ID)
         self.certificates.save.assert_called_once_with(certificate)
 
     def test_issue_certificate_and_notify_the_intern(self):
         mock_notif_service = unittest.mock.Mock()
-        self.service.notification_service = mock_notif_service
+        self.service.notifications = mock_notif_service
         self.intern.user_id = 99
 
         certificate, created = self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
 
         self.assertTrue(created)
-        mock_notif_service.create_notification.assert_called_once_with(
+        mock_notif_service.notify.assert_called_once_with(
             recipient_user_id=99,
             notification_type="CERTIFICADO_EMITIDO",
             message="Tu certificado digital ha sido emitido",
@@ -91,8 +88,8 @@ class TestCertificationService(unittest.TestCase):
 
     def test_issue_certificate_tolerates_notification_failure(self):
         mock_notif_service = unittest.mock.Mock()
-        mock_notif_service.create_notification.side_effect = RuntimeError("SMTP Error")
-        self.service.notification_service = mock_notif_service
+        mock_notif_service.notify.side_effect = RuntimeError("SMTP Error")
+        self.service.notifications = mock_notif_service
         self.intern.user_id = 99
 
         certificate, created = self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
@@ -101,18 +98,18 @@ class TestCertificationService(unittest.TestCase):
         self.assertEqual(INTERNSHIP_ID, certificate.internship_id)
 
     def test_missing_internship_raises(self):
-        self.internship_list.find_by_id.return_value = None
+        self.internships.find_internship.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):
             self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
         self.certificates.save.assert_not_called()
 
     def test_missing_job_application_raises(self):
-        self.job_applications.find_by_id.return_value = None
+        self.recruitment.find_job_application.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
 
     def test_missing_job_posting_raises(self):
-        self.job_postings.find_by_id.return_value = None
+        self.recruitment.find_job_posting.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
 
@@ -122,7 +119,7 @@ class TestCertificationService(unittest.TestCase):
         self.certificates.save.assert_not_called()
 
     def test_missing_intern_raises(self):
-        self.profiles_repo.find_intern_by_id.return_value = None
+        self.profiles.find_intern_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Practicante no encontrado"):
             self.service.issue_certificate(COMPANY_ID, INTERNSHIP_ID)
 
@@ -182,10 +179,9 @@ class TestCertificationService(unittest.TestCase):
     def test_a_single_missing_repository_raises_runtime_error(self):
         service = CertificationApplicationService(
             certificate_repository=self.certificates,
-            internship_repository=self.internship_list,
-            job_application_repository=self.job_applications,
-            job_posting_repository=self.job_postings,
-            profile_repository=None,
+            internships=self.internships,
+            recruitment=self.recruitment,
+            profiles=None,
         )
         with self.assertRaises(RuntimeError):
             service.find_by_internship_id(INTERNSHIP_ID)

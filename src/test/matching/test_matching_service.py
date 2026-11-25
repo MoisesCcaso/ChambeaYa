@@ -5,17 +5,17 @@ from unittest import TestCase
 from unittest.mock import Mock, call
 
 from matching.application.matching_application_service import MatchingApplicationService
-from recruitment.domain.i_job_posting_repository import IJobPostingRepository
+from recruitment.api import RecruitmentApi
 from matching.domain.i_suggestion_repository import ISuggestionRepository
-from profiles.domain.i_intern_repository import IInternRepository
+from profiles.api import ProfilesApi
 
 
 class TestMatchingApplicationService(TestCase):
     """Checks results and interactions without touching real infrastructure."""
 
     def setUp(self):
-        self.profile_repository = Mock(spec=IInternRepository)
-        self.job_posting_repository = Mock(spec=IJobPostingRepository)
+        self.profiles = Mock(spec=ProfilesApi)
+        self.recruitment = Mock(spec=RecruitmentApi)
         self.suggestion_repository = Mock(spec=ISuggestionRepository)
         self.matching_domain_service = Mock()
 
@@ -31,14 +31,14 @@ class TestMatchingApplicationService(TestCase):
         )
         self.results = [self.result_1, self.result_2]
 
-        self.profile_repository.find_intern_by_user_id.return_value = self.intern
-        self.job_posting_repository.find_all.return_value = self.job_postings
+        self.profiles.find_intern_by_user_id.return_value = self.intern
+        self.recruitment.list_job_postings.return_value = self.job_postings
         self.matching_domain_service.filter_job_postings.return_value = self.results
 
         self.service = MatchingApplicationService(
             suggestion_repository=self.suggestion_repository,
-            profile_repository=self.profile_repository,
-            job_posting_repository=self.job_posting_repository,
+            profiles=self.profiles,
+            recruitment=self.recruitment,
             matching_domain_service=self.matching_domain_service,
         )
 
@@ -46,8 +46,8 @@ class TestMatchingApplicationService(TestCase):
         results = self.service.suggest_job_postings(user_id=5, threshold=65.0)
 
         self.assertIs(self.results, results)
-        self.profile_repository.find_intern_by_user_id.assert_called_once_with(5)
-        self.job_posting_repository.find_all.assert_called_once_with()
+        self.profiles.find_intern_by_user_id.assert_called_once_with(5)
+        self.recruitment.list_job_postings.assert_called_once_with()
         self.matching_domain_service.filter_job_postings.assert_called_once_with(
             self.intern, self.job_postings, 65.0
         )
@@ -57,8 +57,8 @@ class TestMatchingApplicationService(TestCase):
         results = self.service.calculate_for_intern(user_id=5)
 
         self.assertIs(self.results, results)
-        self.profile_repository.find_intern_by_user_id.assert_called_once_with(5)
-        self.job_posting_repository.find_all.assert_called_once_with()
+        self.profiles.find_intern_by_user_id.assert_called_once_with(5)
+        self.recruitment.list_job_postings.assert_called_once_with()
         self.matching_domain_service.filter_job_postings.assert_called_once_with(
             self.intern, self.job_postings
         )
@@ -76,26 +76,26 @@ class TestMatchingApplicationService(TestCase):
         self.suggestion_repository.save.assert_not_called()
 
     def test_raises_if_the_intern_is_not_found(self):
-        self.profile_repository.find_intern_by_user_id.return_value = None
+        self.profiles.find_intern_by_user_id.return_value = None
 
         with self.assertRaisesRegex(ValueError, "Practicante no encontrado"):
             self.service.suggest_job_postings(user_id=404)
 
-        self.profile_repository.find_intern_by_user_id.assert_called_once_with(404)
-        self.job_posting_repository.find_all.assert_not_called()
+        self.profiles.find_intern_by_user_id.assert_called_once_with(404)
+        self.recruitment.list_job_postings.assert_not_called()
         self.matching_domain_service.filter_job_postings.assert_not_called()
 
     def test_requires_the_three_repositories(self):
         service = MatchingApplicationService(
-            profile_repository=self.profile_repository,
-            job_posting_repository=self.job_posting_repository,
+            profiles=self.profiles,
+            recruitment=self.recruitment,
             matching_domain_service=self.matching_domain_service,
         )
 
         with self.assertRaisesRegex(RuntimeError, "suggestion repository"):
             service.suggest_job_postings(user_id=5)
 
-        self.profile_repository.find_intern_by_user_id.assert_not_called()
+        self.profiles.find_intern_by_user_id.assert_not_called()
 
 
 if __name__ == "__main__":

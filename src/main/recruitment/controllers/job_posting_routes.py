@@ -14,7 +14,7 @@ def build_job_posting_service():
 def get_authenticated_company(user_id):
     if user_id is None:
         return None
-    return container.get_profile_repository().find_company_by_user_id(user_id)
+    return container.get_profiles_api().find_company_by_user_id(user_id)
 
 
 def serialize_job_posting(job_posting):

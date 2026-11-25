@@ -6,7 +6,7 @@ from unittest.mock import create_autospec
 from profiles.application.dtos import UpdateCompanyDTO, UpdateInternDTO
 from profiles.application.company_application_service import CompanyApplicationService
 from profiles.application.intern_application_service import InternApplicationService
-from identity.domain.i_user_repository import IUserRepository
+from identity.api import IdentityApi
 from identity.domain.user import User
 from profiles.domain.i_company_repository import ICompanyRepository
 from profiles.domain.i_intern_repository import IInternRepository
@@ -19,18 +19,18 @@ class TestProfileParameterObjectsDTO(unittest.TestCase):
     def setUp(self):
         self.intern_repo = create_autospec(IInternRepository, instance=True, spec_set=True)
         self.company_repo = create_autospec(ICompanyRepository, instance=True, spec_set=True)
-        self.user_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
+        self.user_repo = create_autospec(IdentityApi, instance=True, spec_set=True)
         self.intern_service = InternApplicationService(
             intern_repository=self.intern_repo,
-            user_repository=self.user_repo,
+            identity=self.user_repo,
         )
         self.company_service = CompanyApplicationService(
             company_repository=self.company_repo,
-            user_repository=self.user_repo,
+            identity=self.user_repo,
         )
 
     def test_update_intern_accepts_typed_dto(self):
-        self.user_repo.find_by_id.return_value = User(
+        self.user_repo.find_user.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
@@ -64,7 +64,7 @@ class TestProfileParameterObjectsDTO(unittest.TestCase):
             dni="12345678",
             identity_verified=True,
         )
-        self.user_repo.find_by_id.return_value = User(
+        self.user_repo.find_user.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
@@ -82,7 +82,7 @@ class TestProfileParameterObjectsDTO(unittest.TestCase):
         self.assertTrue(updated_certificate.identity_verified)
 
     def test_update_company_accepts_typed_dto(self):
-        self.user_repo.find_by_id.return_value = User(
+        self.user_repo.find_user.return_value = User(
             id=20,
             email="rrhh@empresa.pe",
             password_hash="h",
