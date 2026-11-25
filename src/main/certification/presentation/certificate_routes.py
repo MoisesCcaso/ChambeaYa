@@ -1,7 +1,8 @@
 from io import BytesIO
+from urllib.parse import quote
 
 import qrcode
-from flask import Blueprint, jsonify, send_file, session, url_for
+from flask import Blueprint, current_app, jsonify, send_file, session
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -14,6 +15,11 @@ certificate_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
 
 def build_certification_service():
     return container.get_certification_service()
+
+
+def build_verification_url(code):
+    # Plain string, not url_for: the verification view is served by the client app.
+    return f"{current_app.config['APP_URL'].rstrip('/')}/verificar-certificado?codigo={quote(code)}"
 
 
 def serialize_certificate(certificate):
@@ -122,12 +128,7 @@ def download_certificate_qr(qr_code_value):
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
 
     buffer = BytesIO()
-    verification_url = url_for(
-        "web.verify_certificate_view",
-        code=qr_code_value,
-        _external=True,
-    )
-    image = qrcode.make(verification_url)
+    image = qrcode.make(build_verification_url(qr_code_value))
     image.save(buffer, format="PNG")
     buffer.seek(0)
     return send_file(buffer, mimetype="image/png")
