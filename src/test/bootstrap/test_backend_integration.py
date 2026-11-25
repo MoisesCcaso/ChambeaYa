@@ -193,31 +193,31 @@ class BackendIntegrationTest(unittest.TestCase):
             200,
         )
 
-        certificado = self.request(
+        certificate = self.request(
             self.company,
             "post",
             f"/certificados/{internship_id}/emitir",
             201,
         ).get_json()
-        codigo = certificado["codigo_qr"]["valor"]
+        code = certificate["codigo_qr"]["valor"]
         certificado_consultado = self.request(
             self.intern,
             "get",
             f"/certificados/practica/{internship_id}",
             200,
         ).get_json()
-        self.assertEqual(certificado["id"], certificado_consultado["id"])
+        self.assertEqual(certificate["id"], certificado_consultado["id"])
         certificado_repetido = self.request(
             self.company,
             "post",
             f"/certificados/{internship_id}/emitir",
             200,
         ).get_json()
-        self.assertEqual(certificado["id"], certificado_repetido["id"])
+        self.assertEqual(certificate["id"], certificado_repetido["id"])
         verificacion = self.request(
             self.intern,
             "get",
-            f"/certificados/verificar/{codigo}",
+            f"/certificados/verificar/{code}",
             200,
         ).get_json()
         self.assertTrue(verificacion["valido"])
@@ -226,7 +226,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.request(
                 self.intern,
                 "get",
-                certificado["documento"]["url"],
+                certificate["documento"]["url"],
                 200,
             ).mimetype,
         )
@@ -235,7 +235,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.request(
                 self.intern,
                 "get",
-                certificado["codigo_qr"]["imagen_url"],
+                certificate["codigo_qr"]["imagen_url"],
                 200,
             ).mimetype,
         )

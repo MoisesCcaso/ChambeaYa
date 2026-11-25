@@ -14,7 +14,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_job_posting_repository())
         self.assertIsNotNone(self.container.get_job_application_repository())
         self.assertIsNotNone(self.container.get_internship_repository())
-        self.assertIsNotNone(self.container.get_certificado_repository())
+        self.assertIsNotNone(self.container.get_certificate_repository())
         self.assertIsNotNone(self.container.get_notification_repository())
         self.assertIsNotNone(self.container.get_matching_repository())
 
@@ -25,7 +25,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_job_application_service())
         self.assertIsNotNone(self.container.get_matching_service())
         self.assertIsNotNone(self.container.get_notification_service())
-        self.assertIsNotNone(self.container.get_certificacion_service())
+        self.assertIsNotNone(self.container.get_certification_service())
         self.assertIsNotNone(self.container.get_intern_service())
         self.assertIsNotNone(self.container.get_company_service())
 

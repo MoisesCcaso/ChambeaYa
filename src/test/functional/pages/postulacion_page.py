@@ -129,11 +129,11 @@ class VerificarCertificadoPage(BasePage):
         self.wait_until_visible(self.CODE_INPUT)
         return self
 
-    def verify(self, codigo: str) -> "VerificarCertificadoPage":
+    def verify(self, code: str) -> "VerificarCertificadoPage":
         """Escribe el código, envía el formulario y espera el resultado."""
         field = self.wait_until_visible(self.CODE_INPUT)
         field.clear()
-        field.send_keys(codigo)
+        field.send_keys(code)
         self.wait_until_clickable(self.SUBMIT).click()
         self.wait_until_visible(self.RESULT)
         return self

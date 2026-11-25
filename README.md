@@ -679,8 +679,8 @@ def _load_list(self, value): ...
 # src/main/frameworks/flask_mvc/routes/certificado_routes.py
 from flask import Blueprint, jsonify, session         # framework
 
-from application.certificacion_application_service import ...  # application
-from infrastructure.sqlalchemy_certificado_repository import ...  # infrastructure
+from certification.application.certificacion_application_service import ...  # application
+from certification.infrastructure.sqlalchemy_certificado_repository import ...  # infrastructure
 ```
 
 ## 6.3 Codificación Limpia (Clean Code)

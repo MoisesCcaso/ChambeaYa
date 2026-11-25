@@ -127,7 +127,7 @@ def create_issued_certificate(base_url: str) -> str:
         "POST", f"/practicas/{internship_id}/evaluar", {"puntaje": 90}, status=201
     )
     company.expect("POST", f"/practicas/{internship_id}/finalizar")
-    certificado = company.expect(
+    certificate = company.expect(
         "POST", f"/certificados/{internship_id}/emitir", status=201
     )
-    return certificado["codigo_qr"]["valor"]
+    return certificate["codigo_qr"]["valor"]

@@ -1,6 +1,6 @@
 from flask import current_app
 
-from application.certificacion_application_service import CertificacionApplicationService
+from certification.application.certification_application_service import CertificationApplicationService
 from recruitment.application.job_posting_application_service import JobPostingApplicationService
 from profiles.application.company_application_service import CompanyApplicationService
 from matching.application.matching_application_service import MatchingApplicationService
@@ -12,7 +12,7 @@ from identity.application.user_application_service import UserApplicationService
 from identity.domain.authentication_domain_service import AuthenticationDomainService
 from matching.domain.matching_domain_service import MatchingDomainService
 from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
-from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
+from certification.infrastructure.sqlalchemy_certificate_repository import SqlAlchemyCertificateRepository
 from recruitment.infrastructure.sqlalchemy_job_posting_repository import SqlAlchemyJobPostingRepository
 from matching.infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
@@ -46,8 +46,8 @@ class DependencyContainer:
     def get_internship_repository(self):
         return self._repos.get("internship") or SqlAlchemyInternshipRepository()
 
-    def get_certificado_repository(self):
-        return self._repos.get("certificado") or SqlAlchemyCertificadoRepository()
+    def get_certificate_repository(self):
+        return self._repos.get("certificate") or SqlAlchemyCertificateRepository()
 
     def get_notification_repository(self):
         return self._repos.get("notification") or SqlAlchemyNotificationRepository()
@@ -118,13 +118,13 @@ class DependencyContainer:
         repo = self.get_notification_repository()
         return NotificationApplicationService(writer=repo, reader=repo)
 
-    def get_certificacion_service(self):
-        if "certificacion_service" in self._services:
-            return self._services["certificacion_service"]
+    def get_certification_service(self):
+        if "certification_service" in self._services:
+            return self._services["certification_service"]
         notif_repo = self.get_notification_repository()
         notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
-        return CertificacionApplicationService(
-            self.get_certificado_repository(),
+        return CertificationApplicationService(
+            self.get_certificate_repository(),
             self.get_internship_repository(),
             self.get_job_application_repository(),
             self.get_job_posting_repository(),

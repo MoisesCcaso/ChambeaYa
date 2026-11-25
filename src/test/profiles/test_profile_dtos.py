@@ -75,11 +75,11 @@ class TestProfileParameterObjectsDTO(unittest.TestCase):
         self.intern_repo.save_intern.side_effect = lambda p: p
 
         dto = UpdateInternDTO.from_dict({"nombres": "Omar Joaquin", "apellidos": "Rivera"})
-        actualizado = self.intern_service.update_intern(10, dto)
+        updated_certificate = self.intern_service.update_intern(10, dto)
 
-        self.assertEqual(actualizado.first_names, "Omar Joaquin")
-        self.assertEqual(actualizado.dni, "12345678")
-        self.assertTrue(actualizado.identity_verified)
+        self.assertEqual(updated_certificate.first_names, "Omar Joaquin")
+        self.assertEqual(updated_certificate.dni, "12345678")
+        self.assertTrue(updated_certificate.identity_verified)
 
     def test_update_company_accepts_typed_dto(self):
         self.user_repo.find_by_id.return_value = User(
