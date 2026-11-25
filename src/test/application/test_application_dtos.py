@@ -11,8 +11,8 @@ from application.dtos import (
 )
 from application.empresa_application_service import EmpresaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
-from identity.domain.i_usuario_repository import IUsuarioRepository
-from identity.domain.usuario import Usuario
+from identity.domain.i_user_repository import IUserRepository
+from identity.domain.user import User
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.perfil.i_empresa_repository import IEmpresaRepository
@@ -53,22 +53,22 @@ class TestConvocatoriaCommandDTO(unittest.TestCase):
         )
         self.mock_repo.save.side_effect = lambda c: c
 
-        resultado = self.service.create_convocatoria(empresa_id=3, data=cmd)
+        result = self.service.create_convocatoria(empresa_id=3, data=cmd)
 
-        self.assertEqual(resultado.titulo, "Data Engineer")
-        self.assertEqual(resultado.descripcion, "ETL pipelines")
-        self.assertEqual(resultado.habilidades_requeridas, ["Python"])
-        self.assertEqual(resultado.beneficios, ["Certificado"])
+        self.assertEqual(result.titulo, "Data Engineer")
+        self.assertEqual(result.descripcion, "ETL pipelines")
+        self.assertEqual(result.habilidades_requeridas, ["Python"])
+        self.assertEqual(result.beneficios, ["Certificado"])
 
     def test_update_convocatoria_acepta_convocatoria_command(self):
-        existente = Convocatoria(
+        existing = Convocatoria(
             id=10,
             empresa_id=3,
             titulo="Original",
             descripcion="Desc",
-            estado=Convocatoria.ESTADO_BORRADOR,
+            status=Convocatoria.ESTADO_BORRADOR,
         )
-        self.mock_repo.find_by_id.return_value = existente
+        self.mock_repo.find_by_id.return_value = existing
         self.mock_repo.save.side_effect = lambda c: c
 
         cmd = ConvocatoriaCommand(
@@ -77,10 +77,10 @@ class TestConvocatoriaCommandDTO(unittest.TestCase):
             habilidades_requeridas=["Flask"],
             beneficios=["Mentoría"],
         )
-        resultado = self.service.update(empresa_id=3, convocatoria_id=10, data=cmd)
+        result = self.service.update(empresa_id=3, convocatoria_id=10, data=cmd)
 
-        self.assertEqual(resultado.titulo, "Actualizado con DTO")
-        self.assertEqual(resultado.habilidades_requeridas, ["Flask"])
+        self.assertEqual(result.titulo, "Actualizado con DTO")
+        self.assertEqual(result.habilidades_requeridas, ["Flask"])
 
 
 class TestPerfilParameterObjectsDTO(unittest.TestCase):
@@ -89,23 +89,23 @@ class TestPerfilParameterObjectsDTO(unittest.TestCase):
     def setUp(self):
         self.practicante_repo = create_autospec(IPracticanteRepository, instance=True, spec_set=True)
         self.empresa_repo = create_autospec(IEmpresaRepository, instance=True, spec_set=True)
-        self.usuario_repo = create_autospec(IUsuarioRepository, instance=True, spec_set=True)
+        self.usuario_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
         self.practicante_service = PracticanteApplicationService(
             practicante_repository=self.practicante_repo,
-            usuario_repository=self.usuario_repo,
+            user_repository=self.usuario_repo,
         )
         self.empresa_service = EmpresaApplicationService(
             empresa_repository=self.empresa_repo,
-            usuario_repository=self.usuario_repo,
+            user_repository=self.usuario_repo,
         )
 
     def test_update_practicante_acepta_dto_tipado(self):
-        self.usuario_repo.find_by_id.return_value = Usuario(
+        self.usuario_repo.find_by_id.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
-            tipo=Usuario.TIPO_PRACTICANTE,
-            estado=Usuario.ESTADO_ACTIVO,
+            role=User.ROLE_INTERN,
+            status=User.STATUS_ACTIVE,
         )
         self.practicante_repo.find_practicante_by_user_id.return_value = None
         self.practicante_repo.save_practicante.side_effect = lambda p: p
@@ -126,22 +126,22 @@ class TestPerfilParameterObjectsDTO(unittest.TestCase):
         self.assertEqual(practicante.habilidades, ["Python", "Clean Architecture"])
 
     def test_actualizar_practicante_dto_distingue_campos_omitidos(self):
-        existente = Practicante(
+        existing = Practicante(
             id=1,
-            usuario_id=10,
+            user_id=10,
             nombres="Omar",
             apellidos="Rivera",
             dni="12345678",
             identidad_verificada=True,
         )
-        self.usuario_repo.find_by_id.return_value = Usuario(
+        self.usuario_repo.find_by_id.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
-            tipo=Usuario.TIPO_PRACTICANTE,
-            estado=Usuario.ESTADO_ACTIVO,
+            role=User.ROLE_INTERN,
+            status=User.STATUS_ACTIVE,
         )
-        self.practicante_repo.find_practicante_by_user_id.return_value = existente
+        self.practicante_repo.find_practicante_by_user_id.return_value = existing
         self.practicante_repo.save_practicante.side_effect = lambda p: p
 
         dto = ActualizarPracticanteDTO.from_dict({"nombres": "Omar Joaquin", "apellidos": "Rivera"})
@@ -152,12 +152,12 @@ class TestPerfilParameterObjectsDTO(unittest.TestCase):
         self.assertTrue(actualizado.identidad_verificada)
 
     def test_update_empresa_acepta_dto_tipado(self):
-        self.usuario_repo.find_by_id.return_value = Usuario(
+        self.usuario_repo.find_by_id.return_value = User(
             id=20,
             email="rrhh@empresa.pe",
             password_hash="h",
-            tipo=Usuario.TIPO_EMPRESA,
-            estado=Usuario.ESTADO_ACTIVO,
+            role=User.ROLE_COMPANY,
+            status=User.STATUS_ACTIVE,
         )
         self.empresa_repo.find_empresa_by_user_id.return_value = None
         self.empresa_repo.save_empresa.side_effect = lambda e: e

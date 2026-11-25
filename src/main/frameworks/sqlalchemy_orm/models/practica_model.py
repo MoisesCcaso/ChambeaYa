@@ -12,7 +12,7 @@ class PracticaModel(db.Model):
         nullable=False,
     )
     practicante_id = db.Column(db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
-    estado = db.Column(db.String(20), nullable=False, default="EN_CURSO")
+    status = db.Column("estado", db.String(20), nullable=False, default="EN_CURSO")
 
     entregables = db.relationship(
         "EntregableModel", backref="practica", cascade="all, delete-orphan", lazy="select"

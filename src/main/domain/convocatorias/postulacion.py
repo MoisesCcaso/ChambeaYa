@@ -1,58 +1,58 @@
 from shared.errors import ConflictError
 class Postulacion:
-    ESTADO_PENDIENTE = "pendiente"
+    STATUS_PENDING = "pendiente"
     ESTADO_SELECCIONADA = "seleccionada"
     ESTADO_RECHAZADA = "rechazada"
     ESTADO_CANCELADA = "cancelada"
 
-    def __init__(self, id=None, convocatoria_id=None, practicante_id=None, estado=None):
+    def __init__(self, id=None, convocatoria_id=None, practicante_id=None, status=None):
        self.id = id
        self.convocatoria_id = convocatoria_id
        self.practicante_id = practicante_id
-       self.estado = estado or self.ESTADO_PENDIENTE
+       self.status = status or self.STATUS_PENDING
 
     def rechazar(self):
-        if self.estado != self.ESTADO_PENDIENTE:
+        if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede rechazarse")
-        self.estado = self.ESTADO_RECHAZADA
+        self.status = self.ESTADO_RECHAZADA
         return self
 
     def rechazar_seleccionada(self):
         """Rechaza una selección previa cuando se selecciona otro candidato."""
-        if self.estado != self.ESTADO_SELECCIONADA:
+        if self.status != self.ESTADO_SELECCIONADA:
             raise ConflictError(
                 "Solo una postulación seleccionada puede rechazarse al elegir otro candidato"
             )
-        self.estado = self.ESTADO_RECHAZADA
+        self.status = self.ESTADO_RECHAZADA
         return self
 
     def seleccionar(self):
         """Selecciona la postulación si está pendiente."""
-        if self.estado != self.ESTADO_PENDIENTE:
+        if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede seleccionarse")
 
-        self.estado = self.ESTADO_SELECCIONADA
+        self.status = self.ESTADO_SELECCIONADA
         return self
 
     def cancelar(self):
-        if self.estado != self.ESTADO_PENDIENTE:
+        if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede retirarse")
-        self.estado = self.ESTADO_CANCELADA
+        self.status = self.ESTADO_CANCELADA
         return self
 
     def reactivar(self):
-        if self.estado != self.ESTADO_CANCELADA:
+        if self.status != self.ESTADO_CANCELADA:
             raise ConflictError("Solo una postulación retirada puede reactivarse")
-        self.estado = self.ESTADO_PENDIENTE
+        self.status = self.STATUS_PENDING
         return self
 
     def reconsiderar(self):
-        if self.estado not in (
+        if self.status not in (
             self.ESTADO_SELECCIONADA,
             self.ESTADO_RECHAZADA,
         ):
             raise ConflictError(
                 "Solo una postulación seleccionada o rechazada puede reconsiderarse"
             )
-        self.estado = self.ESTADO_PENDIENTE
+        self.status = self.STATUS_PENDING
         return self

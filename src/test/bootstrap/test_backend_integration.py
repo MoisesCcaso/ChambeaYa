@@ -6,7 +6,7 @@ from unittest.mock import patch
 from bootstrap.app import create_app
 from shared.database import db
 from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
-from identity.infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from identity.infrastructure.sqlalchemy_user_repository import SqlAlchemyUserRepository
 
 
 class BackendIntegrationTest(unittest.TestCase):
@@ -37,7 +37,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
         return response
 
-    def register_activate_login(self, client, email, password, tipo):
+    def register_activate_login(self, client, email, password, role):
         registered = self.request(
             client,
             "post",
@@ -47,7 +47,7 @@ class BackendIntegrationTest(unittest.TestCase):
                 "email": email,
                 "password": password,
                 "password_confirmation": password,
-                "tipo": tipo,
+                "tipo": role,
             },
         ).get_json()
         self.request(
@@ -393,7 +393,7 @@ class BackendIntegrationTest(unittest.TestCase):
 
         with self.app.app_context():
             first_token = (
-                SqlAlchemyUsuarioRepository()
+                SqlAlchemyUserRepository()
                 .find_by_email("verificacion@example.com")
                 .activation_token
             )
@@ -407,7 +407,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertNotIn("activation_token", resent)
         with self.app.app_context():
             second_token = (
-                SqlAlchemyUsuarioRepository()
+                SqlAlchemyUserRepository()
                 .find_by_email("verificacion@example.com")
                 .activation_token
             )

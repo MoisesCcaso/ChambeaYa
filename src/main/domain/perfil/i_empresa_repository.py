@@ -7,5 +7,5 @@ class IEmpresaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_empresa_by_user_id(self, usuario_id):
+    def find_empresa_by_user_id(self, user_id):
         pass

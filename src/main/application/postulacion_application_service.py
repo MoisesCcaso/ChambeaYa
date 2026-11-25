@@ -26,9 +26,9 @@ class PostulacionApplicationService:
         self.practica_repository = practica_repository
         self.notification_service = notification_service
 
-    def apply(self, usuario_id, convocatoria_id):
+    def apply(self, user_id, convocatoria_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         if not practicante.nombres or not practicante.apellidos:
@@ -37,16 +37,16 @@ class PostulacionApplicationService:
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
+        if convocatoria.status != Convocatoria.ESTADO_PUBLICADA:
             raise ConflictError("Solo se puede postular a convocatorias publicadas")
 
-        existente = self.postulacion_repository.find_by_convocatoria_and_practicante(
+        existing = self.postulacion_repository.find_by_convocatoria_and_practicante(
             convocatoria_id, practicante.id
         )
-        if existente is not None:
-            if existente.estado == Postulacion.ESTADO_CANCELADA:
-                existente.reactivar()
-                return self.postulacion_repository.save(existente)
+        if existing is not None:
+            if existing.status == Postulacion.ESTADO_CANCELADA:
+                existing.reactivar()
+                return self.postulacion_repository.save(existing)
             raise ConflictError("Ya existe una postulación para esta convocatoria")
 
         return self.postulacion_repository.save(
@@ -56,9 +56,9 @@ class PostulacionApplicationService:
             )
         )
 
-    def list_for_practicante(self, usuario_id):
+    def list_for_practicante(self, user_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         return [
@@ -102,7 +102,7 @@ class PostulacionApplicationService:
         for otra in otras:
             if (
                 otra.id != postulacion.id
-                and otra.estado == Postulacion.ESTADO_SELECCIONADA
+                and otra.status == Postulacion.ESTADO_SELECCIONADA
                 and self.practica_repository.find_by_postulacion_id(otra.id) is not None
             ):
                 raise ConflictError(
@@ -115,11 +115,11 @@ class PostulacionApplicationService:
         for otra in otras:
             if otra.id == postulacion.id:
                 continue
-            if otra.estado == Postulacion.ESTADO_PENDIENTE:
+            if otra.status == Postulacion.STATUS_PENDING:
                 otra.rechazar()
                 modificadas.append(otra)
                 rechazadas.append(otra)
-            elif otra.estado == Postulacion.ESTADO_SELECCIONADA:
+            elif otra.status == Postulacion.ESTADO_SELECCIONADA:
                 otra.rechazar_seleccionada()
                 modificadas.append(otra)
                 rechazadas.append(otra)
@@ -134,18 +134,18 @@ class PostulacionApplicationService:
             return
         try:
             practicante = self.perfil_repository.find_practicante_by_id(seleccionada.practicante_id)
-            if practicante and getattr(practicante, "usuario_id", None):
+            if practicante and getattr(practicante, "user_id", None):
                 self.notification_service.create_notification(
-                    recipient_user_id=practicante.usuario_id,
+                    recipient_user_id=practicante.user_id,
                     notification_type="POSTULACION_SELECCIONADA",
                     message="Has sido seleccionado para una convocatoria",
                     metadata={"postulacion_id": seleccionada.id},
                 )
             for rechazada in rechazadas:
                 otro = self.perfil_repository.find_practicante_by_id(rechazada.practicante_id)
-                if otro and getattr(otro, "usuario_id", None):
+                if otro and getattr(otro, "user_id", None):
                     self.notification_service.create_notification(
-                        recipient_user_id=otro.usuario_id,
+                        recipient_user_id=otro.user_id,
                         notification_type="POSTULACION_RECHAZADA",
                         message="Tu postulación no fue seleccionada",
                         metadata={"postulacion_id": rechazada.id},
@@ -162,9 +162,9 @@ class PostulacionApplicationService:
         postulacion.rechazar()
         return self.postulacion_repository.save(postulacion)
 
-    def cancel(self, usuario_id, postulacion_id):
+    def cancel(self, user_id, postulacion_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)

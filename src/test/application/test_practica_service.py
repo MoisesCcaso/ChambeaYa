@@ -47,12 +47,12 @@ class TestPracticaApplicationService(unittest.TestCase):
             id=POSTULACION_ID,
             convocatoria_id=CONVOCATORIA_ID,
             practicante_id=PRACTICANTE_ID,
-            estado=Postulacion.ESTADO_SELECCIONADA,
+            status=Postulacion.ESTADO_SELECCIONADA,
         )
         self.convocatoria = Convocatoria(
             id=CONVOCATORIA_ID,
             empresa_id=EMPRESA_ID,
-            estado=Convocatoria.ESTADO_PUBLICADA,
+            status=Convocatoria.ESTADO_PUBLICADA,
         )
         self.practicante = SimpleNamespace(id=PRACTICANTE_ID)
         self.empresa = SimpleNamespace(id=EMPRESA_ID)
@@ -67,16 +67,16 @@ class TestPracticaApplicationService(unittest.TestCase):
 
     # Inicio de práctica
     def test_inicia_practica_y_guarda_con_argumentos_correctos(self):
-        resultado = self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
+        result = self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
 
         self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
         self.convocatorias.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
         self.practicas.find_by_postulacion_id.assert_called_once_with(POSTULACION_ID)
         practica_guardada = self.practicas.save.call_args.args[0]
-        self.assertIs(resultado, practica_guardada)
+        self.assertIs(result, practica_guardada)
         self.assertEqual(POSTULACION_ID, practica_guardada.postulacion_id)
         self.assertEqual(PRACTICANTE_ID, practica_guardada.practicante_id)
-        self.assertEqual(Practica.ESTADO_EN_CURSO, practica_guardada.estado)
+        self.assertEqual(Practica.ESTADO_EN_CURSO, practica_guardada.status)
 
     def test_no_inicia_si_la_postulacion_no_existe(self):
         self.postulaciones.find_by_id.return_value = None
@@ -86,7 +86,7 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_not_called()
 
     def test_no_inicia_si_la_postulacion_no_esta_seleccionada(self):
-        self.postulacion.estado = Postulacion.ESTADO_PENDIENTE
+        self.postulacion.status = Postulacion.STATUS_PENDING
         with self.assertRaisesRegex(ValueError, "debe estar seleccionada"):
             self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
         self.convocatorias.find_by_id.assert_not_called()
@@ -110,7 +110,7 @@ class TestPracticaApplicationService(unittest.TestCase):
 
     # Entregables
     def test_sube_entregable_y_guarda_el_agregado(self):
-        resultado = self.service.upload_deliverable(
+        result = self.service.upload_deliverable(
             USUARIO_PRACTICANTE_ID, PRACTICA_ID, "informe.pdf"
         )
 
@@ -120,7 +120,7 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
         self.assertEqual("informe.pdf", self.practica.entregables[0].archivo)
         self.practicas.save.assert_called_once_with(self.practica)
-        self.assertIs(resultado, self.practica)
+        self.assertIs(result, self.practica)
 
     def test_subida_rechaza_perfil_inexistente(self):
         self.perfiles.find_practicante_by_user_id.return_value = None
@@ -144,7 +144,7 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_not_called()
 
     def test_subida_propaga_regla_de_practica_finalizada(self):
-        self.practica.estado = Practica.ESTADO_FINALIZADA
+        self.practica.status = Practica.ESTADO_FINALIZADA
         with self.assertRaisesRegex(ValueError, "práctica finalizada"):
             self.service.upload_deliverable(
                 USUARIO_PRACTICANTE_ID, PRACTICA_ID, "informe.pdf"
@@ -152,16 +152,16 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_not_called()
 
     def test_historial_de_entregables_se_devuelve_ordenado(self):
-        ahora = datetime.now(timezone.utc)
-        reciente = Entregable(id=2, fecha_subida=ahora)
-        antiguo = Entregable(id=1, fecha_subida=ahora - timedelta(days=1))
+        now_value = datetime.now(timezone.utc)
+        reciente = Entregable(id=2, fecha_subida=now_value)
+        antiguo = Entregable(id=1, fecha_subida=now_value - timedelta(days=1))
         self.practica.entregables = [reciente, antiguo]
 
-        resultado = self.service.get_deliverables_history(
+        result = self.service.get_deliverables_history(
             USUARIO_PRACTICANTE_ID, PRACTICA_ID
         )
 
-        self.assertEqual([antiguo, reciente], resultado)
+        self.assertEqual([antiguo, reciente], result)
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
 
     def test_elimina_entregable_y_guarda_el_agregado(self):
@@ -185,24 +185,24 @@ class TestPracticaApplicationService(unittest.TestCase):
 
     # Evaluaciones
     def test_evalua_practica_y_guarda_con_argumentos_correctos(self):
-        resultado = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
+        result = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
 
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
         self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
         self.convocatorias.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
         self.assertEqual(85, self.practica.evaluaciones[0].puntaje)
         self.practicas.save.assert_called_once_with(self.practica)
-        self.assertIs(resultado, self.practica)
+        self.assertIs(result, self.practica)
 
     def test_evalua_practica_y_notifica_al_practicante(self):
         mock_notif = unittest.mock.Mock()
         self.service.notification_service = mock_notif
-        self.practicante.usuario_id = 99
+        self.practicante.user_id = 99
         self.perfiles.find_practicante_by_id.return_value = self.practicante
 
-        resultado = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
+        result = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
 
-        self.assertIs(resultado, self.practica)
+        self.assertIs(result, self.practica)
         mock_notif.create_notification.assert_called_once_with(
             recipient_user_id=99,
             notification_type="EVALUACION_DISPONIBLE",
@@ -214,11 +214,11 @@ class TestPracticaApplicationService(unittest.TestCase):
         mock_notif = unittest.mock.Mock()
         mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
         self.service.notification_service = mock_notif
-        self.practicante.usuario_id = 99
+        self.practicante.user_id = 99
         self.perfiles.find_practicante_by_id.return_value = self.practicante
 
-        resultado = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
-        self.assertIs(resultado, self.practica)
+        result = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
+        self.assertIs(result, self.practica)
 
     def test_evaluar_rechaza_practica_inexistente(self):
         self.practicas.find_by_id.return_value = None
@@ -248,16 +248,16 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_not_called()
 
     def test_historial_de_evaluaciones_se_devuelve_ordenado(self):
-        ahora = datetime.now(timezone.utc)
-        reciente = Evaluacion(id=2, fecha_evaluacion=ahora)
-        antigua = Evaluacion(id=1, fecha_evaluacion=ahora - timedelta(days=1))
+        now_value = datetime.now(timezone.utc)
+        reciente = Evaluacion(id=2, fecha_evaluacion=now_value)
+        antigua = Evaluacion(id=1, fecha_evaluacion=now_value - timedelta(days=1))
         self.practica.evaluaciones = [reciente, antigua]
 
-        resultado = self.service.get_evaluations_history(
+        result = self.service.get_evaluations_history(
             USUARIO_PRACTICANTE_ID, PRACTICA_ID
         )
 
-        self.assertEqual([antigua, reciente], resultado)
+        self.assertEqual([antigua, reciente], result)
 
     def test_elimina_evaluacion_como_empresa_propietaria(self):
         evaluacion = Evaluacion(id=9, puntaje=90)
@@ -286,11 +286,11 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practica.entregables = [Entregable(id=8)]
         self.practica.evaluaciones = [Evaluacion(id=9, puntaje=60)]
 
-        resultado = self.service.finish(EMPRESA_ID, PRACTICA_ID)
+        result = self.service.finish(EMPRESA_ID, PRACTICA_ID)
 
-        self.assertEqual(Practica.ESTADO_FINALIZADA, self.practica.estado)
+        self.assertEqual(Practica.ESTADO_FINALIZADA, self.practica.status)
         self.practicas.save.assert_called_once_with(self.practica)
-        self.assertIs(resultado, self.practica)
+        self.assertIs(result, self.practica)
 
     def test_finalizar_rechaza_practica_inexistente(self):
         self.practicas.find_by_id.return_value = None
@@ -323,9 +323,9 @@ class TestPracticaApplicationService(unittest.TestCase):
         esperadas = [self.practica]
         self.practicas.find_by_practicante_id.return_value = esperadas
 
-        resultado = self.service.list_for_user(USUARIO_PRACTICANTE_ID)
+        result = self.service.list_for_user(USUARIO_PRACTICANTE_ID)
 
-        self.assertIs(esperadas, resultado)
+        self.assertIs(esperadas, result)
         self.practicas.find_by_practicante_id.assert_called_once_with(PRACTICANTE_ID)
         self.perfiles.find_empresa_by_user_id.assert_not_called()
 
@@ -335,9 +335,9 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.perfiles.find_empresa_by_user_id.return_value = self.empresa
         self.practicas.find_by_empresa_id.return_value = [self.practica, practica_2]
 
-        resultado = self.service.list_for_user(USUARIO_EMPRESA_ID)
+        result = self.service.list_for_user(USUARIO_EMPRESA_ID)
 
-        self.assertEqual([self.practica, practica_2], resultado)
+        self.assertEqual([self.practica, practica_2], result)
         self.practicas.find_by_empresa_id.assert_called_once_with(EMPRESA_ID)
 
     def test_listar_rechaza_usuario_sin_perfil(self):
@@ -350,9 +350,9 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.perfiles.find_practicante_by_user_id.return_value = None
         self.perfiles.find_empresa_by_user_id.return_value = self.empresa
 
-        resultado = self.service.get_for_user(USUARIO_EMPRESA_ID, PRACTICA_ID)
+        result = self.service.get_for_user(USUARIO_EMPRESA_ID, PRACTICA_ID)
 
-        self.assertIs(self.practica, resultado)
+        self.assertIs(self.practica, result)
         self.perfiles.find_empresa_by_user_id.assert_called_once_with(USUARIO_EMPRESA_ID)
         self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
 
@@ -376,10 +376,10 @@ class TestPracticaApplicationService(unittest.TestCase):
                 self.practicas, self.perfiles, self.postulaciones, None
             ),
         )
-        for servicio in servicios_incompletos:
-            with self.subTest(servicio=servicio):
+        for service in servicios_incompletos:
+            with self.subTest(service=service):
                 with self.assertRaisesRegex(RuntimeError, "requiere todos sus repositorios"):
-                    servicio.get_for_user(USUARIO_PRACTICANTE_ID, PRACTICA_ID)
+                    service.get_for_user(USUARIO_PRACTICANTE_ID, PRACTICA_ID)
 
 
 if __name__ == "__main__":

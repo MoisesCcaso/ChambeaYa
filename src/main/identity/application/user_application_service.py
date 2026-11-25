@@ -1,7 +1,7 @@
 import re
 
 from identity.application.email_delivery_error import EmailDeliveryError
-from identity.domain.usuario import Usuario
+from identity.domain.user import User
 from shared.errors import AuthenticationError, ConflictError, DomainError
 
 
@@ -12,23 +12,23 @@ EMAIL_PATTERN = re.compile(
 )
 
 
-class UsuarioApplicationService:
+class UserApplicationService:
     def __init__(
         self,
-        usuario_repository=None,
-        autenticacion_dominio_servicio=None,
+        user_repository=None,
+        authentication_domain_service=None,
         email_sender=None,
     ):
-        self.usuario_repository = usuario_repository
-        self.autenticacion_dominio_servicio = autenticacion_dominio_servicio
+        self.user_repository = user_repository
+        self.authentication_domain_service = authentication_domain_service
         self.email_sender = email_sender
 
-    def register_user(self, email, password, password_confirmation, tipo):
+    def register_user(self, email, password, password_confirmation, role):
         self._require_repository()
         self._require_email_sender()
 
         normalized_email = self._normalize_email(email)
-        if self.usuario_repository.find_by_email(normalized_email) is not None:
+        if self.user_repository.find_by_email(normalized_email) is not None:
             raise ConflictError(
                 "El correo ya está registrado. Si la cuenta está pendiente, "
                 "solicita un nuevo enlace de activación."
@@ -36,75 +36,75 @@ class UsuarioApplicationService:
         if password != password_confirmation:
             raise DomainError("Las contraseñas no coinciden")
 
-        password_hash = self.autenticacion_dominio_servicio.generar_password_hash(password)
-        usuario = Usuario(
+        password_hash = self.authentication_domain_service.generate_password_hash(password)
+        user = User(
             email=normalized_email,
             password_hash=password_hash,
-            tipo=tipo,
-            estado=Usuario.ESTADO_PENDIENTE,
+            role=role,
+            status=User.STATUS_PENDING,
         )
-        usuario.registrar()
-        usuario.asignar_token_activacion(
-            self.autenticacion_dominio_servicio.generar_token(horas_vigencia=48)
+        user.register()
+        user.assign_activation_token(
+            self.authentication_domain_service.generate_token(valid_hours=48)
         )
 
-        usuario = self.usuario_repository.save(usuario)
+        user = self.user_repository.save(user)
         try:
             self.email_sender.send_activation(
-                usuario.email,
-                usuario.activation_token,
+                user.email,
+                user.activation_token,
             )
         except EmailDeliveryError as exc:
             raise EmailDeliveryError(
                 "La cuenta fue creada, pero el correo no pudo enviarse. "
                 "Solicita un nuevo enlace de activación."
             ) from exc
-        return usuario
+        return user
 
     def authenticate(self, email, password):
         self._require_repository()
 
-        usuario = self.usuario_repository.find_by_email(self._normalize_email(email))
-        if not self.autenticacion_dominio_servicio.autenticar(usuario, password):
+        user = self.user_repository.find_by_email(self._normalize_email(email))
+        if not self.authentication_domain_service.authenticate(user, password):
             raise AuthenticationError("Credenciales inválidas")
 
-        return usuario
+        return user
 
     def recover_password(self, email):
         self._require_repository()
         self._require_email_sender()
 
-        usuario = self.usuario_repository.find_by_email(self._normalize_email(email))
-        if usuario is None:
+        user = self.user_repository.find_by_email(self._normalize_email(email))
+        if user is None:
             return None
 
-        usuario.asignar_token_recuperacion(
-            self.autenticacion_dominio_servicio.generar_token(horas_vigencia=2)
+        user.assign_password_reset_token(
+            self.authentication_domain_service.generate_token(valid_hours=2)
         )
-        usuario = self.usuario_repository.save(usuario)
+        user = self.user_repository.save(user)
         self.email_sender.send_password_reset(
-            usuario.email,
-            usuario.password_reset_token,
+            user.email,
+            user.password_reset_token,
         )
-        return usuario
+        return user
 
     def resend_activation(self, email):
         self._require_repository()
         self._require_email_sender()
 
-        usuario = self.usuario_repository.find_by_email(self._normalize_email(email))
-        if usuario is None or usuario.estado == Usuario.ESTADO_ACTIVO:
+        user = self.user_repository.find_by_email(self._normalize_email(email))
+        if user is None or user.status == User.STATUS_ACTIVE:
             return None
 
-        usuario.asignar_token_activacion(
-            self.autenticacion_dominio_servicio.generar_token(horas_vigencia=48)
+        user.assign_activation_token(
+            self.authentication_domain_service.generate_token(valid_hours=48)
         )
-        usuario = self.usuario_repository.save(usuario)
+        user = self.user_repository.save(user)
         self.email_sender.send_activation(
-            usuario.email,
-            usuario.activation_token,
+            user.email,
+            user.activation_token,
         )
-        return usuario
+        return user
 
     def activate_account(self, token):
         self._require_repository()
@@ -112,17 +112,17 @@ class UsuarioApplicationService:
         if not token:
             raise DomainError("El token de activación es obligatorio")
 
-        usuario = self.usuario_repository.find_by_activation_token(token)
-        if usuario is None:
+        user = self.user_repository.find_by_activation_token(token)
+        if user is None:
             raise DomainError("Token de activación inválido")
 
-        if not self.autenticacion_dominio_servicio.validar_token(
-            usuario.token_activacion,
+        if not self.authentication_domain_service.validate_token(
+            user.activation,
         ):
             raise DomainError("Token de activación expirado")
 
-        usuario.activar()
-        return self.usuario_repository.save(usuario)
+        user.activate()
+        return self.user_repository.save(user)
 
     def reset_password(self, token, new_password):
         self._require_repository()
@@ -130,30 +130,30 @@ class UsuarioApplicationService:
         if not token:
             raise DomainError("El token de recuperación es obligatorio")
 
-        usuario = self.usuario_repository.find_by_password_reset_token(token)
-        if usuario is None:
+        user = self.user_repository.find_by_password_reset_token(token)
+        if user is None:
             raise DomainError("Token de recuperación inválido")
 
-        if not self.autenticacion_dominio_servicio.validar_token(
-            usuario.token_recuperacion,
+        if not self.authentication_domain_service.validate_token(
+            user.password_reset,
         ):
             raise DomainError("Token de recuperación expirado")
 
-        password_hash = self.autenticacion_dominio_servicio.generar_password_hash(new_password)
-        usuario.actualizar_password(password_hash)
-        return self.usuario_repository.save(usuario)
+        password_hash = self.authentication_domain_service.generate_password_hash(new_password)
+        user.update_password(password_hash)
+        return self.user_repository.save(user)
 
-    def find_by_id(self, usuario_id):
+    def find_by_id(self, user_id):
         self._require_repository()
-        return self.usuario_repository.find_by_id(usuario_id)
+        return self.user_repository.find_by_id(user_id)
 
     def _require_repository(self):
-        if self.usuario_repository is None:
-            raise RuntimeError("UsuarioApplicationService requiere un repositorio")
+        if self.user_repository is None:
+            raise RuntimeError("UserApplicationService requires a repository")
 
     def _require_email_sender(self):
         if self.email_sender is None:
-            raise RuntimeError("UsuarioApplicationService requiere un servicio de correo")
+            raise RuntimeError("UserApplicationService requires an email sender")
 
     def _normalize_email(self, email):
         if not email:

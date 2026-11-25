@@ -29,7 +29,7 @@ def page(driver, base_url) -> RegisterPage:
 
 def test_reg_01_registro_valido_de_practicante(page):
     """Datos válidos crean la cuenta y llevan a la activación."""
-    page.register(unique_email(), VALID_PASSWORD, tipo="practicante")
+    page.register(unique_email(), VALID_PASSWORD, role="practicante")
 
     assert page.feedback_text() == "Cuenta creada. Te llevaremos a la activación."
     assert page.feedback_kind() == "success"

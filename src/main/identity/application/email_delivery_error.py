@@ -1,3 +1,3 @@
 class EmailDeliveryError(RuntimeError):
-    """Error controlado al entregar un correo transaccional."""
+    """Controlled error raised when a transactional email cannot be delivered."""
 

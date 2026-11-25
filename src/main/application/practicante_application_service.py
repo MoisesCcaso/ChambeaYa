@@ -1,5 +1,5 @@
 from application.dtos import ActualizarPracticanteDTO, UNSET
-from identity.domain.usuario import Usuario
+from identity.api import User
 from domain.perfil.practicante import Practicante
 from shared.errors import ForbiddenError, NotFoundError
 
@@ -7,25 +7,25 @@ from shared.errors import ForbiddenError, NotFoundError
 class PracticanteApplicationService:
     """Servicio de aplicación especializado para el ciclo de vida de perfiles de practicantes (SOLID-SRP)."""
 
-    def __init__(self, practicante_repository=None, usuario_repository=None):
+    def __init__(self, practicante_repository=None, user_repository=None):
         self.practicante_repository = practicante_repository
-        self.usuario_repository = usuario_repository
+        self.user_repository = user_repository
 
-    def get_practicante_profile(self, usuario_id):
+    def get_practicante_profile(self, user_id):
         self._require_repositories()
-        self._require_practicante_user(usuario_id)
-        return self.practicante_repository.find_practicante_by_user_id(usuario_id)
+        self._require_practicante_user(user_id)
+        return self.practicante_repository.find_practicante_by_user_id(user_id)
 
     get_profile = get_practicante_profile
 
-    def update_practicante(self, usuario_id, data):
+    def update_practicante(self, user_id, data):
         self._require_repositories()
-        self._require_practicante_user(usuario_id)
+        self._require_practicante_user(user_id)
         dto = ActualizarPracticanteDTO.from_dict(data)
 
-        practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.practicante_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
-            practicante = Practicante(usuario_id=usuario_id)
+            practicante = Practicante(user_id=user_id)
 
         practicante.actualizar_datos(
             nombres=dto.nombres,
@@ -56,64 +56,64 @@ class PracticanteApplicationService:
 
     update_profile = update_practicante
 
-    def add_habilidad(self, usuario_id, habilidad):
+    def add_habilidad(self, user_id, habilidad):
         self._require_repositories()
-        practicante = self._get_or_create_practicante(usuario_id)
+        practicante = self._get_or_create_practicante(user_id)
         practicante.agregar_habilidad(habilidad)
         return self.practicante_repository.save_practicante(practicante)
 
-    def add_formacion(self, usuario_id, formacion):
+    def add_formacion(self, user_id, formacion):
         self._require_repositories()
-        practicante = self._get_or_create_practicante(usuario_id)
+        practicante = self._get_or_create_practicante(user_id)
         practicante.agregar_formacion(formacion)
         return self.practicante_repository.save_practicante(practicante)
 
-    def register_identity(self, usuario_id, dni=None, carnet_universitario=None):
+    def register_identity(self, user_id, dni=None, carnet_universitario=None):
         self._require_repositories()
-        practicante = self._get_or_create_practicante(usuario_id)
+        practicante = self._get_or_create_practicante(user_id)
         practicante.actualizar_datos(dni=dni, carnet_universitario=carnet_universitario)
         practicante.verificar_identidad()
         return self.practicante_repository.save_practicante(practicante)
 
-    def verify_profile(self, usuario_id):
+    def verify_profile(self, user_id):
         self._require_repositories()
-        practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.practicante_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError("Perfil de practicante no encontrado")
 
         return practicante.identidad_verificada
 
-    def get_reputation_score(self, usuario_id):
+    def get_reputation_score(self, user_id):
         self._require_repositories()
-        practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.practicante_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             return 0.0
 
         return practicante.score_reputacion
 
-    def _get_or_create_practicante(self, usuario_id):
-        self._require_practicante_user(usuario_id)
-        practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
+    def _get_or_create_practicante(self, user_id):
+        self._require_practicante_user(user_id)
+        practicante = self.practicante_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
-            practicante = Practicante(usuario_id=usuario_id)
+            practicante = Practicante(user_id=user_id)
 
         return practicante
 
-    def _require_practicante_user(self, usuario_id):
-        usuario = self.usuario_repository.find_by_id(usuario_id)
-        if usuario is None:
+    def _require_practicante_user(self, user_id):
+        user = self.user_repository.find_by_id(user_id)
+        if user is None:
             raise NotFoundError("Usuario no encontrado")
-        if usuario.tipo != Usuario.TIPO_PRACTICANTE:
+        if user.role != User.ROLE_INTERN:
             raise ForbiddenError("El usuario no es practicante")
-        if usuario.estado != Usuario.ESTADO_ACTIVO:
+        if user.status != User.STATUS_ACTIVE:
             raise ForbiddenError("La cuenta no está activa")
 
-        return usuario
+        return user
 
     def _require_repositories(self):
         if self.practicante_repository is None:
             raise RuntimeError("PracticanteApplicationService requiere un repositorio de practicante")
-        if self.usuario_repository is None:
+        if self.user_repository is None:
             raise RuntimeError("PracticanteApplicationService requiere un repositorio de usuario")
 
     def _optional_text(self, value):

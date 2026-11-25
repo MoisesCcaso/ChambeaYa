@@ -21,7 +21,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
             )
             db.session.add(model)
 
-        model.estado = practica.estado
+        model.status = practica.status
 
         self._sync_collection(
             model.entregables,
@@ -99,7 +99,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
             id=model.id,
             postulacion_id=model.postulacion_id,
             practicante_id=model.practicante_id,
-            estado=model.estado,
+            status=model.status,
             entregables=entregables,
             evaluaciones=evaluaciones,
         )

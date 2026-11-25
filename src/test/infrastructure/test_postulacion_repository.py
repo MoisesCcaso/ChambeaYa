@@ -8,7 +8,7 @@ from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 
 
@@ -36,17 +36,17 @@ class TestPostulacionRepository(unittest.TestCase):
         self.app_context.pop()
 
     def _crear_empresa(self, email, ruc):
-        usuario = UsuarioModel(
+        user = UserModel(
             email=email,
             password_hash="hash_test",
-            tipo="empresa",
-            estado="activo",
+            role="empresa",
+            status="activo",
         )
-        db.session.add(usuario)
+        db.session.add(user)
         db.session.flush()
 
         empresa = EmpresaModel(
-            usuario_id=usuario.id,
+            user_id=user.id,
             razon_social="Empresa Postulaciones",
             ruc=ruc,
             verificada=True,
@@ -59,24 +59,24 @@ class TestPostulacionRepository(unittest.TestCase):
         convocatoria = ConvocatoriaModel(
             empresa_id=empresa_id,
             titulo=titulo,
-            estado="publicada",
+            status="publicada",
         )
         db.session.add(convocatoria)
         db.session.commit()
         return convocatoria
 
     def _crear_practicante(self, email, dni):
-        usuario = UsuarioModel(
+        user = UserModel(
             email=email,
             password_hash="hash_test",
-            tipo="practicante",
-            estado="activo",
+            role="practicante",
+            status="activo",
         )
-        db.session.add(usuario)
+        db.session.add(user)
         db.session.flush()
 
         practicante = PracticanteModel(
-            usuario_id=usuario.id,
+            user_id=user.id,
             nombres="Juan",
             apellidos="Pérez",
             dni=dni,
@@ -89,7 +89,7 @@ class TestPostulacionRepository(unittest.TestCase):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         )
 
         guardada = self.repository.save(postulacion)
@@ -97,69 +97,69 @@ class TestPostulacionRepository(unittest.TestCase):
         self.assertIsNotNone(guardada.id)
         self.assertEqual(guardada.convocatoria_id, self.convocatoria_1.id)
         self.assertEqual(guardada.practicante_id, self.practicante_1.id)
-        self.assertEqual(guardada.estado, Postulacion.ESTADO_PENDIENTE)
+        self.assertEqual(guardada.status, Postulacion.STATUS_PENDING)
 
     def test_save_actualiza_estado_de_postulacion_existente(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         )
         guardada = self.repository.save(postulacion)
 
-        guardada.estado = Postulacion.ESTADO_SELECCIONADA
+        guardada.status = Postulacion.ESTADO_SELECCIONADA
         actualizada = self.repository.save(guardada)
 
         self.assertEqual(actualizada.id, guardada.id)
-        self.assertEqual(actualizada.estado, Postulacion.ESTADO_SELECCIONADA)
+        self.assertEqual(actualizada.status, Postulacion.ESTADO_SELECCIONADA)
 
         # Confirmar persistencia en BD
         recuperada = self.repository.find_by_id(guardada.id)
-        self.assertEqual(recuperada.estado, Postulacion.ESTADO_SELECCIONADA)
+        self.assertEqual(recuperada.status, Postulacion.ESTADO_SELECCIONADA)
 
     def test_save_all_persiste_varias_postulaciones_en_una_transaccion(self):
         p1 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         ))
         p2 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_2.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         ))
-        p1.estado = Postulacion.ESTADO_SELECCIONADA
-        p2.estado = Postulacion.ESTADO_RECHAZADA
+        p1.status = Postulacion.ESTADO_SELECCIONADA
+        p2.status = Postulacion.ESTADO_RECHAZADA
 
         guardadas = self.repository.save_all([p1, p2])
 
-        self.assertEqual([g.estado for g in guardadas], ["seleccionada", "rechazada"])
-        self.assertEqual(self.repository.find_by_id(p1.id).estado, Postulacion.ESTADO_SELECCIONADA)
-        self.assertEqual(self.repository.find_by_id(p2.id).estado, Postulacion.ESTADO_RECHAZADA)
+        self.assertEqual([g.status for g in guardadas], ["seleccionada", "rechazada"])
+        self.assertEqual(self.repository.find_by_id(p1.id).status, Postulacion.ESTADO_SELECCIONADA)
+        self.assertEqual(self.repository.find_by_id(p2.id).status, Postulacion.ESTADO_RECHAZADA)
 
     def test_save_all_hace_rollback_si_falla_el_commit(self):
         p1 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         ))
-        p1.estado = Postulacion.ESTADO_SELECCIONADA
+        p1.status = Postulacion.ESTADO_SELECCIONADA
         invalida = Postulacion(
             convocatoria_id=99999,
             practicante_id=self.practicante_2.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         )
 
         with self.assertRaises(Exception):
             self.repository.save_all([p1, invalida])
 
-        self.assertEqual(self.repository.find_by_id(p1.id).estado, Postulacion.ESTADO_PENDIENTE)
+        self.assertEqual(self.repository.find_by_id(p1.id).status, Postulacion.STATUS_PENDING)
 
     def test_find_by_id_existente_e_inexistente(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         )
         guardada = self.repository.save(postulacion)
 
@@ -218,7 +218,7 @@ class TestPostulacionRepository(unittest.TestCase):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
             practicante_id=self.practicante_1.id,
-            estado=Postulacion.ESTADO_PENDIENTE,
+            status=Postulacion.STATUS_PENDING,
         )
         self.repository.save(postulacion)
 

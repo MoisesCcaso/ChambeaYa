@@ -27,7 +27,7 @@ def serialize_practica(practica):
         "id": practica.id,
         "postulacion_id": practica.postulacion_id,
         "practicante_id": practica.practicante_id,
-        "estado": practica.estado,
+        "estado": practica.status,
     }
 
 
@@ -61,16 +61,16 @@ def get_authenticated_user_id():
 
 
 def get_authenticated_empresa():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return None
-    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
+    return container.get_perfil_repository().find_empresa_by_user_id(user_id)
 
 
 @practica_bp.post("")
 def start_practica():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
@@ -83,26 +83,26 @@ def start_practica():
 
 @practica_bp.get("")
 def list_practicas():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    practicas = build_practica_service().list_for_user(usuario_id)
+    practicas = build_practica_service().list_for_user(user_id)
     return jsonify([serialize_practica(item) for item in practicas]), 200
 
 
 @practica_bp.get("/<int:practica_id>")
 def get_practica(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    practica = build_practica_service().get_for_user(usuario_id, practica_id)
+    practica = build_practica_service().get_for_user(user_id, practica_id)
     return jsonify(serialize_practica(practica)), 200
 
 
 @practica_bp.post("/<int:practica_id>/evaluar")
 def register_evaluation(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa()
@@ -117,8 +117,8 @@ def register_evaluation(practica_id):
 
 @practica_bp.post("/<int:practica_id>/entregables")
 def upload_deliverable(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     service = build_practica_service()
@@ -131,7 +131,7 @@ def upload_deliverable(practica_id):
             return jsonify(
                 {"error": "El entregable debe ser PDF, DOC, DOCX o ZIP"}
             ), 400
-        service.get_for_user(usuario_id, practica_id)
+        service.get_for_user(user_id, practica_id)
         nombre_guardado = f"{uuid4().hex}_{nombre_seguro}"
         ruta_guardada = Path(current_app.config["UPLOAD_FOLDER"]) / nombre_guardado
         archivo_subido.save(ruta_guardada)
@@ -140,7 +140,7 @@ def upload_deliverable(practica_id):
         payload = request.get_json(silent=True) or {}
 
     try:
-        practica = service.upload_deliverable(usuario_id, practica_id, payload.get("archivo"))
+        practica = service.upload_deliverable(user_id, practica_id, payload.get("archivo"))
     except ValueError:
         if ruta_guardada is not None and ruta_guardada.is_file():
             ruta_guardada.unlink()
@@ -151,22 +151,22 @@ def upload_deliverable(practica_id):
 
 @practica_bp.get("/<int:practica_id>/entregables")
 def get_deliverables_history(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
+    entregables = build_practica_service().get_deliverables_history(user_id, practica_id)
 
     return jsonify([serialize_entregable(e) for e in entregables]), 200
 
 
 @practica_bp.get("/<int:practica_id>/evaluaciones")
 def get_evaluations_history(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    evaluaciones = build_practica_service().get_evaluations_history(usuario_id, practica_id)
+    evaluaciones = build_practica_service().get_evaluations_history(user_id, practica_id)
 
     return jsonify([serialize_evaluacion(e) for e in evaluaciones]), 200
 
@@ -175,11 +175,11 @@ def get_evaluations_history(practica_id):
     "/<int:practica_id>/entregables/<int:entregable_id>"
 )
 def delete_deliverable(practica_id, entregable_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     data = serialize_entregable(
-        build_practica_service().delete_deliverable(usuario_id, practica_id, entregable_id)
+        build_practica_service().delete_deliverable(user_id, practica_id, entregable_id)
     )
 
     nombre = Path(data["archivo"]).name
@@ -198,8 +198,8 @@ def delete_deliverable(practica_id, entregable_id):
     "/<int:practica_id>/evaluaciones/<int:evaluacion_id>"
 )
 def delete_evaluation(practica_id, evaluacion_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
@@ -214,10 +214,10 @@ def delete_evaluation(practica_id, evaluacion_id):
     "/<int:practica_id>/entregables/<int:entregable_id>/archivo"
 )
 def download_deliverable(practica_id, entregable_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
+    entregables = build_practica_service().get_deliverables_history(user_id, practica_id)
 
     entregable = next((item for item in entregables if item.id == entregable_id), None)
     if entregable is None:
@@ -235,8 +235,8 @@ def download_deliverable(practica_id, entregable_id):
 
 @practica_bp.post("/<int:practica_id>/finalizar")
 def finish_practica(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:

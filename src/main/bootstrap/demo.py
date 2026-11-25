@@ -18,7 +18,7 @@ from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 
 
 DEMO_PRACTITIONER_EMAIL = "practicante@demo.local"
@@ -55,8 +55,8 @@ def _create_demo_pdf():
 
 
 def seed_demo_data(password):
-    existing = UsuarioModel.query.filter(
-        UsuarioModel.email.in_(
+    existing = UserModel.query.filter(
+        UserModel.email.in_(
             [DEMO_PRACTITIONER_EMAIL, DEMO_COMPANY_EMAIL]
         )
     ).count()
@@ -66,23 +66,23 @@ def seed_demo_data(password):
 
     now = datetime.now(timezone.utc)
     password_hash = generate_password_hash(password)
-    practitioner_user = UsuarioModel(
+    practitioner_user = UserModel(
         email=DEMO_PRACTITIONER_EMAIL,
         password_hash=password_hash,
-        tipo="practicante",
-        estado="activo",
+        role="practicante",
+        status="activo",
     )
-    company_user = UsuarioModel(
+    company_user = UserModel(
         email=DEMO_COMPANY_EMAIL,
         password_hash=password_hash,
-        tipo="empresa",
-        estado="activo",
+        role="empresa",
+        status="activo",
     )
     db.session.add_all([practitioner_user, company_user])
     db.session.flush()
 
     practitioner = PracticanteModel(
-        usuario_id=practitioner_user.id,
+        user_id=practitioner_user.id,
         nombres="Andrea",
         apellidos="Quispe",
         dni="72483915",
@@ -95,7 +95,7 @@ def seed_demo_data(password):
         identidad_verificada=True,
     )
     company = EmpresaModel(
-        usuario_id=company_user.id,
+        user_id=company_user.id,
         razon_social="Innovación Andina S.A.C.",
         ruc="20100070970",
         verificada=True,
@@ -112,7 +112,7 @@ def seed_demo_data(password):
         ),
         habilidades_requeridas=_json_list(["Python", "Flask", "SQL"]),
         beneficios=_json_list(["Mentoría técnica", "Horario flexible", "Constancia"]),
-        estado="publicada",
+        status="publicada",
         fecha_publicacion=now - timedelta(days=12),
     )
     data_opening = ConvocatoriaModel(
@@ -124,7 +124,7 @@ def seed_demo_data(password):
         ),
         habilidades_requeridas=_json_list(["SQL", "Python", "Análisis de datos"]),
         beneficios=_json_list(["Capacitación", "Modalidad híbrida"]),
-        estado="publicada",
+        status="publicada",
         fecha_publicacion=now - timedelta(days=5),
     )
     qa_opening = ConvocatoriaModel(
@@ -136,7 +136,7 @@ def seed_demo_data(password):
         ),
         habilidades_requeridas=_json_list(["Git", "SQL"]),
         beneficios=_json_list(["Mentoría", "Horario flexible"]),
-        estado="publicada",
+        status="publicada",
         fecha_publicacion=now - timedelta(days=2),
     )
     draft_opening = ConvocatoriaModel(
@@ -145,7 +145,7 @@ def seed_demo_data(password):
         descripcion="Borrador preparado para demostrar la edición y publicación.",
         habilidades_requeridas=_json_list(["Comunicación", "Git"]),
         beneficios=_json_list(["Capacitación"]),
-        estado="borrador",
+        status="borrador",
     )
     db.session.add_all(
         [backend_opening, data_opening, qa_opening, draft_opening]
@@ -155,12 +155,12 @@ def seed_demo_data(password):
     selected_application = PostulacionModel(
         convocatoria_id=backend_opening.id,
         practicante_id=practitioner.id,
-        estado="seleccionada",
+        status="seleccionada",
     )
     pending_application = PostulacionModel(
         convocatoria_id=qa_opening.id,
         practicante_id=practitioner.id,
-        estado="pendiente",
+        status="pendiente",
     )
     db.session.add_all([selected_application, pending_application])
     db.session.flush()
@@ -168,7 +168,7 @@ def seed_demo_data(password):
     practice = PracticaModel(
         postulacion_id=selected_application.id,
         practicante_id=practitioner.id,
-        estado="EN_CURSO",
+        status="EN_CURSO",
     )
     db.session.add(practice)
     db.session.flush()

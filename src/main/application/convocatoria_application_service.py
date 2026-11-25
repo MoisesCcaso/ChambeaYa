@@ -76,9 +76,9 @@ class ConvocatoriaApplicationService:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
         return convocatoria
 
-    def search(self, query=None, estado=None):
+    def search(self, query=None, status=None):
         self._require_repository()
-        return self.convocatoria_repository.search(query=query, estado=estado)
+        return self.convocatoria_repository.search(query=query, status=status)
 
     def find_by_id(self, convocatoria_id):
         self._require_repository()

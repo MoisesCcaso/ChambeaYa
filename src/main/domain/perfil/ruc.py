@@ -20,13 +20,13 @@ class RUC:
         digitos = [int(d) for d in numero[:10]]
         suma = sum(d * f for d, f in zip(digitos, factores))
         resto = suma % 11
-        resultado = 11 - resto
+        result = 11 - resto
 
-        if resultado == 10:
+        if result == 10:
             digito_verificador = 0
-        elif resultado == 11:
+        elif result == 11:
             digito_verificador = 1
         else:
-            digito_verificador = resultado
+            digito_verificador = result
 
         return digito_verificador == int(numero[10])

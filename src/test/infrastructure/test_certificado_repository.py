@@ -12,7 +12,7 @@ from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_certificado_repository import (
     SqlAlchemyCertificadoRepository,
 )
@@ -21,28 +21,28 @@ from infrastructure.sqlalchemy_certificado_repository import (
 @pytest.fixture
 def practica_id(app_context):
     """Crea con modelos reales todas las relaciones requeridas por un certificado."""
-    usuario_practicante = UsuarioModel(
+    usuario_practicante = UserModel(
         email="practicante-certificado@test.local",
         password_hash="hash",
-        tipo="practicante",
-        estado="activo",
+        role="practicante",
+        status="activo",
     )
-    practicante = PracticanteModel(usuario=usuario_practicante)
-    usuario_empresa = UsuarioModel(
+    practicante = PracticanteModel(user=usuario_practicante)
+    usuario_empresa = UserModel(
         email="empresa-certificado@test.local",
         password_hash="hash",
-        tipo="empresa",
-        estado="activo",
+        role="empresa",
+        status="activo",
     )
     empresa = EmpresaModel(
-        usuario=usuario_empresa,
+        user=usuario_empresa,
         razon_social="Empresa Certificadora",
         ruc="20987654321",
     )
     convocatoria = ConvocatoriaModel(
         empresa=empresa,
         titulo="Prácticas certificadas",
-        estado="publicada",
+        status="publicada",
     )
     db.session.add_all([practicante, convocatoria])
     db.session.flush()
@@ -50,7 +50,7 @@ def practica_id(app_context):
     postulacion = PostulacionModel(
         convocatoria_id=convocatoria.id,
         practicante_id=practicante.id,
-        estado="seleccionada",
+        status="seleccionada",
     )
     db.session.add(postulacion)
     db.session.flush()
@@ -58,7 +58,7 @@ def practica_id(app_context):
     practica = PracticaModel(
         postulacion_id=postulacion.id,
         practicante_id=practicante.id,
-        estado="FINALIZADA",
+        status="FINALIZADA",
     )
     db.session.add(practica)
     db.session.commit()
@@ -74,7 +74,7 @@ def crear_certificado(practica_id, *, codigo="CERT-PRUEBA-001", contenido="Certi
     return Certificado(
         practica_id=practica_id,
         codigo_qr=CodigoQR(
-            valor=codigo,
+            value=codigo,
             url_verificacion=f"/certificados/verificar/{codigo}",
             hash_integridad="a" * 64,
         ),
@@ -95,10 +95,10 @@ def test_save_persiste_certificado_codigo_qr_y_documento(
     repository,
     practica_id,
 ):
-    guardado = repository.save(crear_certificado(practica_id))
+    saved = repository.save(crear_certificado(practica_id))
     db.session.expire_all()
 
-    modelo = db.session.get(CertificadoModel, guardado.id)
+    modelo = db.session.get(CertificadoModel, saved.id)
     assert modelo is not None
     assert modelo.practica_id == practica_id
     assert modelo.codigo_qr_valor == "CERT-PRUEBA-001"
@@ -110,10 +110,10 @@ def test_save_persiste_certificado_codigo_qr_y_documento(
     assert modelo.documento_hash == "b" * 64
     assert modelo.documento_contenido == "Certificado"
 
-    assert guardado.id is not None
-    assert guardado.practica_id == practica_id
-    assert guardado.codigo_qr.valor == "CERT-PRUEBA-001"
-    assert guardado.documento.contenido == "Certificado"
+    assert saved.id is not None
+    assert saved.practica_id == practica_id
+    assert saved.codigo_qr.value == "CERT-PRUEBA-001"
+    assert saved.documento.contenido == "Certificado"
 
 
 def test_find_by_id_reconstruye_el_certificado_completo(
@@ -121,37 +121,37 @@ def test_find_by_id_reconstruye_el_certificado_completo(
     repository,
     practica_id,
 ):
-    guardado = repository.save(crear_certificado(practica_id))
+    saved = repository.save(crear_certificado(practica_id))
 
-    encontrado = repository.find_by_id(guardado.id)
+    found = repository.find_by_id(saved.id)
 
-    assert isinstance(encontrado, Certificado)
-    assert encontrado.id == guardado.id
-    assert encontrado.practica_id == practica_id
-    assert isinstance(encontrado.codigo_qr, CodigoQR)
-    assert encontrado.codigo_qr.valor == "CERT-PRUEBA-001"
-    assert encontrado.codigo_qr.hash_integridad == "a" * 64
-    assert isinstance(encontrado.documento, ArchivoPDF)
-    assert encontrado.documento.hash_integridad == "b" * 64
-    assert encontrado.documento.contenido == "Certificado"
+    assert isinstance(found, Certificado)
+    assert found.id == saved.id
+    assert found.practica_id == practica_id
+    assert isinstance(found.codigo_qr, CodigoQR)
+    assert found.codigo_qr.value == "CERT-PRUEBA-001"
+    assert found.codigo_qr.hash_integridad == "a" * 64
+    assert isinstance(found.documento, ArchivoPDF)
+    assert found.documento.hash_integridad == "b" * 64
+    assert found.documento.contenido == "Certificado"
 
 
 def test_consulta_por_codigo(repository, practica_id):
-    guardado = repository.save(crear_certificado(practica_id))
+    saved = repository.save(crear_certificado(practica_id))
 
-    encontrado = repository.find_by_codigo("CERT-PRUEBA-001")
+    found = repository.find_by_codigo("CERT-PRUEBA-001")
 
-    assert encontrado.id == guardado.id
-    assert encontrado.codigo_qr.valor == "CERT-PRUEBA-001"
+    assert found.id == saved.id
+    assert found.codigo_qr.value == "CERT-PRUEBA-001"
 
 
 def test_consulta_por_practica(repository, practica_id):
-    guardado = repository.save(crear_certificado(practica_id))
+    saved = repository.save(crear_certificado(practica_id))
 
-    encontrado = repository.find_by_practica_id(practica_id)
+    found = repository.find_by_practica_id(practica_id)
 
-    assert encontrado.id == guardado.id
-    assert encontrado.practica_id == practica_id
+    assert found.id == saved.id
+    assert found.practica_id == practica_id
 
 
 def test_consultas_inexistentes_devuelven_none(app_context, repository):
@@ -167,7 +167,7 @@ def test_save_actualiza_un_certificado_existente_sin_duplicarlo(
 ):
     certificado = repository.save(crear_certificado(practica_id))
     certificado.codigo_qr = CodigoQR(
-        valor="CERT-ACTUALIZADO-002",
+        value="CERT-ACTUALIZADO-002",
         url_verificacion="/certificados/verificar/CERT-ACTUALIZADO-002",
         hash_integridad="c" * 64,
     )
@@ -180,7 +180,7 @@ def test_save_actualiza_un_certificado_existente_sin_duplicarlo(
     actualizado = repository.save(certificado)
 
     assert actualizado.id == certificado.id
-    assert actualizado.codigo_qr.valor == "CERT-ACTUALIZADO-002"
+    assert actualizado.codigo_qr.value == "CERT-ACTUALIZADO-002"
     assert actualizado.codigo_qr.hash_integridad == "c" * 64
     assert actualizado.documento.hash_integridad == "d" * 64
     assert actualizado.documento.contenido == "Contenido actualizado"
@@ -192,10 +192,10 @@ def test_save_y_consulta_certificado_sin_codigo_ni_documento(
     repository,
     practica_id,
 ):
-    guardado = repository.save(Certificado(practica_id=practica_id))
+    saved = repository.save(Certificado(practica_id=practica_id))
 
-    encontrado = repository.find_by_id(guardado.id)
+    found = repository.find_by_id(saved.id)
 
-    assert encontrado.practica_id == practica_id
-    assert encontrado.codigo_qr is None
-    assert encontrado.documento is None
+    assert found.practica_id == practica_id
+    assert found.codigo_qr is None
+    assert found.documento is None

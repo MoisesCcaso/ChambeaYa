@@ -6,7 +6,7 @@ class Practicante:
     def __init__(
         self,
         id=None,
-        usuario_id=None,
+        user_id=None,
         nombres=None,
         apellidos=None,
         dni=None,
@@ -17,7 +17,7 @@ class Practicante:
         identidad_verificada=False,
     ):
         self.id = id
-        self.usuario_id = usuario_id
+        self.user_id = user_id
         self.nombre_completo = NombreCompleto(nombres, apellidos)
         self.dni = dni
         self.carnet_universitario = carnet_universitario
@@ -104,16 +104,16 @@ class Practicante:
         self.score_reputacion = min(base, 100.0)
         return self.score_reputacion
 
-    def _normalizar_texto(self, valor):
-        if valor is None:
+    def _normalizar_texto(self, value):
+        if value is None:
             return None
 
-        return str(valor).strip()
+        return str(value).strip()
 
     def _normalizar_elementos(self, valores):
         normalizados = []
-        for valor in valores:
-            valor_normalizado = self._normalizar_texto(valor)
+        for value in valores:
+            valor_normalizado = self._normalizar_texto(value)
             if valor_normalizado and valor_normalizado not in normalizados:
                 normalizados.append(valor_normalizado)
         return normalizados

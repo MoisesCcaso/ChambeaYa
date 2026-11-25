@@ -28,7 +28,7 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
             )
             db.session.add(model)
 
-        model.estado = postulacion.estado
+        model.status = postulacion.status
         return model
 
     def find_by_id(self, postulacion_id):
@@ -58,5 +58,5 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
             id=model.id,
             convocatoria_id=model.convocatoria_id,
             practicante_id=model.practicante_id,
-            estado=model.estado,
+            status=model.status,
         )

@@ -106,12 +106,12 @@ class PostulacionPage(BasePage):
         )
         return len(self.driver.find_elements(By.XPATH, self._row_xpath(titulo)))
 
-    def application_has_status(self, titulo: str, estado: str) -> bool:
+    def application_has_status(self, titulo: str, status: str) -> bool:
         """Indica si la postulación a la convocatoria muestra el estado indicado."""
         return self.wait_until_visible(
             (
                 By.XPATH,
-                f'{self._row_xpath(titulo)}//span[contains(@class, "status-{estado}")]',
+                f'{self._row_xpath(titulo)}//span[contains(@class, "status-{status}")]',
             )
         ).is_displayed()
 

@@ -4,7 +4,7 @@ from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
@@ -18,7 +18,7 @@ __all__ = [
     "NotificationModel",
     "PracticanteModel",
     "SugerenciaModel",
-    "UsuarioModel",
+    "UserModel",
     "PracticaModel",
     "EntregableModel",
     "EvaluacionModel",

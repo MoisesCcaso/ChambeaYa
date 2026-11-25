@@ -34,11 +34,11 @@ def _ensure_orm_stubs():
     class DummyPracticaModel:
         query = MagicMock()
 
-        def __init__(self, id=None, postulacion_id=None, practicante_id=None, estado=None):
+        def __init__(self, id=None, postulacion_id=None, practicante_id=None, status=None):
             self.id = id
             self.postulacion_id = postulacion_id
             self.practicante_id = practicante_id
-            self.estado = estado
+            self.status = status
             self.entregables = []
             self.evaluaciones = []
 
@@ -73,24 +73,24 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         self.repo = SqlAlchemyPracticaRepository()
 
     def test_sync_collection_elimina_huerfanos_y_agrega_nuevos_sin_duplicar(self):
-        existente_conservado = SimpleNamespace(id=1, valor="conservado")
-        existente_huerfano = SimpleNamespace(id=2, valor="eliminar")
+        existente_conservado = SimpleNamespace(id=1, value="conservado")
+        existente_huerfano = SimpleNamespace(id=2, value="eliminar")
         model_collection = [existente_conservado, existente_huerfano]
 
         domain_collection = [
-            SimpleNamespace(id=1, valor="conservado"),
-            SimpleNamespace(id=None, valor="nuevo"),
+            SimpleNamespace(id=1, value="conservado"),
+            SimpleNamespace(id=None, value="nuevo"),
         ]
 
         self.repo._sync_collection(
             model_collection,
             domain_collection,
-            lambda item: SimpleNamespace(id=None, valor=item.valor),
+            lambda item: SimpleNamespace(id=None, value=item.value),
         )
 
         self.assertEqual(len(model_collection), 2)
         self.assertIs(model_collection[0], existente_conservado)
-        self.assertEqual(model_collection[1].valor, "nuevo")
+        self.assertEqual(model_collection[1].value, "nuevo")
 
     def test_save_sincroniza_entregables_y_evaluaciones_mediante_sync_collection(self):
         from shared.database import db
@@ -112,7 +112,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
             id=5,
             postulacion_id=1,
             practicante_id=2,
-            estado=Practica.ESTADO_EN_CURSO,
+            status=Practica.ESTADO_EN_CURSO,
             entregables=[entregable_keep, entregable_drop],
             evaluaciones=[eval_keep, eval_drop],
         )
@@ -121,7 +121,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
             id=5,
             postulacion_id=1,
             practicante_id=2,
-            estado=Practica.ESTADO_FINALIZADA,
+            status=Practica.ESTADO_FINALIZADA,
             entregables=[
                 Entregable(id=10, practica_id=5, archivo="keep.pdf", fecha_subida=fecha),
                 Entregable(id=None, practica_id=5, archivo="new.pdf", fecha_subida=fecha),
@@ -136,11 +136,11 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
             patch.object(db.session, "get", return_value=model),
             patch.object(db.session, "commit"),
         ):
-            resultado = self.repo.save(practica)
+            result = self.repo.save(practica)
 
         self.assertEqual([e.archivo for e in model.entregables], ["keep.pdf", "new.pdf"])
         self.assertEqual([ev.puntaje for ev in model.evaluaciones], [80, 95])
-        self.assertEqual(resultado.estado, Practica.ESTADO_FINALIZADA)
+        self.assertEqual(result.status, Practica.ESTADO_FINALIZADA)
 
 
 if __name__ == "__main__":

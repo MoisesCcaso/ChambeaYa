@@ -5,7 +5,7 @@ from shared.errors import ConflictError
 
 class CertificacionDominioServicio:
     def generar_certificado(self, practica, practicante, convocatoria):
-        if practica.estado != Practica.ESTADO_FINALIZADA:
+        if practica.status != Practica.ESTADO_FINALIZADA:
             raise ConflictError("Solo se puede certificar una práctica finalizada")
         if not any(evaluacion.esta_aprobada() for evaluacion in practica.evaluaciones):
             raise ConflictError("La práctica no tiene una evaluación aprobada")

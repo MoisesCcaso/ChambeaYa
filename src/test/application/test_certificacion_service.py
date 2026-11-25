@@ -37,7 +37,7 @@ class TestCertificacionService(unittest.TestCase):
 
         self.practica = Practica(
             id=PRACTICA_ID, postulacion_id=20, practicante_id=30,
-            estado=Practica.ESTADO_FINALIZADA,
+            status=Practica.ESTADO_FINALIZADA,
             evaluaciones=[Evaluacion(practica_id=PRACTICA_ID, puntaje=90)],
         )
         self.postulacion = SimpleNamespace(id=20, convocatoria_id=40)
@@ -53,12 +53,12 @@ class TestCertificacionService(unittest.TestCase):
 
     # ---- issue_certificate ----
     def test_devuelve_certificado_existente_con_false(self):
-        existente = Certificado(id=1, practica_id=PRACTICA_ID)
-        self.certificados.find_by_practica_id.return_value = existente
+        existing = Certificado(id=1, practica_id=PRACTICA_ID)
+        self.certificados.find_by_practica_id.return_value = existing
 
-        resultado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
+        result = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
-        self.assertEqual((existente, False), resultado)
+        self.assertEqual((existing, False), result)
         self.certificados.save.assert_not_called()
 
     def test_guarda_certificado_nuevo_y_devuelve_tupla_con_true(self):
@@ -77,7 +77,7 @@ class TestCertificacionService(unittest.TestCase):
     def test_emite_certificado_y_notifica_al_practicante(self):
         mock_notif_service = unittest.mock.Mock()
         self.service.notification_service = mock_notif_service
-        self.practicante.usuario_id = 99
+        self.practicante.user_id = 99
 
         certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
@@ -93,7 +93,7 @@ class TestCertificacionService(unittest.TestCase):
         mock_notif_service = unittest.mock.Mock()
         mock_notif_service.create_notification.side_effect = RuntimeError("SMTP Error")
         self.service.notification_service = mock_notif_service
-        self.practicante.usuario_id = 99
+        self.practicante.user_id = 99
 
         certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
@@ -127,7 +127,7 @@ class TestCertificacionService(unittest.TestCase):
             self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
     def test_practica_no_finalizada_no_se_certifica_ni_se_guarda(self):
-        self.practica.estado = Practica.ESTADO_EN_CURSO
+        self.practica.status = Practica.ESTADO_EN_CURSO
         with self.assertRaises(ValueError):
             self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
         self.certificados.save.assert_not_called()
@@ -137,24 +137,24 @@ class TestCertificacionService(unittest.TestCase):
         certificado, _ = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
         self.certificados.find_by_codigo.return_value = certificado
 
-        valido = self.service.verify_certificate(certificado.codigo_qr.valor)
+        valido = self.service.verify_certificate(certificado.codigo_qr.value)
 
         self.assertTrue(valido)
-        self.certificados.find_by_codigo.assert_called_once_with(certificado.codigo_qr.valor)
+        self.certificados.find_by_codigo.assert_called_once_with(certificado.codigo_qr.value)
 
     def test_verificacion_falla_si_el_pdf_fue_alterado(self):
         certificado, _ = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
         certificado.documento.contenido = "contenido adulterado"
         self.certificados.find_by_codigo.return_value = certificado
 
-        self.assertFalse(self.service.verify_certificate(certificado.codigo_qr.valor))
+        self.assertFalse(self.service.verify_certificate(certificado.codigo_qr.value))
 
     def test_verificacion_falla_si_no_hay_documento(self):
         certificado, _ = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
         certificado.documento = None
         self.certificados.find_by_codigo.return_value = certificado
 
-        self.assertFalse(self.service.verify_certificate(certificado.codigo_qr.valor))
+        self.assertFalse(self.service.verify_certificate(certificado.codigo_qr.value))
 
     def test_verificacion_de_codigo_inexistente_lanza_error(self):
         self.certificados.find_by_codigo.return_value = None
@@ -163,24 +163,24 @@ class TestCertificacionService(unittest.TestCase):
 
     # ---- find_by_practica_id ----
     def test_find_by_practica_id_delega_en_el_repositorio(self):
-        existente = Certificado(id=1, practica_id=PRACTICA_ID)
-        self.certificados.find_by_practica_id.return_value = existente
+        existing = Certificado(id=1, practica_id=PRACTICA_ID)
+        self.certificados.find_by_practica_id.return_value = existing
 
-        self.assertIs(existente, self.service.find_by_practica_id(PRACTICA_ID))
+        self.assertIs(existing, self.service.find_by_practica_id(PRACTICA_ID))
         self.certificados.find_by_practica_id.assert_called_once_with(PRACTICA_ID)
 
     # ---- repositorios requeridos ----
     def test_sin_repositorios_lanza_runtime_error(self):
-        servicio = CertificacionApplicationService()
+        service = CertificacionApplicationService()
         with self.assertRaises(RuntimeError):
-            servicio.issue_certificate(EMPRESA_ID, PRACTICA_ID)
+            service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
         with self.assertRaises(RuntimeError):
-            servicio.verify_certificate("X")
+            service.verify_certificate("X")
         with self.assertRaises(RuntimeError):
-            servicio.find_by_practica_id(PRACTICA_ID)
+            service.find_by_practica_id(PRACTICA_ID)
 
     def test_falta_un_solo_repositorio_lanza_runtime_error(self):
-        servicio = CertificacionApplicationService(
+        service = CertificacionApplicationService(
             certificado_repository=self.certificados,
             practica_repository=self.practicas,
             postulacion_repository=self.postulaciones,
@@ -188,7 +188,7 @@ class TestCertificacionService(unittest.TestCase):
             perfil_repository=None,
         )
         with self.assertRaises(RuntimeError):
-            servicio.find_by_practica_id(PRACTICA_ID)
+            service.find_by_practica_id(PRACTICA_ID)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaMode
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
 
 
@@ -30,29 +30,29 @@ class TestMatchingRepository(unittest.TestCase):
         self.app_context.pop()
 
     def _crear_entidades_relacionadas(self):
-        usuario_practicante = UsuarioModel(
+        usuario_practicante = UserModel(
             email="practicante_matching@test.com",
             password_hash="hash_test",
-            tipo="practicante",
-            estado="activo",
+            role="practicante",
+            status="activo",
         )
-        usuario_empresa = UsuarioModel(
+        usuario_empresa = UserModel(
             email="empresa_matching@test.com",
             password_hash="hash_test",
-            tipo="empresa",
-            estado="activo",
+            role="empresa",
+            status="activo",
         )
         db.session.add_all([usuario_practicante, usuario_empresa])
         db.session.flush()
 
         practicante = PracticanteModel(
-            usuario_id=usuario_practicante.id,
+            user_id=usuario_practicante.id,
             nombres="Ana",
             apellidos="Pérez",
             dni="71112233",
         )
         empresa = EmpresaModel(
-            usuario_id=usuario_empresa.id,
+            user_id=usuario_empresa.id,
             razon_social="Empresa Matching",
             ruc="20111222333",
             verificada=True,
@@ -63,7 +63,7 @@ class TestMatchingRepository(unittest.TestCase):
         convocatoria = ConvocatoriaModel(
             empresa_id=empresa.id,
             titulo="Prácticas de desarrollo",
-            estado="publicada",
+            status="publicada",
         )
         db.session.add(convocatoria)
         db.session.commit()

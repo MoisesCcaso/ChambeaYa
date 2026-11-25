@@ -31,7 +31,7 @@ class MatchingDominioServicio:
     def filtrar_convocatorias(self, practicante, convocatorias, umbral=50.0):
         resultados = []
         for convocatoria in convocatorias:
-            if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
+            if convocatoria.status != Convocatoria.ESTADO_PUBLICADA:
                 continue
             sugerencia = self.calcular_match(practicante, convocatoria)
             if sugerencia is not None and sugerencia.es_compatible(umbral):

@@ -18,10 +18,10 @@ class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmp
             model = db.session.get(PracticanteModel, practicante.id)
 
         if model is None:
-            model = PracticanteModel.query.filter_by(usuario_id=practicante.usuario_id).first()
+            model = PracticanteModel.query.filter_by(user_id=practicante.user_id).first()
 
         if model is None:
-            model = PracticanteModel(usuario_id=practicante.usuario_id)
+            model = PracticanteModel(user_id=practicante.user_id)
             db.session.add(model)
 
         model.nombres = practicante.nombres
@@ -42,10 +42,10 @@ class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmp
             model = db.session.get(EmpresaModel, empresa.id)
 
         if model is None:
-            model = EmpresaModel.query.filter_by(usuario_id=empresa.usuario_id).first()
+            model = EmpresaModel.query.filter_by(user_id=empresa.user_id).first()
 
         if model is None:
-            model = EmpresaModel(usuario_id=empresa.usuario_id)
+            model = EmpresaModel(user_id=empresa.user_id)
             db.session.add(model)
 
         model.razon_social = empresa.razon_social
@@ -55,16 +55,16 @@ class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmp
         db.session.commit()
         return self._to_empresa_domain(model)
 
-    def find_practicante_by_user_id(self, usuario_id):
-        model = PracticanteModel.query.filter_by(usuario_id=usuario_id).first()
+    def find_practicante_by_user_id(self, user_id):
+        model = PracticanteModel.query.filter_by(user_id=user_id).first()
         return self._to_practicante_domain(model)
     
     def find_practicante_by_id(self, practicante_id):
         model = db.session.get(PracticanteModel, practicante_id)
         return self._to_practicante_domain(model)
     
-    def find_empresa_by_user_id(self, usuario_id):
-        model = EmpresaModel.query.filter_by(usuario_id=usuario_id).first()
+    def find_empresa_by_user_id(self, user_id):
+        model = EmpresaModel.query.filter_by(user_id=user_id).first()
         return self._to_empresa_domain(model)
 
     def _to_practicante_domain(self, model):
@@ -73,7 +73,7 @@ class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmp
 
         return Practicante(
             id=model.id,
-            usuario_id=model.usuario_id,
+            user_id=model.user_id,
             nombres=model.nombres,
             apellidos=model.apellidos,
             dni=model.dni,
@@ -90,7 +90,7 @@ class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmp
 
             return Empresa(
                 id=model.id,
-                usuario_id=model.usuario_id,
+                user_id=model.user_id,
                 razon_social=model.razon_social,
                 ruc=RUC(numero=model.ruc) if model.ruc else None,
                 verificada=model.verificada,

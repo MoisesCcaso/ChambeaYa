@@ -19,9 +19,9 @@ class PracticanteTest(unittest.TestCase):
     def test_verificar_identidad_acepta_dni_de_exactamente_8_digitos(self):
         practicante = Practicante(dni="71234567")
 
-        resultado = practicante.verificar_identidad()
+        result = practicante.verificar_identidad()
 
-        self.assertIs(resultado, practicante)
+        self.assertIs(result, practicante)
         self.assertTrue(practicante.identidad_verificada)
 
     def test_verificar_identidad_rechaza_dni_con_longitud_distinta_o_no_numerico(self):
@@ -39,9 +39,9 @@ class PracticanteTest(unittest.TestCase):
     def test_verificar_identidad_acepta_carnet_recortado_de_al_menos_4_caracteres(self):
         practicante = Practicante(carnet_universitario="  A123  ")
 
-        resultado = practicante.verificar_identidad()
+        result = practicante.verificar_identidad()
 
-        self.assertIs(resultado, practicante)
+        self.assertIs(result, practicante)
         self.assertTrue(practicante.identidad_verificada)
 
     def test_verificar_identidad_rechaza_carnet_recortado_menor_a_4_caracteres(self):
@@ -110,14 +110,14 @@ class PracticanteTest(unittest.TestCase):
             carnet_universitario="20201234",
         )
 
-        resultado = practicante.actualizar_datos(
+        result = practicante.actualizar_datos(
             nombres="Carlos",
             apellidos="Gómez",
             dni="70000002",
             carnet_universitario="20209999",
         )
 
-        self.assertIs(resultado, practicante)
+        self.assertIs(result, practicante)
         self.assertEqual(practicante.nombres, "Carlos")
         self.assertEqual(practicante.apellidos, "Gómez")
         self.assertEqual(practicante.dni, "70000002")
@@ -146,7 +146,7 @@ class PracticanteTest(unittest.TestCase):
         self.assertEqual(str(practicante.nombre_completo), "Ana Torres")
 
     def test_practicante_nuevo_sin_nombres_es_valido_hasta_completar_perfil(self):
-        practicante = Practicante(usuario_id=1)
+        practicante = Practicante(user_id=1)
         self.assertIsNone(practicante.nombres)
         self.assertIsNone(practicante.apellidos)
 
@@ -242,9 +242,9 @@ class NombreCompletoTest(unittest.TestCase):
     def test_validar_recorta_ambos_campos_y_formatea_cadena(self):
         nombre = NombreCompleto(nombres="  Ana María  ", apellidos="  Torres Díaz  ")
 
-        resultado = nombre.validar()
+        result = nombre.validar()
 
-        self.assertIs(resultado, nombre)
+        self.assertIs(result, nombre)
         self.assertEqual(nombre.nombres, "Ana María")
         self.assertEqual(nombre.apellidos, "Torres Díaz")
         self.assertEqual(str(nombre), "Ana María Torres Díaz")

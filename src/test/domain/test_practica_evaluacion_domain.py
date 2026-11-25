@@ -13,7 +13,7 @@ class TestPracticaIniciar(unittest.TestCase):
         practica = Practica.iniciar(11, 22)
         self.assertEqual(practica.postulacion_id, 11)
         self.assertEqual(practica.practicante_id, 22)
-        self.assertEqual(practica.estado, Practica.ESTADO_EN_CURSO)
+        self.assertEqual(practica.status, Practica.ESTADO_EN_CURSO)
         self.assertEqual(practica.entregables, [])
         self.assertEqual(practica.evaluaciones, [])
 
@@ -88,7 +88,7 @@ class TestPractica(unittest.TestCase):
         practica.registrar_evaluacion(80)
         with self.assertRaisesRegex(ValueError, "sin entregables registrados"):
             practica.finalizar()
-        self.assertEqual(practica.estado, Practica.ESTADO_EN_CURSO)
+        self.assertEqual(practica.status, Practica.ESTADO_EN_CURSO)
 
     def test_no_se_puede_finalizar_sin_evaluacion_aprobada(self):
         practica = Practica(id=7)
@@ -96,18 +96,18 @@ class TestPractica(unittest.TestCase):
         practica.registrar_evaluacion(59)
         with self.assertRaisesRegex(ValueError, "sin una evaluación aprobada"):
             practica.finalizar()
-        self.assertEqual(practica.estado, Practica.ESTADO_EN_CURSO)
+        self.assertEqual(practica.status, Practica.ESTADO_EN_CURSO)
 
     def test_finalizar_cambia_el_estado_si_cumple_las_reglas(self):
         practica = Practica(id=7)
         practica.subir_entregable("informe.pdf")
         practica.registrar_evaluacion(60)
         self.assertIs(practica.finalizar(), practica)
-        self.assertEqual(practica.estado, Practica.ESTADO_FINALIZADA)
+        self.assertEqual(practica.status, Practica.ESTADO_FINALIZADA)
 
     def test_no_se_puede_finalizar_dos_veces(self):
         practica = Practica(
-            estado=Practica.ESTADO_FINALIZADA,
+            status=Practica.ESTADO_FINALIZADA,
             entregables=[Entregable(archivo="informe.pdf")],
             evaluaciones=[Evaluacion(puntaje=90)],
         )
@@ -115,7 +115,7 @@ class TestPractica(unittest.TestCase):
             practica.finalizar()
 
     def test_finalizada_no_admite_nuevos_entregables_ni_evaluaciones(self):
-        practica = Practica(estado=Practica.ESTADO_FINALIZADA)
+        practica = Practica(status=Practica.ESTADO_FINALIZADA)
         with self.assertRaisesRegex(ValueError, "entregables.*finalizada"):
             practica.subir_entregable("otro-informe.pdf")
         with self.assertRaisesRegex(ValueError, "evaluaciones.*finalizada"):
@@ -148,16 +148,16 @@ class TestPractica(unittest.TestCase):
     def test_finalizada_no_admite_eliminaciones(self):
         for metodo in ("eliminar_entregable", "eliminar_evaluacion"):
             with self.subTest(metodo=metodo):
-                practica = Practica(estado=Practica.ESTADO_FINALIZADA)
+                practica = Practica(status=Practica.ESTADO_FINALIZADA)
                 with self.assertRaisesRegex(ValueError, "práctica finalizada"):
                     getattr(practica, metodo)(1)
 
     def test_historiales_se_ordenan_sin_alterar_las_colecciones(self):
-        ahora = datetime.now(timezone.utc)
-        entregable_reciente = Entregable(id=1, fecha_subida=ahora)
-        entregable_antiguo = Entregable(id=2, fecha_subida=ahora - timedelta(days=1))
-        evaluacion_reciente = Evaluacion(id=1, fecha_evaluacion=ahora)
-        evaluacion_antigua = Evaluacion(id=2, fecha_evaluacion=ahora - timedelta(hours=1))
+        now_value = datetime.now(timezone.utc)
+        entregable_reciente = Entregable(id=1, fecha_subida=now_value)
+        entregable_antiguo = Entregable(id=2, fecha_subida=now_value - timedelta(days=1))
+        evaluacion_reciente = Evaluacion(id=1, fecha_evaluacion=now_value)
+        evaluacion_antigua = Evaluacion(id=2, fecha_evaluacion=now_value - timedelta(hours=1))
         practica = Practica(
             entregables=[entregable_reciente, entregable_antiguo],
             evaluaciones=[evaluacion_reciente, evaluacion_antigua],

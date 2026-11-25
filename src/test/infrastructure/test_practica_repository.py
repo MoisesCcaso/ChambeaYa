@@ -15,35 +15,35 @@ from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 
 
 @pytest.fixture
 def datos_practica(app_context):
     """Persiste las relaciones requeridas por las claves foráneas de una práctica."""
-    usuario_practicante = UsuarioModel(
+    usuario_practicante = UserModel(
         email="practicante-repository@test.local",
         password_hash="hash",
-        tipo="practicante",
-        estado="activo",
+        role="practicante",
+        status="activo",
     )
-    practicante = PracticanteModel(usuario=usuario_practicante)
-    usuario_empresa = UsuarioModel(
+    practicante = PracticanteModel(user=usuario_practicante)
+    usuario_empresa = UserModel(
         email="empresa-repository@test.local",
         password_hash="hash",
-        tipo="empresa",
-        estado="activo",
+        role="empresa",
+        status="activo",
     )
     empresa = EmpresaModel(
-        usuario=usuario_empresa,
+        user=usuario_empresa,
         razon_social="Empresa de prueba",
         ruc="20123456789",
     )
     convocatoria = ConvocatoriaModel(
         empresa=empresa,
         titulo="Prácticas de desarrollo",
-        estado="publicada",
+        status="publicada",
     )
     db.session.add_all([practicante, convocatoria])
     db.session.flush()
@@ -51,7 +51,7 @@ def datos_practica(app_context):
     postulacion = PostulacionModel(
         convocatoria_id=convocatoria.id,
         practicante_id=practicante.id,
-        estado="seleccionada",
+        status="seleccionada",
     )
     db.session.add(postulacion)
     db.session.commit()
@@ -99,7 +99,7 @@ def test_save_persiste_practica_entregable_y_evaluacion(
     assert modelo is not None
     assert modelo.postulacion_id == datos_practica["postulacion_id"]
     assert modelo.practicante_id == datos_practica["practicante_id"]
-    assert modelo.estado == Practica.ESTADO_EN_CURSO
+    assert modelo.status == Practica.ESTADO_EN_CURSO
     assert len(modelo.entregables) == 1
     assert modelo.entregables[0].archivo == "informe.pdf"
     assert len(modelo.evaluaciones) == 1
@@ -128,7 +128,7 @@ def test_find_by_id_reconstruye_el_agregado_completo(
     assert encontrada.id == guardada.id
     assert encontrada.postulacion_id == datos_practica["postulacion_id"]
     assert encontrada.practicante_id == datos_practica["practicante_id"]
-    assert encontrada.estado == Practica.ESTADO_EN_CURSO
+    assert encontrada.status == Practica.ESTADO_EN_CURSO
     assert [item.archivo for item in encontrada.entregables] == ["evidencia.zip"]
     assert [item.puntaje for item in encontrada.evaluaciones] == [72]
 
@@ -169,10 +169,10 @@ def test_save_actualiza_estado_y_agrega_nuevos_hijos_sin_duplicar_existentes(
 
     practica.subir_entregable("informe-final.pdf")
     practica.registrar_evaluacion(90)
-    practica.estado = Practica.ESTADO_FINALIZADA
+    practica.status = Practica.ESTADO_FINALIZADA
     actualizada = repository.save(practica)
 
-    assert actualizada.estado == Practica.ESTADO_FINALIZADA
+    assert actualizada.status == Practica.ESTADO_FINALIZADA
     assert [item.archivo for item in actualizada.entregables] == [
         "primer-informe.pdf",
         "informe-final.pdf",
@@ -217,8 +217,8 @@ def test_find_by_empresa_id_retorna_practicas_asociadas_via_join(
     practica = crear_practica(datos_practica)
     guardada = repository.save(practica)
 
-    resultado = repository.find_by_empresa_id(empresa_id)
-    assert len(resultado) == 1
-    assert resultado[0].id == guardada.id
+    result = repository.find_by_empresa_id(empresa_id)
+    assert len(result) == 1
+    assert result[0].id == guardada.id
 
     assert repository.find_by_empresa_id(99999) == []

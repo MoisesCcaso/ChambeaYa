@@ -14,7 +14,7 @@ class Convocatoria:
         empresa_id=None,
         titulo=None,
         descripcion=None,
-        estado=None,
+        status=None,
         habilidades_requeridas=None,
         beneficios=None,
         fecha_publicacion=None,
@@ -24,17 +24,17 @@ class Convocatoria:
         self.empresa_id = empresa_id
         self.titulo = titulo
         self.descripcion = descripcion
-        self._estado = estado_desde_nombre(estado, fecha_cierre)
+        self._estado = estado_desde_nombre(status, fecha_cierre)
         self.habilidades_requeridas = habilidades_requeridas or []
         self.beneficios = beneficios or []
         self.fecha_publicacion = fecha_publicacion
 
     @property
-    def estado(self):
+    def status(self):
         return self._estado.nombre
 
-    @estado.setter
-    def estado(self, nombre):
+    @status.setter
+    def status(self, nombre):
         self._estado = estado_desde_nombre(nombre)
 
     @property
@@ -58,7 +58,7 @@ class Convocatoria:
         return self
 
     def validar_eliminacion(self):
-        if self.estado != self.ESTADO_BORRADOR:
+        if self.status != self.ESTADO_BORRADOR:
             raise ConflictError("Solo una convocatoria en borrador puede eliminarse")
         return self
 
@@ -69,7 +69,7 @@ class Convocatoria:
         habilidades_requeridas=None,
         beneficios=None,
     ):
-        if self.estado != self.ESTADO_BORRADOR:
+        if self.status != self.ESTADO_BORRADOR:
             raise ConflictError("Solo una convocatoria en borrador puede editarse")
         if titulo is not None:
             self.titulo = self.normalizar_titulo(titulo)
@@ -112,7 +112,7 @@ class Convocatoria:
             self.beneficios.append(beneficio_normalizado)
         return self
     
-    def _normalizar_texto(self, valor):
-        if valor is None:
+    def _normalizar_texto(self, value):
+        if value is None:
             return None
-        return str(valor).strip()
+        return str(value).strip()

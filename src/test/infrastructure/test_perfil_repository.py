@@ -12,7 +12,7 @@ from domain.perfil.empresa import Empresa
 from domain.perfil.practicante import Practicante
 from domain.perfil.ruc import RUC
 from shared.database import db
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 
 
@@ -26,21 +26,21 @@ class TestPerfilRepository(unittest.TestCase):
     def setUp(self):
         self.repository = SqlAlchemyPerfilRepository()
 
-    def _crear_usuario_en_db(self, email, tipo="practicante", estado="activo"):
-        usuario = UsuarioModel(
+    def _crear_usuario_en_db(self, email, role="practicante", status="activo"):
+        user = UserModel(
             email=email,
             password_hash="hash_prueba",
-            tipo=tipo,
-            estado=estado,
+            role=role,
+            status=status,
         )
-        db.session.add(usuario)
+        db.session.add(user)
         db.session.commit()
-        return usuario
+        return user
 
     def test_guardar_y_recargar_perfil_de_practicante_listas_y_banderas(self):
-        usuario = self._crear_usuario_en_db("practicante1@test.local", tipo="practicante")
+        user = self._crear_usuario_en_db("practicante1@test.local", role="practicante")
         practicante = Practicante(
-            usuario_id=usuario.id,
+            user_id=user.id,
             nombres="Lucía",
             apellidos="Mendoza",
             dni="71234567",
@@ -51,30 +51,30 @@ class TestPerfilRepository(unittest.TestCase):
             identidad_verificada=True,
         )
 
-        guardado = self.repository.save_practicante(practicante)
+        saved = self.repository.save_practicante(practicante)
 
-        self.assertIsNotNone(guardado.id)
-        self.assertEqual(guardado.usuario_id, usuario.id)
-        self.assertEqual(guardado.nombres, "Lucía")
-        self.assertEqual(guardado.apellidos, "Mendoza")
-        self.assertEqual(guardado.dni, "71234567")
-        self.assertEqual(guardado.carnet_universitario, "20210987")
-        self.assertEqual(guardado.habilidades, ["Python", "SQL", "Flask"])
+        self.assertIsNotNone(saved.id)
+        self.assertEqual(saved.user_id, user.id)
+        self.assertEqual(saved.nombres, "Lucía")
+        self.assertEqual(saved.apellidos, "Mendoza")
+        self.assertEqual(saved.dni, "71234567")
+        self.assertEqual(saved.carnet_universitario, "20210987")
+        self.assertEqual(saved.habilidades, ["Python", "SQL", "Flask"])
         self.assertEqual(
-            guardado.formacion_educativa,
+            saved.formacion_educativa,
             ["UNSA - Ciencia de la Computación", "Inglés B2"],
         )
-        self.assertEqual(guardado.score_reputacion, 50.0)
-        self.assertTrue(guardado.identidad_verificada)
+        self.assertEqual(saved.score_reputacion, 50.0)
+        self.assertTrue(saved.identidad_verificada)
 
-        por_usuario = self.repository.find_practicante_by_user_id(usuario.id)
-        por_id = self.repository.find_practicante_by_id(guardado.id)
+        por_usuario = self.repository.find_practicante_by_user_id(user.id)
+        por_id = self.repository.find_practicante_by_id(saved.id)
 
         for recuperado in (por_usuario, por_id):
             self.assertIsNotNone(recuperado)
             self.assertIsInstance(recuperado, Practicante)
-            self.assertEqual(recuperado.id, guardado.id)
-            self.assertEqual(recuperado.usuario_id, usuario.id)
+            self.assertEqual(recuperado.id, saved.id)
+            self.assertEqual(recuperado.user_id, user.id)
             self.assertEqual(recuperado.nombres, "Lucía")
             self.assertEqual(recuperado.apellidos, "Mendoza")
             self.assertEqual(recuperado.dni, "71234567")
@@ -88,10 +88,10 @@ class TestPerfilRepository(unittest.TestCase):
             self.assertTrue(recuperado.identidad_verificada)
 
     def test_actualizar_practicante_existente_por_id_y_por_usuario_id(self):
-        usuario = self._crear_usuario_en_db("practicante2@test.local", tipo="practicante")
+        user = self._crear_usuario_en_db("practicante2@test.local", role="practicante")
         inicial = self.repository.save_practicante(
             Practicante(
-                usuario_id=usuario.id,
+                user_id=user.id,
                 nombres="Pedro",
                 apellidos="Ramos",
                 habilidades=["Git"],
@@ -115,7 +115,7 @@ class TestPerfilRepository(unittest.TestCase):
         # Actualización cuando id es None pero el usuario_id ya existe en BD
         sin_id = Practicante(
             id=None,
-            usuario_id=usuario.id,
+            user_id=user.id,
             nombres="Pedro Final",
             apellidos="Ramos",
             habilidades=["Docker"],
@@ -131,9 +131,9 @@ class TestPerfilRepository(unittest.TestCase):
         self.assertFalse(actualizado_por_usuario.identidad_verificada)
 
     def test_guardar_y_recuperar_empresa_con_ruc_encapsulado(self):
-        usuario = self._crear_usuario_en_db("empresa1@test.local", tipo="empresa")
+        user = self._crear_usuario_en_db("empresa1@test.local", role="empresa")
         empresa = Empresa(
-            usuario_id=usuario.id,
+            user_id=user.id,
             razon_social="Innovación Digital S.A.C.",
             ruc=RUC("20100070970"),
             verificada=True,
@@ -142,18 +142,18 @@ class TestPerfilRepository(unittest.TestCase):
         guardada = self.repository.save_empresa(empresa)
 
         self.assertIsNotNone(guardada.id)
-        self.assertEqual(guardada.usuario_id, usuario.id)
+        self.assertEqual(guardada.user_id, user.id)
         self.assertEqual(guardada.razon_social, "Innovación Digital S.A.C.")
         self.assertIsInstance(guardada.ruc, RUC)
         self.assertEqual(guardada.ruc.numero, "20100070970")
         self.assertTrue(guardada.ruc.es_valido())
         self.assertTrue(guardada.verificada)
 
-        recuperada = self.repository.find_empresa_by_user_id(usuario.id)
+        recuperada = self.repository.find_empresa_by_user_id(user.id)
         self.assertIsNotNone(recuperada)
         self.assertIsInstance(recuperada, Empresa)
         self.assertEqual(recuperada.id, guardada.id)
-        self.assertEqual(recuperada.usuario_id, usuario.id)
+        self.assertEqual(recuperada.user_id, user.id)
         self.assertEqual(recuperada.razon_social, "Innovación Digital S.A.C.")
         self.assertIsInstance(recuperada.ruc, RUC)
         self.assertEqual(recuperada.ruc.numero, "20100070970")
@@ -168,7 +168,7 @@ class TestPerfilRepository(unittest.TestCase):
         actualizada_usuario = self.repository.save_empresa(
             Empresa(
                 id=None,
-                usuario_id=usuario.id,
+                user_id=user.id,
                 razon_social="Innovación Global S.A.C.",
                 ruc=RUC("20100070988"),
                 verificada=False,

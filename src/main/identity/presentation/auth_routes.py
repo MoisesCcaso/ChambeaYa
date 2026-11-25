@@ -7,16 +7,16 @@ from shared.http_messages import NOT_AUTHENTICATED
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 
-def build_usuario_service():
-    return container.get_usuario_service()
+def build_user_service():
+    return container.get_user_service()
 
 
-def serialize_usuario(usuario):
+def serialize_user(user):
     return {
-        "id": usuario.id,
-        "email": usuario.email,
-        "tipo": usuario.tipo,
-        "estado": usuario.estado,
+        "id": user.id,
+        "email": user.email,
+        "tipo": user.role,
+        "estado": user.status,
     }
 
 
@@ -29,55 +29,55 @@ def csrf_token():
 @auth_bp.post("/register")
 def register():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().register_user(
+    user = build_user_service().register_user(
         email=payload.get("email"),
         password=payload.get("password"),
         password_confirmation=payload.get("password_confirmation"),
-        tipo=payload.get("tipo"),
+        role=payload.get("tipo"),
     )
 
-    data = serialize_usuario(usuario)
+    data = serialize_user(user)
     if current_app.config["EXPOSE_AUTH_TOKENS"]:
-        data["activation_token"] = usuario.activation_token
+        data["activation_token"] = user.activation_token
     return jsonify(data), 201
 
 
 @auth_bp.post("/login")
 def login():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().authenticate(
+    user = build_user_service().authenticate(
         email=payload.get("email"),
         password=payload.get("password"),
     )
 
     session.clear()
-    session["usuario_id"] = usuario.id
-    return jsonify(serialize_usuario(usuario)), 200
+    session["usuario_id"] = user.id
+    return jsonify(serialize_user(user)), 200
 
 
 @auth_bp.post("/activate")
 def activate():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().activate_account(token=payload.get("token"))
+    user = build_user_service().activate_account(token=payload.get("token"))
 
-    return jsonify(serialize_usuario(usuario)), 200
+    return jsonify(serialize_user(user)), 200
 
 
 @auth_bp.post("/recover-password")
 def recover_password():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().recover_password(email=payload.get("email"))
+    user = build_user_service().recover_password(email=payload.get("email"))
 
     data = {"status": "ok"}
-    if usuario is not None and current_app.config["EXPOSE_AUTH_TOKENS"]:
-        data["password_reset_token"] = usuario.password_reset_token
+    if user is not None and current_app.config["EXPOSE_AUTH_TOKENS"]:
+        data["password_reset_token"] = user.password_reset_token
     return jsonify(data), 200
 
 
 @auth_bp.post("/resend-activation")
 def resend_activation():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().resend_activation(email=payload.get("email"))
+    user = build_user_service().resend_activation(email=payload.get("email"))
 
     data = {
         "status": "ok",
@@ -86,20 +86,20 @@ def resend_activation():
             "enlace de activación."
         ),
     }
-    if usuario is not None and current_app.config["EXPOSE_AUTH_TOKENS"]:
-        data["activation_token"] = usuario.activation_token
+    if user is not None and current_app.config["EXPOSE_AUTH_TOKENS"]:
+        data["activation_token"] = user.activation_token
     return jsonify(data), 200
 
 
 @auth_bp.post("/reset-password")
 def reset_password():
     payload = request.get_json(silent=True) or {}
-    usuario = build_usuario_service().reset_password(
+    user = build_user_service().reset_password(
         token=payload.get("token"),
         new_password=payload.get("new_password"),
     )
 
-    return jsonify(serialize_usuario(usuario)), 200
+    return jsonify(serialize_user(user)), 200
 
 
 @auth_bp.post("/logout")
@@ -110,13 +110,13 @@ def logout():
 
 @auth_bp.get("/me")
 def me():
-    usuario_id = session.get("usuario_id")
-    if usuario_id is None:
+    user_id = session.get("usuario_id")
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    usuario = build_usuario_service().find_by_id(usuario_id)
-    if usuario is None:
+    user = build_user_service().find_by_id(user_id)
+    if user is None:
         session.pop("usuario_id", None)
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    return jsonify(serialize_usuario(usuario)), 200
+    return jsonify(serialize_user(user)), 200

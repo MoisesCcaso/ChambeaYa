@@ -7,7 +7,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from bootstrap.app import create_app
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
-from identity.infrastructure.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 
 
@@ -31,17 +31,17 @@ class TestConvocatoriaRepository(unittest.TestCase):
         self.app_context.pop()
 
     def _crear_empresa_en_db(self, email, ruc):
-        usuario = UsuarioModel(
+        user = UserModel(
             email=email,
             password_hash="hash_test",
-            tipo="empresa",
-            estado="activo",
+            role="empresa",
+            status="activo",
         )
-        db.session.add(usuario)
+        db.session.add(user)
         db.session.flush()
 
         empresa = EmpresaModel(
-            usuario_id=usuario.id,
+            user_id=user.id,
             razon_social="Empresa Test",
             ruc=ruc,
             verificada=True,
@@ -55,7 +55,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
             empresa_id=self.empresa_1.id,
             titulo="Practicante Python",
             descripcion="Desarrollo backend con Flask",
-            estado=Convocatoria.ESTADO_BORRADOR,
+            status=Convocatoria.ESTADO_BORRADOR,
             habilidades_requeridas=["Python", "SQLAlchemy"],
             beneficios=["Seguro", "Remoto"],
             fecha_publicacion=None,
@@ -68,7 +68,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
         self.assertEqual(guardada.empresa_id, self.empresa_1.id)
         self.assertEqual(guardada.titulo, "Practicante Python")
         self.assertEqual(guardada.descripcion, "Desarrollo backend con Flask")
-        self.assertEqual(guardada.estado, Convocatoria.ESTADO_BORRADOR)
+        self.assertEqual(guardada.status, Convocatoria.ESTADO_BORRADOR)
         self.assertEqual(guardada.habilidades_requeridas, ["Python", "SQLAlchemy"])
         self.assertEqual(guardada.beneficios, ["Seguro", "Remoto"])
 
@@ -77,14 +77,14 @@ class TestConvocatoriaRepository(unittest.TestCase):
             empresa_id=self.empresa_1.id,
             titulo="Practicante QA",
             descripcion="Pruebas de software",
-            estado=Convocatoria.ESTADO_BORRADOR,
+            status=Convocatoria.ESTADO_BORRADOR,
             habilidades_requeridas=["Pytest"],
             beneficios=["Capacitación"],
         )
         guardada = self.repository.save(convocatoria)
 
         guardada.titulo = "Practicante QA Automation"
-        guardada.estado = Convocatoria.ESTADO_PUBLICADA
+        guardada.status = Convocatoria.ESTADO_PUBLICADA
         guardada.fecha_publicacion = datetime(2026, 10, 28, 12, 0, 0, tzinfo=timezone.utc)
         guardada.habilidades_requeridas = ["Pytest", "Selenium"]
 
@@ -92,7 +92,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
 
         self.assertEqual(actualizada.id, guardada.id)
         self.assertEqual(actualizada.titulo, "Practicante QA Automation")
-        self.assertEqual(actualizada.estado, Convocatoria.ESTADO_PUBLICADA)
+        self.assertEqual(actualizada.status, Convocatoria.ESTADO_PUBLICADA)
         self.assertEqual(actualizada.habilidades_requeridas, ["Pytest", "Selenium"])
 
     def test_find_by_id_existente_e_inexistente(self):
@@ -100,7 +100,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
             empresa_id=self.empresa_1.id,
             titulo="Practicante Frontend",
             descripcion="React UI",
-            estado=Convocatoria.ESTADO_PUBLICADA,
+            status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["React"],
             beneficios=["Remoto"],
         )
@@ -115,9 +115,9 @@ class TestConvocatoriaRepository(unittest.TestCase):
         self.assertIsNone(self.repository.find_by_id(99999))
 
     def test_find_all_y_find_by_empresa_id(self):
-        c1 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Dev Ops", estado=Convocatoria.ESTADO_BORRADOR)
-        c2 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Data Analyst", estado=Convocatoria.ESTADO_PUBLICADA)
-        c3 = Convocatoria(empresa_id=self.empresa_2.id, titulo="Mobile Dev", estado=Convocatoria.ESTADO_BORRADOR)
+        c1 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Dev Ops", status=Convocatoria.ESTADO_BORRADOR)
+        c2 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Data Analyst", status=Convocatoria.ESTADO_PUBLICADA)
+        c3 = Convocatoria(empresa_id=self.empresa_2.id, titulo="Mobile Dev", status=Convocatoria.ESTADO_BORRADOR)
 
         self.repository.save(c1)
         self.repository.save(c2)
@@ -138,7 +138,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
         convocatoria = Convocatoria(
             empresa_id=self.empresa_1.id,
             titulo="Temporal",
-            estado=Convocatoria.ESTADO_BORRADOR,
+            status=Convocatoria.ESTADO_BORRADOR,
         )
         guardada = self.repository.save(convocatoria)
 
@@ -154,21 +154,21 @@ class TestConvocatoriaRepository(unittest.TestCase):
             empresa_id=self.empresa_1.id,
             titulo="Desarrollador Django",
             descripcion="Backend robusto",
-            estado=Convocatoria.ESTADO_PUBLICADA,
+            status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["Python", "Django"],
         )
         c2 = Convocatoria(
             empresa_id=self.empresa_1.id,
             titulo="Desarrollador React",
             descripcion="Frontend con Next.js",
-            estado=Convocatoria.ESTADO_PUBLICADA,
+            status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["JavaScript", "React"],
         )
         c3 = Convocatoria(
             empresa_id=self.empresa_2.id,
             titulo="Ingeniero Django Borrador",
             descripcion="En revisión",
-            estado=Convocatoria.ESTADO_BORRADOR,
+            status=Convocatoria.ESTADO_BORRADOR,
             habilidades_requeridas=["Django"],
         )
         self.repository.save(c1)
@@ -176,7 +176,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
         self.repository.save(c3)
 
         # Filtro por estado
-        publicadas = self.repository.search(estado=Convocatoria.ESTADO_PUBLICADA)
+        publicadas = self.repository.search(status=Convocatoria.ESTADO_PUBLICADA)
         self.assertEqual(len(publicadas), 2)
 
         # Filtro por texto en título
@@ -184,7 +184,7 @@ class TestConvocatoriaRepository(unittest.TestCase):
         self.assertEqual(len(resultados_django), 2)
 
         # Filtro combinado (query y estado)
-        django_publicada = self.repository.search(query="Django", estado=Convocatoria.ESTADO_PUBLICADA)
+        django_publicada = self.repository.search(query="Django", status=Convocatoria.ESTADO_PUBLICADA)
         self.assertEqual(len(django_publicada), 1)
         self.assertEqual(django_publicada[0].titulo, "Desarrollador Django")
 
