@@ -305,7 +305,7 @@ class TestPostulacionApplicationService(unittest.TestCase):
 
     def test_select_candidate_envia_notificaciones_a_candidatos(self):
         mock_notif = unittest.mock.Mock()
-        self.service.notificacion_service = mock_notif
+        self.service.notification_service = mock_notif
         postulacion_1 = Postulacion(id=1, convocatoria_id=10, practicante_id=101, estado=Postulacion.ESTADO_PENDIENTE)
         postulacion_2 = Postulacion(id=2, convocatoria_id=10, practicante_id=102, estado=Postulacion.ESTADO_PENDIENTE)
 
@@ -326,22 +326,22 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertEqual(resultado.id, 1)
         self.assertEqual(mock_notif.create_notification.call_count, 2)
         mock_notif.create_notification.assert_any_call(
-            usuario_destino_id=201,
-            tipo="POSTULACION_SELECCIONADA",
-            mensaje="Has sido seleccionado para una convocatoria",
+            recipient_user_id=201,
+            notification_type="POSTULACION_SELECCIONADA",
+            message="Has sido seleccionado para una convocatoria",
             metadata={"postulacion_id": 1},
         )
         mock_notif.create_notification.assert_any_call(
-            usuario_destino_id=202,
-            tipo="POSTULACION_RECHAZADA",
-            mensaje="Tu postulación no fue seleccionada",
+            recipient_user_id=202,
+            notification_type="POSTULACION_RECHAZADA",
+            message="Tu postulación no fue seleccionada",
             metadata={"postulacion_id": 2},
         )
 
     def test_select_candidate_tolera_error_de_notificacion(self):
         mock_notif = unittest.mock.Mock()
         mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
-        self.service.notificacion_service = mock_notif
+        self.service.notification_service = mock_notif
         postulacion = Postulacion(id=1, convocatoria_id=10, practicante_id=101, estado=Postulacion.ESTADO_PENDIENTE)
 
         self.mock_postulacion_repo.find_by_id.return_value = postulacion

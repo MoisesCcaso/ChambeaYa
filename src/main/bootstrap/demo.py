@@ -13,7 +13,7 @@ from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaMode
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
-from notifications.infrastructure.models.notificacion_model import NotificacionModel
+from notifications.infrastructure.models.notification_model import NotificationModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
@@ -203,26 +203,26 @@ def seed_demo_data(password):
                 puntaje_match=100.0,
                 habilidades_coincidentes=_json_list(["git", "sql"]),
             ),
-            NotificacionModel(
-                usuario_destino_id=practitioner_user.id,
-                tipo="EVALUACION_DISPONIBLE",
-                mensaje="Tu práctica tiene una evaluación aprobada de 85 puntos",
+            NotificationModel(
+                recipient_user_id=practitioner_user.id,
+                notification_type="EVALUACION_DISPONIBLE",
+                message="Tu práctica tiene una evaluación aprobada de 85 puntos",
                 metadata_json=json.dumps({"practica_id": practice.id}),
-                leida=False,
+                is_read=False,
             ),
-            NotificacionModel(
-                usuario_destino_id=practitioner_user.id,
-                tipo="NUEVAS_SUGERENCIAS",
-                mensaje="Encontramos nuevas oportunidades compatibles con tu perfil",
+            NotificationModel(
+                recipient_user_id=practitioner_user.id,
+                notification_type="NUEVAS_SUGERENCIAS",
+                message="Encontramos nuevas oportunidades compatibles con tu perfil",
                 metadata_json=json.dumps({"cantidad": 2}),
-                leida=False,
+                is_read=False,
             ),
-            NotificacionModel(
-                usuario_destino_id=company_user.id,
-                tipo="NUEVA_POSTULACION",
-                mensaje="Tienes una postulación pendiente por revisar",
+            NotificationModel(
+                recipient_user_id=company_user.id,
+                notification_type="NUEVA_POSTULACION",
+                message="Tienes una postulación pendiente por revisar",
                 metadata_json=json.dumps({"convocatoria_id": qa_opening.id}),
-                leida=False,
+                is_read=False,
             ),
         ]
     )
