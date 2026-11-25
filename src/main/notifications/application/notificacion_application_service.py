@@ -1,4 +1,4 @@
-from domain.notificaciones.notificacion import Notificacion
+from notifications.domain.notificacion import Notificacion
 
 
 class NotificacionApplicationService:

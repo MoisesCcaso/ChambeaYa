@@ -5,11 +5,11 @@ Código bajo prueba: infrastructure/sqlalchemy_notificacion_repository.py
 import unittest
 
 import pytest
-from domain.notificaciones.notificacion import Notificacion
+from notifications.domain.notificacion import Notificacion
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
+from notifications.infrastructure.models.notificacion_model import NotificacionModel
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
+from notifications.infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
 
 
 class TestNotificacionRepository(unittest.TestCase):

@@ -5,10 +5,10 @@ Código bajo prueba: application/notificacion_application_service.py
 import unittest
 from unittest.mock import create_autospec
 
-from application.notificacion_application_service import NotificacionApplicationService
-from domain.notificaciones.i_notificacion_reader import INotificacionReader
-from domain.notificaciones.i_notificacion_writer import INotificacionWriter
-from domain.notificaciones.notificacion import Notificacion
+from notifications.application.notificacion_application_service import NotificacionApplicationService
+from notifications.domain.i_notificacion_reader import INotificacionReader
+from notifications.domain.i_notificacion_writer import INotificacionWriter
+from notifications.domain.notificacion import Notificacion
 
 
 class TestNotificacionService(unittest.TestCase):

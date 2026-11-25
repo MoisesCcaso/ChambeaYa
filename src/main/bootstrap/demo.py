@@ -13,7 +13,7 @@ from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaMode
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
-from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
+from notifications.infrastructure.models.notificacion_model import NotificacionModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel

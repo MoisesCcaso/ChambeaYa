@@ -1,10 +1,10 @@
 import json
 
-from domain.notificaciones.notificacion import Notificacion
-from domain.notificaciones.i_notificacion_writer import INotificacionWriter
-from domain.notificaciones.i_notificacion_reader import INotificacionReader
+from notifications.domain.notificacion import Notificacion
+from notifications.domain.i_notificacion_writer import INotificacionWriter
+from notifications.domain.i_notificacion_reader import INotificacionReader
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
+from notifications.infrastructure.models.notificacion_model import NotificacionModel
 from shared.errors import NotFoundError
 
 

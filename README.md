@@ -761,8 +761,8 @@ Los imports se organizan según la dependencia entre capas: framework → domain
 # src/main/frameworks/flask_mvc/routes/postulacion_routes.py
 from flask import Blueprint, jsonify, session              # framework
 
-from application.notificacion_application_service import ...  # application
-from infrastructure.sqlalchemy_notificacion_repository import ...  # infrastructure
+from notifications.application.notificacion_application_service import ...  # application
+from notifications.infrastructure.sqlalchemy_notificacion_repository import ...  # infrastructure
 ```
 
 ### 6.3.5 Objetos con comportamiento (no anémicos)
