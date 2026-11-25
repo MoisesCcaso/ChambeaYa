@@ -5,13 +5,13 @@ from shared.errors import ForbiddenError, NotFoundError
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
                  postulacion_repository=None, convocatoria_repository=None,
-                 perfil_repository=None, notificacion_service=None):
+                 perfil_repository=None, notification_service=None):
         self.certificado_repository = certificado_repository
         self.practica_repository = practica_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.perfil_repository = perfil_repository
-        self.notificacion_service = notificacion_service
+        self.notification_service = notification_service
 
     def issue_certificate(self, empresa_id, practica_id):
         self._require_repositories()
@@ -46,16 +46,16 @@ class CertificacionApplicationService:
         return guardado, True
 
     def _notificar_emision(self, practicante, practica_id):
-        if self.notificacion_service is None:
+        if self.notification_service is None:
             return
         usuario_id = getattr(practicante, "usuario_id", None)
         if not usuario_id:
             return
         try:
-            self.notificacion_service.create_notification(
-                usuario_destino_id=usuario_id,
-                tipo="CERTIFICADO_EMITIDO",
-                mensaje="Tu certificado digital ha sido emitido",
+            self.notification_service.create_notification(
+                recipient_user_id=usuario_id,
+                notification_type="CERTIFICADO_EMITIDO",
+                message="Tu certificado digital ha sido emitido",
                 metadata={"practica_id": practica_id},
             )
         except Exception:

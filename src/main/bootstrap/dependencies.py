@@ -4,7 +4,7 @@ from application.certificacion_application_service import CertificacionApplicati
 from application.convocatoria_application_service import ConvocatoriaApplicationService
 from application.empresa_application_service import EmpresaApplicationService
 from application.matching_application_service import MatchingApplicationService
-from application.notificacion_application_service import NotificacionApplicationService
+from notifications.application.notification_application_service import NotificationApplicationService
 from application.postulacion_application_service import PostulacionApplicationService
 from application.practica_application_service import PracticaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
@@ -15,7 +15,7 @@ from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
-from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository
+from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
@@ -49,8 +49,8 @@ class DependencyContainer:
     def get_certificado_repository(self):
         return self._repos.get("certificado") or SqlAlchemyCertificadoRepository()
 
-    def get_notificacion_repository(self):
-        return self._repos.get("notificacion") or SqlAlchemyNotificacionRepository()
+    def get_notification_repository(self):
+        return self._repos.get("notification") or SqlAlchemyNotificationRepository()
 
     def get_matching_repository(self):
         return self._repos.get("matching") or SqlAlchemyMatchingRepository()
@@ -79,27 +79,27 @@ class DependencyContainer:
     def get_practica_service(self):
         if "practica_service" in self._services:
             return self._services["practica_service"]
-        notif_repo = self.get_notificacion_repository()
-        notif_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
+        notif_repo = self.get_notification_repository()
+        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return PracticaApplicationService(
             self.get_practica_repository(),
             self.get_perfil_repository(),
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
-            notificacion_service=notif_service,
+            notification_service=notif_service,
         )
 
     def get_postulacion_service(self):
         if "postulacion_service" in self._services:
             return self._services["postulacion_service"]
-        notif_repo = self.get_notificacion_repository()
-        notif_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
+        notif_repo = self.get_notification_repository()
+        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return PostulacionApplicationService(
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
             self.get_perfil_repository(),
             self.get_practica_repository(),
-            notificacion_service=notif_service,
+            notification_service=notif_service,
         )
 
     def get_matching_service(self):
@@ -112,24 +112,24 @@ class DependencyContainer:
             MatchingDominioServicio(),
         )
 
-    def get_notificacion_service(self):
-        if "notificacion_service" in self._services:
-            return self._services["notificacion_service"]
-        repo = self.get_notificacion_repository()
-        return NotificacionApplicationService(writer=repo, reader=repo)
+    def get_notification_service(self):
+        if "notification_service" in self._services:
+            return self._services["notification_service"]
+        repo = self.get_notification_repository()
+        return NotificationApplicationService(writer=repo, reader=repo)
 
     def get_certificacion_service(self):
         if "certificacion_service" in self._services:
             return self._services["certificacion_service"]
-        notif_repo = self.get_notificacion_repository()
-        notif_service = NotificacionApplicationService(writer=notif_repo, reader=notif_repo)
+        notif_repo = self.get_notification_repository()
+        notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return CertificacionApplicationService(
             self.get_certificado_repository(),
             self.get_practica_repository(),
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
             self.get_perfil_repository(),
-            notificacion_service=notif_service,
+            notification_service=notif_service,
         )
 
     def get_practicante_service(self):
