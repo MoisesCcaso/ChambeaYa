@@ -1,1 +1,1 @@
-"""Tests for the composition root: app factory, wiring, HTML templates and end-to-end HTTP flows."""
+"""Tests for the composition root: API app factory, wiring, CORS and end-to-end HTTP flows."""

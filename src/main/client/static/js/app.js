@@ -684,8 +684,8 @@
                     <div class="row-stat"><span>Estado</span>${C.statusBadge("verificada")}</div>
                     <div class="row-stat"><span>Referencia</span><strong>#${item.id}</strong></div>
                     <div class="table-actions">
-                        <a class="button button-secondary button-small" href="${C.escapeHTML(item.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} PDF</a>
-                        <a class="button button-secondary button-small" href="${C.escapeHTML(item.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} QR</a>
+                        <a class="button button-secondary button-small" href="${C.escapeHTML(C.apiUrl(item.documento?.url))}" target="_blank" rel="noopener">${C.icon("download")} PDF</a>
+                        <a class="button button-secondary button-small" href="${C.escapeHTML(C.apiUrl(item.codigo_qr?.imagen_url))}" target="_blank" rel="noopener">${C.icon("eye")} QR</a>
                     </div>
                 </article>`
             )
@@ -1017,7 +1017,7 @@
             return `<div class="timeline-row">
                 <span><strong>${C.escapeHTML(displayFileName(item.archivo))}</strong><small>${C.formatDate(item.fecha_subida, true)}</small></span>
                 <div class="table-actions">
-                    <a class="text-link" href="${C.escapeHTML(item.archivo_url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
+                    <a class="text-link" href="${C.escapeHTML(C.apiUrl(item.archivo_url))}" target="_blank" rel="noopener">${C.icon("download")} Descargar</a>
                     ${deleteAction}
                 </div>
             </div>`;
@@ -1047,8 +1047,8 @@
     function certificateActionsHTML(certificate, practice, isCompany) {
         if (certificate) {
             return `<div class="table-actions" style="justify-content:flex-start">
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.documento?.url)}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
-                            <a class="button button-secondary button-small" href="${C.escapeHTML(certificate.codigo_qr?.imagen_url)}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(C.apiUrl(certificate.documento?.url))}" target="_blank" rel="noopener">${C.icon("download")} Descargar PDF</a>
+                            <a class="button button-secondary button-small" href="${C.escapeHTML(C.apiUrl(certificate.codigo_qr?.imagen_url))}" target="_blank" rel="noopener">${C.icon("eye")} Ver QR</a>
                            </div>`;
         }
         if (isCompany && practice.estado === "FINALIZADA") {

@@ -26,11 +26,6 @@ def _error(message, status_code):
     return jsonify({"error": message}), status_code
 
 
-def _wants_html():
-    # A browser navigating to a page gets the HTML error page; API clients (fetch, scripts) get JSON.
-    return request.accept_mimetypes.best == "text/html"
-
-
 def register_error_handlers(app):
     @app.errorhandler(DomainError)
     def handle_domain_error(error):
@@ -51,8 +46,6 @@ def register_error_handlers(app):
 
     @app.errorhandler(HTTPException)
     def handle_http_error(error):
-        if _wants_html():
-            return error
         return _error(HTTP_ERROR_MESSAGES.get(error.code, error.name), error.code)
 
     @app.errorhandler(Exception)

@@ -7,7 +7,6 @@ configuration, in ``development`` without SMTP and in ``testing``).
 """
 
 import json
-import re
 import uuid
 from http.cookiejar import CookieJar
 from urllib import request
@@ -21,24 +20,23 @@ def unique_email() -> str:
     return f"func-{uuid.uuid4().hex[:12]}@test.local"
 
 
-def csrf_token(opener, base_url: str) -> str:
-    """Reads the CSRF token from the login page with the ``opener`` session."""
-    with opener.open(f"{base_url.rstrip('/')}/ingresar", timeout=10) as response:
-        html = response.read().decode("utf-8")
-    match = re.search(r'<meta name="csrf-token" content="([^"]+)"', html)
-    assert match, "La página no expone el token CSRF"
-    return match.group(1)
+def csrf_token(opener, api_url: str) -> str:
+    """Asks the API for a CSRF token bound to the ``opener`` session."""
+    with opener.open(f"{api_url.rstrip('/')}/auth/csrf-token", timeout=10) as response:
+        token = json.load(response).get("csrf_token")
+    assert token, "La API no devolvió el token CSRF"
+    return token
 
 
-def _post(base_url: str, path: str, payload: dict) -> dict:
+def _post(api_url: str, path: str, payload: dict) -> dict:
     """Sends a JSON POST to the API and returns the decoded body."""
     opener = request.build_opener(request.HTTPCookieProcessor(CookieJar()))
     req = request.Request(
-        f"{base_url.rstrip('/')}{path}",
+        f"{api_url.rstrip('/')}{path}",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Content-Type": "application/json",
-            "X-CSRFToken": csrf_token(opener, base_url),
+            "X-CSRFToken": csrf_token(opener, api_url),
         },
         method="POST",
     )
@@ -53,12 +51,12 @@ def _post(base_url: str, path: str, payload: dict) -> dict:
 
 
 def register_pending_user(
-    base_url: str, password: str = VALID_PASSWORD
+    api_url: str, password: str = VALID_PASSWORD
 ) -> dict:
     """Registers an inactive intern and returns email, password and token."""
     email = unique_email()
     data = _post(
-        base_url,
+        api_url,
         "/auth/register",
         {
             "email": email,
@@ -76,9 +74,9 @@ def register_pending_user(
 
 
 def register_active_user(
-    base_url: str, password: str = VALID_PASSWORD
+    api_url: str, password: str = VALID_PASSWORD
 ) -> dict:
     """Registers and activates an intern; returns email and password."""
-    user = register_pending_user(base_url, password)
-    _post(base_url, "/auth/activate", {"token": user["activation_token"]})
+    user = register_pending_user(api_url, password)
+    _post(api_url, "/auth/activate", {"token": user["activation_token"]})
     return user

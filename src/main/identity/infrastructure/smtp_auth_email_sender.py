@@ -17,7 +17,7 @@ class SmtpAuthEmailSender(IAuthEmailSender):
         self,
         *,
         delivery_mode="console",
-        app_url="http://127.0.0.1:5000",
+        app_url="http://127.0.0.1:5001",
         server=None,
         port=587,
         username=None,
@@ -42,7 +42,7 @@ class SmtpAuthEmailSender(IAuthEmailSender):
     def from_config(cls, config):
         return cls(
             delivery_mode=config.get("MAIL_DELIVERY_MODE", "console"),
-            app_url=config.get("APP_URL", "http://127.0.0.1:5000"),
+            app_url=config.get("APP_URL", "http://127.0.0.1:5001"),
             server=config.get("MAIL_SERVER"),
             port=config.get("MAIL_PORT", 587),
             username=config.get("MAIL_USERNAME"),

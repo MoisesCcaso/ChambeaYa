@@ -12,9 +12,9 @@ from .pages.recovery_page import RecoveryPage
 NEW_PASSWORD = "Nueva1234"
 
 
-def test_rec_01_activation_with_valid_token(driver, base_url):
+def test_rec_01_activation_with_valid_token(driver, base_url, api_url):
     """The link with a valid token activates the account and allows logging in."""
-    user = auth_data.register_pending_user(base_url)
+    user = auth_data.register_pending_user(api_url)
     page = RecoveryPage(driver, base_url)
     page.open_activation(user["activation_token"])
     page.submit_activation()
@@ -37,9 +37,9 @@ def test_rec_02_activation_with_invalid_token(driver, base_url):
     assert page.current_path == "/activar"
 
 
-def test_rec_03_login_with_inactive_account(driver, base_url):
+def test_rec_03_login_with_inactive_account(driver, base_url, api_url):
     """A freshly registered account cannot log in."""
-    user = auth_data.register_pending_user(base_url)
+    user = auth_data.register_pending_user(api_url)
     login = LoginPage(driver, base_url)
     login.open_login()
     login.login(user["email"], user["password"])
@@ -59,9 +59,9 @@ def test_rec_04_recovery_request_with_existing_email(driver, base_url):
     assert page.current_token != ""
 
 
-def test_rec_05_reset_with_valid_password(driver, base_url):
+def test_rec_05_reset_with_valid_password(driver, base_url, api_url):
     """The new password replaces the old one and allows logging in."""
-    user = auth_data.register_active_user(base_url)
+    user = auth_data.register_active_user(api_url)
     page = RecoveryPage(driver, base_url)
     page.open_recovery()
     page.request_recovery(user["email"])
@@ -77,9 +77,9 @@ def test_rec_05_reset_with_valid_password(driver, base_url):
     assert login.role_label == "Practicante"
 
 
-def test_rec_06_reset_with_invalid_password(driver, base_url):
+def test_rec_06_reset_with_invalid_password(driver, base_url, api_url):
     """A password shorter than 8 characters is rejected."""
-    user = auth_data.register_active_user(base_url)
+    user = auth_data.register_active_user(api_url)
     page = RecoveryPage(driver, base_url)
     page.open_recovery()
     page.request_recovery(user["email"])

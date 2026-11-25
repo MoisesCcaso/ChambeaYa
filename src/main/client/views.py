@@ -1,6 +1,6 @@
-from flask import Blueprint, redirect, render_template, session, url_for
+from flask import Blueprint, render_template
 
-
+# Session-based redirects live in the JS now: the client has no access to the API session.
 web_bp = Blueprint("web", __name__)
 AUTH_TEMPLATE = "auth.html"
 
@@ -12,15 +12,11 @@ def landing():
 
 @web_bp.get("/ingresar")
 def login_view():
-    if session.get("usuario_id") is not None:
-        return redirect(url_for("web.app_view"))
     return render_template(AUTH_TEMPLATE, mode="login")
 
 
 @web_bp.get("/registro")
 def register_view():
-    if session.get("usuario_id") is not None:
-        return redirect(url_for("web.app_view"))
     return render_template(AUTH_TEMPLATE, mode="register")
 
 
@@ -46,6 +42,4 @@ def verify_certificate_view():
 
 @web_bp.get("/app")
 def app_view():
-    if session.get("usuario_id") is None:
-        return redirect(url_for("web.login_view"))
     return render_template("app.html")

@@ -9,6 +9,8 @@
         "'": "&#039;",
     };
     const iconSprite = "/static/icons.svg";
+    const apiBase = String(window.CHAMBEAYA_API_URL || "").replace(/\/$/, "");
+    let csrfToken = null;
 
     function escapeHTML(value) {
         return String(value ?? "").replace(/[&<>"']/g, (char) => escapeMap[char]);
@@ -20,16 +22,31 @@
         return `<svg class="icon ${safeClass}" aria-hidden="true"><use href="${iconSprite}#icon-${safeName}"></use></svg>`;
     }
 
+    // Links returned by the API (files, PDF, QR) are relative to the API, not to this client.
+    function apiUrl(path) {
+        const value = String(path ?? "");
+        return value.startsWith("/") ? `${apiBase}${value}` : value;
+    }
+
+    // The token lives in the API session: it is fetched once and renewed when the session changes.
+    async function getCsrfToken() {
+        if (!csrfToken) {
+            const response = await fetch(apiUrl("/auth/csrf-token"), { credentials: "include" });
+            csrfToken = (await response.json()).csrf_token;
+        }
+        return csrfToken;
+    }
+
     async function api(path, options = {}) {
         const config = {
-            credentials: "same-origin",
+            credentials: "include",
             headers: {},
             ...options,
         };
 
         const method = (config.method || "GET").toUpperCase();
         if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-            config.headers["X-CSRFToken"] = document.querySelector('meta[name="csrf-token"]')?.content || "";
+            config.headers["X-CSRFToken"] = await getCsrfToken();
         }
 
         if (config.body && !(config.body instanceof FormData) && typeof config.body !== "string") {
@@ -37,7 +54,10 @@
             config.body = JSON.stringify(config.body);
         }
 
-        const response = await fetch(path, config);
+        const response = await fetch(apiUrl(path), config);
+        if (path === "/auth/login" || path === "/auth/logout") {
+            csrfToken = null;
+        }
         const contentType = response.headers.get("content-type") || "";
         const data = contentType.includes("application/json")
             ? await response.json()
@@ -165,6 +185,7 @@
 
     window.Chambea = {
         api,
+        apiUrl,
         emptyState,
         escapeHTML,
         formatDate,

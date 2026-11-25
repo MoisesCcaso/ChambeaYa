@@ -2,7 +2,6 @@
 
 import importlib
 import os
-import re
 import unittest
 from unittest.mock import patch
 
@@ -26,8 +25,7 @@ class CsrfProtectionTest(unittest.TestCase):
             db.drop_all()
 
     def _token(self):
-        html = self.client.get("/ingresar").get_data(as_text=True)
-        return re.search(r'<meta name="csrf-token" content="([^"]+)"', html).group(1)
+        return self.client.get("/auth/csrf-token").get_json()["csrf_token"]
 
     def test_post_without_csrf_token_is_rejected(self):
         response = self.client.post("/auth/login", json={"email": "a@b.com", "password": "x"})

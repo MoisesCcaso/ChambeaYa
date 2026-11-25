@@ -34,7 +34,8 @@ dev = [
 
 [tool.poetry]
 packages = [
-    { include = "bootstrap", from = "src/main" },        # composition root: Flask app, wiring, web, migrations
+    { include = "client", from = "src/main" },           # client (views): HTML/CSS/JS that consume the REST API
+    { include = "bootstrap", from = "src/main" },        # composition root: REST API app, wiring, migrations
     { include = "shared", from = "src/main" },           # shared kernel: database, mixins, messages
     { include = "notifications", from = "src/main" },    # bounded context: notifications
     { include = "identity", from = "src/main" },         # bounded context: identity and access
@@ -47,14 +48,15 @@ packages = [
     { include = "run.py", from = "src/main" },
 ]
 include = [
-    { path = "src/main/bootstrap/templates/**/*", format = ["sdist", "wheel"] },
-    { path = "src/main/bootstrap/static/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/client/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/client/static/**/*", format = ["sdist", "wheel"] },
     { path = "src/main/bootstrap/migrations/**/*", format = ["sdist", "wheel"] },
 ]
 exclude = ["**/__pycache__/**", "**/*.pyc"]
 
 [project.scripts]
 chambeaya = "run:main"
+chambeaya-client = "client.run:main"
 
 [tool.pytest.ini_options]
 testpaths = ["src/test"]
@@ -63,7 +65,7 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["bootstrap", "shared", "identity", "profiles", "recruitment", "matching", "internships", "certification", "notifications"]
+source = ["client", "bootstrap", "shared", "identity", "profiles", "recruitment", "matching", "internships", "certification", "notifications"]
 omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]

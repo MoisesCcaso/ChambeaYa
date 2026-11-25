@@ -22,7 +22,10 @@ class Config:
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    APP_URL = os.getenv("APP_URL", "http://127.0.0.1:5000")
+    # URL of the client app (views): used in email links and in the certificate QR.
+    APP_URL = os.getenv("APP_URL", "http://127.0.0.1:5001")
+    # Client origins allowed by CORS (comma separated, exact match).
+    CLIENT_ORIGINS = os.getenv("CLIENT_ORIGINS", "http://127.0.0.1:5001")
     MAIL_DELIVERY_MODE = os.getenv("MAIL_DELIVERY_MODE", "console").lower()
     MAIL_SERVER = os.getenv("MAIL_SERVER")
     MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))

@@ -7,8 +7,14 @@ import pytest
 
 @pytest.fixture
 def base_url() -> str:
-    """App URL; can be overridden with CHAMBEAYA_BASE_URL."""
-    return os.getenv("CHAMBEAYA_BASE_URL", "http://127.0.0.1:5000").rstrip("/")
+    """Client (views) URL, opened by the browser; can be overridden with CHAMBEAYA_BASE_URL."""
+    return os.getenv("CHAMBEAYA_BASE_URL", "http://127.0.0.1:5001").rstrip("/")
+
+
+@pytest.fixture
+def api_url() -> str:
+    """REST API URL, used to prepare test data; can be overridden with CHAMBEAYA_API_URL."""
+    return os.getenv("CHAMBEAYA_API_URL", "http://127.0.0.1:5000").rstrip("/")
 
 
 @pytest.fixture

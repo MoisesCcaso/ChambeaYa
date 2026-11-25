@@ -5,6 +5,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
 from config import config_by_name
+from bootstrap.cors import register_cors
 from bootstrap.demo import register_demo_commands
 from bootstrap.email_cli import register_email_commands
 from bootstrap.error_handlers import register_error_handlers
@@ -22,8 +23,7 @@ def create_app(config_name=None):
         __name__,
         instance_path=str(instance_path),
         instance_relative_config=True,
-        static_folder="static",
-        template_folder="templates",
+        static_folder=None,  # the API only answers JSON; views and assets live in the client app
     )
 
     selected_config = config_name or os.getenv("FLASK_ENV", "default")
@@ -41,6 +41,7 @@ def create_app(config_name=None):
     migrations_directory = Path(__file__).resolve().parent / "migrations"
     migrate.init_app(app, db, directory=str(migrations_directory))
 
+    register_cors(app)
     register_routes(app)
     register_demo_commands(app)
     register_email_commands(app)
