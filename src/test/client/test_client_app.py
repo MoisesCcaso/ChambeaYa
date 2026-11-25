@@ -1,6 +1,5 @@
-"""Client app (views): serves HTML/CSS/JS only and talks to the API by HTTP."""
+"""Client app (views): serves HTML/CSS/JS only and talks to the API by HTTP (import rule: architecture tests)."""
 
-import ast
 from pathlib import Path
 
 import pytest
@@ -8,10 +7,6 @@ import pytest
 from client.app import create_app
 
 CLIENT_DIR = Path(__file__).resolve().parents[2] / "main" / "client"
-BACKEND_PACKAGES = {
-    "bootstrap", "shared", "config", "run", "identity", "profiles", "recruitment",
-    "matching", "internships", "certification", "notifications",
-}
 
 
 @pytest.fixture
@@ -88,15 +83,3 @@ def test_common_script_calls_the_api_with_credentials_and_csrf_from_the_api():
     assert 'apiUrl("/auth/csrf-token")' in common
     assert "window.CHAMBEAYA_API_URL" in common
 
-
-def test_client_does_not_import_the_backend():
-    for path in CLIENT_DIR.rglob("*.py"):
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                roots = {alias.name.split(".")[0] for alias in node.names}
-            elif isinstance(node, ast.ImportFrom):
-                roots = {(node.module or "").split(".")[0]}
-            else:
-                continue
-            assert not roots & BACKEND_PACKAGES, f"{path.name} importa {roots & BACKEND_PACKAGES}"
