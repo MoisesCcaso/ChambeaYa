@@ -4,11 +4,12 @@ pipeline {
   options { timestamps(); disableConcurrentBuilds() }
   environment {
     POETRY_VIRTUALENVS_IN_PROJECT = 'true'
-    // API REST y cliente (vistas) en procesos y puertos distintos
+    // API REST y cliente (vistas) en procesos y puertos distintos.
+    // Produccion usa los mismos puertos que el entorno local (.env): API 5000, cliente 5001.
     APP_PORT = '5000'
-    APP_CLIENT_PORT = '5003'
-    STAGING_PORT = '5001'
-    STAGING_CLIENT_PORT = '5002'
+    APP_CLIENT_PORT = '5001'
+    STAGING_PORT = '5002'
+    STAGING_CLIENT_PORT = '5003'
   }
   stages {
     stage('Build (Poetry)') {
