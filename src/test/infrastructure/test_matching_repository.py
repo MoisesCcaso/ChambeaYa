@@ -6,8 +6,8 @@ from domain.matching.sugerencia import Sugerencia
 from bootstrap.app import create_app
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from profiles.infrastructure.models.empresa_model import EmpresaModel
-from profiles.infrastructure.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.company_model import CompanyModel
+from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
@@ -22,7 +22,7 @@ class TestMatchingRepository(unittest.TestCase):
         self.app_context.push()
         db.create_all()
         self.repository = SqlAlchemyMatchingRepository()
-        self.practicante_id, self.convocatoria_id = self._crear_entidades_relacionadas()
+        self.intern_id, self.convocatoria_id = self._crear_entidades_relacionadas()
 
     def tearDown(self):
         db.session.remove()
@@ -30,98 +30,98 @@ class TestMatchingRepository(unittest.TestCase):
         self.app_context.pop()
 
     def _crear_entidades_relacionadas(self):
-        usuario_practicante = UserModel(
+        intern_user = UserModel(
             email="practicante_matching@test.com",
             password_hash="hash_test",
             role="practicante",
             status="activo",
         )
-        usuario_empresa = UserModel(
+        company_user = UserModel(
             email="empresa_matching@test.com",
             password_hash="hash_test",
             role="empresa",
             status="activo",
         )
-        db.session.add_all([usuario_practicante, usuario_empresa])
+        db.session.add_all([intern_user, company_user])
         db.session.flush()
 
-        practicante = PracticanteModel(
-            user_id=usuario_practicante.id,
-            nombres="Ana",
-            apellidos="Pérez",
+        intern = InternModel(
+            user_id=intern_user.id,
+            first_names="Ana",
+            last_names="Pérez",
             dni="71112233",
         )
-        empresa = EmpresaModel(
-            user_id=usuario_empresa.id,
-            razon_social="Empresa Matching",
+        company = CompanyModel(
+            user_id=company_user.id,
+            legal_name="Empresa Matching",
             ruc="20111222333",
-            verificada=True,
+            verified=True,
         )
-        db.session.add_all([practicante, empresa])
+        db.session.add_all([intern, company])
         db.session.flush()
 
         convocatoria = ConvocatoriaModel(
-            empresa_id=empresa.id,
+            company_id=company.id,
             titulo="Prácticas de desarrollo",
             status="publicada",
         )
         db.session.add(convocatoria)
         db.session.commit()
-        return practicante.id, convocatoria.id
+        return intern.id, convocatoria.id
 
-    def _crear_sugerencia(self, puntaje=75.0, habilidades=None, sugerencia_id=None):
+    def _crear_sugerencia(self, puntaje=75.0, skills=None, sugerencia_id=None):
         return Sugerencia(
             id=sugerencia_id,
-            practicante_id=self.practicante_id,
+            intern_id=self.intern_id,
             convocatoria_id=self.convocatoria_id,
             puntaje_match=puntaje,
-            habilidades_coincidentes=habilidades or ["python", "sql"],
+            habilidades_coincidentes=skills or ["python", "sql"],
         )
 
     def test_save_guarda_sugerencia_y_asigna_id(self):
-        guardada = self.repository.save(self._crear_sugerencia())
+        saved = self.repository.save(self._crear_sugerencia())
 
-        self.assertIsNotNone(guardada.id)
-        self.assertEqual(self.practicante_id, guardada.practicante_id)
-        self.assertEqual(self.convocatoria_id, guardada.convocatoria_id)
-        self.assertEqual(75.0, guardada.puntaje_match)
-        self.assertEqual({"python", "sql"}, set(guardada.habilidades_coincidentes))
+        self.assertIsNotNone(saved.id)
+        self.assertEqual(self.intern_id, saved.intern_id)
+        self.assertEqual(self.convocatoria_id, saved.convocatoria_id)
+        self.assertEqual(75.0, saved.puntaje_match)
+        self.assertEqual({"python", "sql"}, set(saved.habilidades_coincidentes))
         self.assertEqual(1, SugerenciaModel.query.count())
 
     def test_find_by_practicante_id_devuelve_sus_sugerencias(self):
-        guardada = self.repository.save(self._crear_sugerencia())
+        saved = self.repository.save(self._crear_sugerencia())
 
-        encontradas = self.repository.find_by_practicante_id(self.practicante_id)
+        encontradas = self.repository.find_by_practicante_id(self.intern_id)
 
         self.assertEqual(1, len(encontradas))
-        self.assertEqual(guardada.id, encontradas[0].id)
+        self.assertEqual(saved.id, encontradas[0].id)
         self.assertEqual(75.0, encontradas[0].puntaje_match)
         self.assertEqual({"python", "sql"}, set(encontradas[0].habilidades_coincidentes))
         self.assertEqual([], self.repository.find_by_practicante_id(99999))
 
     def test_save_actualiza_sugerencia_existente(self):
-        guardada = self.repository.save(self._crear_sugerencia())
+        saved = self.repository.save(self._crear_sugerencia())
         actualizada = self.repository.save(
             self._crear_sugerencia(
                 puntaje=100.0,
-                habilidades=["python", "sql", "git"],
-                sugerencia_id=guardada.id,
+                skills=["python", "sql", "git"],
+                sugerencia_id=saved.id,
             )
         )
 
-        self.assertEqual(guardada.id, actualizada.id)
+        self.assertEqual(saved.id, actualizada.id)
         self.assertEqual(100.0, actualizada.puntaje_match)
         self.assertEqual({"python", "sql", "git"}, set(actualizada.habilidades_coincidentes))
         self.assertEqual(1, SugerenciaModel.query.count())
 
-        recuperada = self.repository.find_by_practicante_id(self.practicante_id)[0]
-        self.assertEqual(100.0, recuperada.puntaje_match)
-        self.assertEqual({"python", "sql", "git"}, set(recuperada.habilidades_coincidentes))
+        reloaded = self.repository.find_by_practicante_id(self.intern_id)[0]
+        self.assertEqual(100.0, reloaded.puntaje_match)
+        self.assertEqual({"python", "sql", "git"}, set(reloaded.habilidades_coincidentes))
 
     def test_save_mismo_par_practicante_convocatoria_no_crea_duplicado(self):
         primera = self.repository.save(self._crear_sugerencia())
         segunda = self.repository.save(
-            self._crear_sugerencia(puntaje=50.0, habilidades=["python"])
+            self._crear_sugerencia(puntaje=50.0, skills=["python"])
         )
 
         self.assertEqual(primera.id, segunda.id)

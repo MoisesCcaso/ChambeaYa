@@ -15,7 +15,7 @@ class IPostulacionRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_practicante_id(self, practicante_id):
+    def find_by_practicante_id(self, intern_id):
         pass
 
     @abstractmethod
@@ -23,5 +23,5 @@ class IPostulacionRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_convocatoria_and_practicante(self, convocatoria_id, practicante_id):
+    def find_by_convocatoria_and_practicante(self, convocatoria_id, intern_id):
         pass

@@ -11,7 +11,7 @@ class PracticaModel(db.Model):
         unique=True,
         nullable=False,
     )
-    practicante_id = db.Column(db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
+    intern_id = db.Column("practicante_id", db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
     status = db.Column("estado", db.String(20), nullable=False, default="EN_CURSO")
 
     entregables = db.relationship(

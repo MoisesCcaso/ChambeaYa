@@ -7,22 +7,22 @@ class Practica:
     ESTADO_EN_CURSO = "EN_CURSO"
     ESTADO_FINALIZADA = "FINALIZADA"
 
-    def __init__(self, id=None, postulacion_id=None, practicante_id=None,
+    def __init__(self, id=None, postulacion_id=None, intern_id=None,
                  status=None, entregables=None, evaluaciones=None):
         self.id = id
         self.postulacion_id = postulacion_id
-        self.practicante_id = practicante_id
+        self.intern_id = intern_id
         self.status = status or self.ESTADO_EN_CURSO
         self.entregables = entregables or []
         self.evaluaciones = evaluaciones or []
 
     @classmethod
-    def iniciar(cls, postulacion_id, practicante_id):
-        if postulacion_id is None or practicante_id is None:
+    def iniciar(cls, postulacion_id, intern_id):
+        if postulacion_id is None or intern_id is None:
             raise DomainError("Se requiere postulación y practicante para iniciar la práctica")
         return cls(
             postulacion_id=postulacion_id,
-            practicante_id=practicante_id,
+            intern_id=intern_id,
             status=cls.ESTADO_EN_CURSO,
         )
 

@@ -44,7 +44,7 @@ class TestConvocatoriaCommandDTO(unittest.TestCase):
         )
         self.mock_repo.save.side_effect = lambda c: c
 
-        result = self.service.create_convocatoria(empresa_id=3, data=cmd)
+        result = self.service.create_convocatoria(company_id=3, data=cmd)
 
         self.assertEqual(result.titulo, "Data Engineer")
         self.assertEqual(result.descripcion, "ETL pipelines")
@@ -54,7 +54,7 @@ class TestConvocatoriaCommandDTO(unittest.TestCase):
     def test_update_convocatoria_acepta_convocatoria_command(self):
         existing = Convocatoria(
             id=10,
-            empresa_id=3,
+            company_id=3,
             titulo="Original",
             descripcion="Desc",
             status=Convocatoria.ESTADO_BORRADOR,
@@ -68,7 +68,7 @@ class TestConvocatoriaCommandDTO(unittest.TestCase):
             habilidades_requeridas=["Flask"],
             beneficios=["Mentoría"],
         )
-        result = self.service.update(empresa_id=3, convocatoria_id=10, data=cmd)
+        result = self.service.update(company_id=3, convocatoria_id=10, data=cmd)
 
         self.assertEqual(result.titulo, "Actualizado con DTO")
         self.assertEqual(result.habilidades_requeridas, ["Flask"])

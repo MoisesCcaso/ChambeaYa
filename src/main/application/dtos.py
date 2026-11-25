@@ -37,5 +37,5 @@ class CandidatoConvocatoriaDTO(NamedTuple):
     """Resultado de list_for_convocatoria (Replace Array with Object)."""
 
     postulacion: Postulacion
-    practicante: Optional[object]
+    intern: Optional[object]
     practica: Optional[object]

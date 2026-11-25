@@ -14,24 +14,24 @@ class PostulacionApplicationService:
         self,
         postulacion_repository=None,
         convocatoria_repository=None,
-        perfil_repository=None,
+        profile_repository=None,
         practica_repository=None,
-        practicante_repository=None,
+        intern_repository=None,
         notification_service=None,
     ):
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
-        self.practicante_repository = practicante_repository or perfil_repository
-        self.perfil_repository = self.practicante_repository
+        self.intern_repository = intern_repository or profile_repository
+        self.profile_repository = self.intern_repository
         self.practica_repository = practica_repository
         self.notification_service = notification_service
 
     def apply(self, user_id, convocatoria_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is None:
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
-        if not practicante.nombres or not practicante.apellidos:
+        if not intern.first_names or not intern.last_names:
             raise ConflictError("Completa tus nombres y apellidos antes de postular")
 
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
@@ -41,7 +41,7 @@ class PostulacionApplicationService:
             raise ConflictError("Solo se puede postular a convocatorias publicadas")
 
         existing = self.postulacion_repository.find_by_convocatoria_and_practicante(
-            convocatoria_id, practicante.id
+            convocatoria_id, intern.id
         )
         if existing is not None:
             if existing.status == Postulacion.ESTADO_CANCELADA:
@@ -52,14 +52,14 @@ class PostulacionApplicationService:
         return self.postulacion_repository.save(
             Postulacion(
                 convocatoria_id=convocatoria_id,
-                practicante_id=practicante.id,
+                intern_id=intern.id,
             )
         )
 
     def list_for_practicante(self, user_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is None:
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         return [
             PostulacionDetalleDTO(
@@ -67,17 +67,17 @@ class PostulacionApplicationService:
                 self.convocatoria_repository.find_by_id(postulacion.convocatoria_id),
             )
             for postulacion in self.postulacion_repository.find_by_practicante_id(
-                practicante.id
+                intern.id
             )
         ]
 
-    def list_for_convocatoria(self, empresa_id, convocatoria_id):
+    def list_for_convocatoria(self, company_id, convocatoria_id):
         self._require_repositories()
-        self._require_owned_convocatoria(empresa_id, convocatoria_id)
+        self._require_owned_convocatoria(company_id, convocatoria_id)
         return [
             CandidatoConvocatoriaDTO(
                 postulacion,
-                self.perfil_repository.find_practicante_by_id(postulacion.practicante_id),
+                self.profile_repository.find_intern_by_id(postulacion.intern_id),
                 self.practica_repository.find_by_postulacion_id(postulacion.id),
             )
             for postulacion in self.postulacion_repository.find_by_convocatoria_id(
@@ -85,7 +85,7 @@ class PostulacionApplicationService:
             )
         ]
 
-    def select_candidate(self, empresa_id, postulacion_id):
+    def select_candidate(self, company_id, postulacion_id):
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
@@ -93,7 +93,7 @@ class PostulacionApplicationService:
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La convocatoria no pertenece a esta empresa")
 
         otras = self.postulacion_repository.find_by_convocatoria_id(
@@ -130,19 +130,19 @@ class PostulacionApplicationService:
 
 
     def _notificar_seleccion(self, seleccionada, rechazadas):
-        if self.notification_service is None or self.perfil_repository is None:
+        if self.notification_service is None or self.profile_repository is None:
             return
         try:
-            practicante = self.perfil_repository.find_practicante_by_id(seleccionada.practicante_id)
-            if practicante and getattr(practicante, "user_id", None):
+            intern = self.profile_repository.find_intern_by_id(seleccionada.intern_id)
+            if intern and getattr(intern, "user_id", None):
                 self.notification_service.create_notification(
-                    recipient_user_id=practicante.user_id,
+                    recipient_user_id=intern.user_id,
                     notification_type="POSTULACION_SELECCIONADA",
                     message="Has sido seleccionado para una convocatoria",
                     metadata={"postulacion_id": seleccionada.id},
                 )
             for rechazada in rechazadas:
-                otro = self.perfil_repository.find_practicante_by_id(rechazada.practicante_id)
+                otro = self.profile_repository.find_intern_by_id(rechazada.intern_id)
                 if otro and getattr(otro, "user_id", None):
                     self.notification_service.create_notification(
                         recipient_user_id=otro.user_id,
@@ -153,34 +153,34 @@ class PostulacionApplicationService:
         except Exception:
             pass
 
-    def reject_candidate(self, empresa_id, postulacion_id):
+    def reject_candidate(self, company_id, postulacion_id):
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
-        self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
+        self._require_owned_convocatoria(company_id, postulacion.convocatoria_id)
         postulacion.rechazar()
         return self.postulacion_repository.save(postulacion)
 
     def cancel(self, user_id, postulacion_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is None:
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is None:
             raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
-        if postulacion.practicante_id != practicante.id:
+        if postulacion.intern_id != intern.id:
             raise ForbiddenError("La postulación no pertenece a este practicante")
         postulacion.cancelar()
         return self.postulacion_repository.save(postulacion)
 
-    def reconsider_candidate(self, empresa_id, postulacion_id):
+    def reconsider_candidate(self, company_id, postulacion_id):
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
-        self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
+        self._require_owned_convocatoria(company_id, postulacion.convocatoria_id)
         if self.practica_repository.find_by_postulacion_id(postulacion.id) is not None:
             raise ConflictError(
                 "No se puede cambiar la decisión porque la práctica ya fue iniciada"
@@ -188,11 +188,11 @@ class PostulacionApplicationService:
         postulacion.reconsiderar()
         return self.postulacion_repository.save(postulacion)
 
-    def _require_owned_convocatoria(self, empresa_id, convocatoria_id):
+    def _require_owned_convocatoria(self, company_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La convocatoria no pertenece a esta empresa")
         return convocatoria
 
@@ -200,7 +200,7 @@ class PostulacionApplicationService:
         if (
             self.postulacion_repository is None
             or self.convocatoria_repository is None
-            or self.perfil_repository is None
+            or self.profile_repository is None
             or self.practica_repository is None
         ):
             raise RuntimeError("PostulacionApplicationService requiere todos sus repositorios")

@@ -69,8 +69,8 @@ def login(base_url: str, email: str, password: str) -> ApiSession:
 def create_opening(base_url: str, titulo: str, publicar: bool = True,
                    cerrar: bool = False) -> int:
     """Crea una convocatoria de la empresa demo y devuelve su identificador."""
-    empresa = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
-    opening = empresa.expect(
+    company = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
+    opening = company.expect(
         "POST",
         "/convocatorias",
         {
@@ -83,9 +83,9 @@ def create_opening(base_url: str, titulo: str, publicar: bool = True,
     )
     opening_id = opening["id"]
     if publicar or cerrar:
-        empresa.expect("POST", f"/convocatorias/{opening_id}/publicar")
+        company.expect("POST", f"/convocatorias/{opening_id}/publicar")
     if cerrar:
-        empresa.expect("POST", f"/convocatorias/{opening_id}/cerrar")
+        company.expect("POST", f"/convocatorias/{opening_id}/cerrar")
     return opening_id
 
 
@@ -108,14 +108,14 @@ def create_issued_certificate(base_url: str) -> str:
     opening_id = create_opening(base_url, "Convocatoria para certificado")
     user = create_student_with_profile(base_url)
     student = login(base_url, user["email"], user["password"])
-    empresa = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
+    company = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
 
     postulacion = student.expect(
         "POST", f"/postulaciones/convocatorias/{opening_id}", status=201
     )
     postulacion_id = postulacion["id"]
-    empresa.expect("POST", f"/postulaciones/{postulacion_id}/seleccionar")
-    practica = empresa.expect(
+    company.expect("POST", f"/postulaciones/{postulacion_id}/seleccionar")
+    practica = company.expect(
         "POST", "/practicas", {"postulacion_id": postulacion_id}, status=201
     )
     practica_id = practica["id"]
@@ -123,11 +123,11 @@ def create_issued_certificate(base_url: str) -> str:
         "POST", f"/practicas/{practica_id}/entregables",
         {"archivo": "informe-final.pdf"}, status=201,
     )
-    empresa.expect(
+    company.expect(
         "POST", f"/practicas/{practica_id}/evaluar", {"puntaje": 90}, status=201
     )
-    empresa.expect("POST", f"/practicas/{practica_id}/finalizar")
-    certificado = empresa.expect(
+    company.expect("POST", f"/practicas/{practica_id}/finalizar")
+    certificado = company.expect(
         "POST", f"/certificados/{practica_id}/emitir", status=201
     )
     return certificado["codigo_qr"]["valor"]

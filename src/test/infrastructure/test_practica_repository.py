@@ -9,12 +9,12 @@ from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.practica import Practica
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from profiles.infrastructure.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from profiles.infrastructure.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 
@@ -22,35 +22,35 @@ from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepo
 @pytest.fixture
 def datos_practica(app_context):
     """Persiste las relaciones requeridas por las claves foráneas de una práctica."""
-    usuario_practicante = UserModel(
+    intern_user = UserModel(
         email="practicante-repository@test.local",
         password_hash="hash",
         role="practicante",
         status="activo",
     )
-    practicante = PracticanteModel(user=usuario_practicante)
-    usuario_empresa = UserModel(
+    intern = InternModel(user=intern_user)
+    company_user = UserModel(
         email="empresa-repository@test.local",
         password_hash="hash",
         role="empresa",
         status="activo",
     )
-    empresa = EmpresaModel(
-        user=usuario_empresa,
-        razon_social="Empresa de prueba",
+    company = CompanyModel(
+        user=company_user,
+        legal_name="Empresa de prueba",
         ruc="20123456789",
     )
     convocatoria = ConvocatoriaModel(
-        empresa=empresa,
+        company=company,
         titulo="Prácticas de desarrollo",
         status="publicada",
     )
-    db.session.add_all([practicante, convocatoria])
+    db.session.add_all([intern, convocatoria])
     db.session.flush()
 
     postulacion = PostulacionModel(
         convocatoria_id=convocatoria.id,
-        practicante_id=practicante.id,
+        intern_id=intern.id,
         status="seleccionada",
     )
     db.session.add(postulacion)
@@ -58,7 +58,7 @@ def datos_practica(app_context):
 
     return {
         "postulacion_id": postulacion.id,
-        "practicante_id": practicante.id,
+        "practicante_id": intern.id,
     }
 
 
@@ -70,7 +70,7 @@ def repository():
 def crear_practica(datos_practica, *, entregables=None, evaluaciones=None):
     return Practica(
         postulacion_id=datos_practica["postulacion_id"],
-        practicante_id=datos_practica["practicante_id"],
+        intern_id=datos_practica["practicante_id"],
         entregables=entregables,
         evaluaciones=evaluaciones,
     )
@@ -92,24 +92,24 @@ def test_save_persiste_practica_entregable_y_evaluacion(
         evaluaciones=[Evaluacion(puntaje=85, fecha_evaluacion=fecha)],
     )
 
-    guardada = repository.save(practica)
+    saved = repository.save(practica)
     db.session.expire_all()
 
-    modelo = db.session.get(PracticaModel, guardada.id)
+    modelo = db.session.get(PracticaModel, saved.id)
     assert modelo is not None
     assert modelo.postulacion_id == datos_practica["postulacion_id"]
-    assert modelo.practicante_id == datos_practica["practicante_id"]
+    assert modelo.intern_id == datos_practica["practicante_id"]
     assert modelo.status == Practica.ESTADO_EN_CURSO
     assert len(modelo.entregables) == 1
     assert modelo.entregables[0].archivo == "informe.pdf"
     assert len(modelo.evaluaciones) == 1
     assert modelo.evaluaciones[0].puntaje == 85
 
-    assert guardada.id is not None
-    assert guardada.entregables[0].id is not None
-    assert guardada.entregables[0].practica_id == guardada.id
-    assert guardada.evaluaciones[0].id is not None
-    assert guardada.evaluaciones[0].practica_id == guardada.id
+    assert saved.id is not None
+    assert saved.entregables[0].id is not None
+    assert saved.entregables[0].practica_id == saved.id
+    assert saved.evaluaciones[0].id is not None
+    assert saved.evaluaciones[0].practica_id == saved.id
 
 
 def test_find_by_id_reconstruye_el_agregado_completo(
@@ -120,14 +120,14 @@ def test_find_by_id_reconstruye_el_agregado_completo(
     practica = crear_practica(datos_practica)
     practica.subir_entregable("evidencia.zip")
     practica.registrar_evaluacion(72)
-    guardada = repository.save(practica)
+    saved = repository.save(practica)
 
-    encontrada = repository.find_by_id(guardada.id)
+    encontrada = repository.find_by_id(saved.id)
 
     assert isinstance(encontrada, Practica)
-    assert encontrada.id == guardada.id
+    assert encontrada.id == saved.id
     assert encontrada.postulacion_id == datos_practica["postulacion_id"]
-    assert encontrada.practicante_id == datos_practica["practicante_id"]
+    assert encontrada.intern_id == datos_practica["practicante_id"]
     assert encontrada.status == Practica.ESTADO_EN_CURSO
     assert [item.archivo for item in encontrada.entregables] == ["evidencia.zip"]
     assert [item.puntaje for item in encontrada.evaluaciones] == [72]
@@ -138,7 +138,7 @@ def test_consultas_por_practicante_y_postulacion(
     repository,
     datos_practica,
 ):
-    guardada = repository.save(crear_practica(datos_practica))
+    saved = repository.save(crear_practica(datos_practica))
 
     por_practicante = repository.find_by_practicante_id(
         datos_practica["practicante_id"]
@@ -147,8 +147,8 @@ def test_consultas_por_practicante_y_postulacion(
         datos_practica["postulacion_id"]
     )
 
-    assert [practica.id for practica in por_practicante] == [guardada.id]
-    assert por_postulacion.id == guardada.id
+    assert [practica.id for practica in por_practicante] == [saved.id]
+    assert por_postulacion.id == saved.id
 
 
 def test_consultas_inexistentes_devuelven_resultados_vacios(app_context, repository):
@@ -212,13 +212,13 @@ def test_find_by_empresa_id_retorna_practicas_asociadas_via_join(
 ):
     postulacion = db.session.get(PostulacionModel, datos_practica["postulacion_id"])
     convocatoria = db.session.get(ConvocatoriaModel, postulacion.convocatoria_id)
-    empresa_id = convocatoria.empresa_id
+    company_id = convocatoria.company_id
 
     practica = crear_practica(datos_practica)
-    guardada = repository.save(practica)
+    saved = repository.save(practica)
 
-    result = repository.find_by_empresa_id(empresa_id)
+    result = repository.find_by_empresa_id(company_id)
     assert len(result) == 1
-    assert result[0].id == guardada.id
+    assert result[0].id == saved.id
 
     assert repository.find_by_empresa_id(99999) == []

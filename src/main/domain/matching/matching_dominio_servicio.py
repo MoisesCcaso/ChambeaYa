@@ -11,29 +11,29 @@ class MatchingDominioServicio:
             else HabilidadesMatchingStrategy()
         )
 
-    def calcular_match(self, practicante, convocatoria):
-        if practicante is None or convocatoria is None:
+    def calcular_match(self, intern, convocatoria):
+        if intern is None or convocatoria is None:
             return None
 
         sugerencia = Sugerencia(
-            practicante_id=practicante.id,
+            intern_id=intern.id,
             convocatoria_id=convocatoria.id,
             convocatoria=convocatoria,
             matching_strategy=self.matching_strategy,
         )
         sugerencia.calcular_compatibilidad(
-            practicante.habilidades,
+            intern.skills,
             convocatoria.habilidades_requeridas,
         )
 
         return sugerencia
 
-    def filtrar_convocatorias(self, practicante, convocatorias, umbral=50.0):
+    def filtrar_convocatorias(self, intern, convocatorias, umbral=50.0):
         resultados = []
         for convocatoria in convocatorias:
             if convocatoria.status != Convocatoria.ESTADO_PUBLICADA:
                 continue
-            sugerencia = self.calcular_match(practicante, convocatoria)
+            sugerencia = self.calcular_match(intern, convocatoria)
             if sugerencia is not None and sugerencia.es_compatible(umbral):
                 resultados.append(sugerencia)
 

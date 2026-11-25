@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from domain.convocatorias.convocatoria import Convocatoria
 from bootstrap.app import create_app
 from shared.database import db
-from profiles.infrastructure.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.company_model import CompanyModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 
@@ -40,19 +40,19 @@ class TestConvocatoriaRepository(unittest.TestCase):
         db.session.add(user)
         db.session.flush()
 
-        empresa = EmpresaModel(
+        company = CompanyModel(
             user_id=user.id,
-            razon_social="Empresa Test",
+            legal_name="Empresa Test",
             ruc=ruc,
-            verificada=True,
+            verified=True,
         )
-        db.session.add(empresa)
+        db.session.add(company)
         db.session.commit()
-        return empresa
+        return company
 
     def test_save_crea_nueva_convocatoria_y_asigna_id(self):
         convocatoria = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Practicante Python",
             descripcion="Desarrollo backend con Flask",
             status=Convocatoria.ESTADO_BORRADOR,
@@ -62,62 +62,62 @@ class TestConvocatoriaRepository(unittest.TestCase):
             fecha_cierre=None,
         )
 
-        guardada = self.repository.save(convocatoria)
+        saved = self.repository.save(convocatoria)
 
-        self.assertIsNotNone(guardada.id)
-        self.assertEqual(guardada.empresa_id, self.empresa_1.id)
-        self.assertEqual(guardada.titulo, "Practicante Python")
-        self.assertEqual(guardada.descripcion, "Desarrollo backend con Flask")
-        self.assertEqual(guardada.status, Convocatoria.ESTADO_BORRADOR)
-        self.assertEqual(guardada.habilidades_requeridas, ["Python", "SQLAlchemy"])
-        self.assertEqual(guardada.beneficios, ["Seguro", "Remoto"])
+        self.assertIsNotNone(saved.id)
+        self.assertEqual(saved.company_id, self.empresa_1.id)
+        self.assertEqual(saved.titulo, "Practicante Python")
+        self.assertEqual(saved.descripcion, "Desarrollo backend con Flask")
+        self.assertEqual(saved.status, Convocatoria.ESTADO_BORRADOR)
+        self.assertEqual(saved.habilidades_requeridas, ["Python", "SQLAlchemy"])
+        self.assertEqual(saved.beneficios, ["Seguro", "Remoto"])
 
     def test_save_actualiza_convocatoria_existente(self):
         convocatoria = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Practicante QA",
             descripcion="Pruebas de software",
             status=Convocatoria.ESTADO_BORRADOR,
             habilidades_requeridas=["Pytest"],
             beneficios=["Capacitación"],
         )
-        guardada = self.repository.save(convocatoria)
+        saved = self.repository.save(convocatoria)
 
-        guardada.titulo = "Practicante QA Automation"
-        guardada.status = Convocatoria.ESTADO_PUBLICADA
-        guardada.fecha_publicacion = datetime(2026, 10, 28, 12, 0, 0, tzinfo=timezone.utc)
-        guardada.habilidades_requeridas = ["Pytest", "Selenium"]
+        saved.titulo = "Practicante QA Automation"
+        saved.status = Convocatoria.ESTADO_PUBLICADA
+        saved.fecha_publicacion = datetime(2026, 10, 28, 12, 0, 0, tzinfo=timezone.utc)
+        saved.habilidades_requeridas = ["Pytest", "Selenium"]
 
-        actualizada = self.repository.save(guardada)
+        actualizada = self.repository.save(saved)
 
-        self.assertEqual(actualizada.id, guardada.id)
+        self.assertEqual(actualizada.id, saved.id)
         self.assertEqual(actualizada.titulo, "Practicante QA Automation")
         self.assertEqual(actualizada.status, Convocatoria.ESTADO_PUBLICADA)
         self.assertEqual(actualizada.habilidades_requeridas, ["Pytest", "Selenium"])
 
     def test_find_by_id_existente_e_inexistente(self):
         convocatoria = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Practicante Frontend",
             descripcion="React UI",
             status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["React"],
             beneficios=["Remoto"],
         )
-        guardada = self.repository.save(convocatoria)
+        saved = self.repository.save(convocatoria)
 
-        recuperada = self.repository.find_by_id(guardada.id)
-        self.assertIsNotNone(recuperada)
-        self.assertEqual(recuperada.id, guardada.id)
-        self.assertEqual(recuperada.titulo, "Practicante Frontend")
-        self.assertEqual(recuperada.habilidades_requeridas, ["React"])
+        reloaded = self.repository.find_by_id(saved.id)
+        self.assertIsNotNone(reloaded)
+        self.assertEqual(reloaded.id, saved.id)
+        self.assertEqual(reloaded.titulo, "Practicante Frontend")
+        self.assertEqual(reloaded.habilidades_requeridas, ["React"])
 
         self.assertIsNone(self.repository.find_by_id(99999))
 
     def test_find_all_y_find_by_empresa_id(self):
-        c1 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Dev Ops", status=Convocatoria.ESTADO_BORRADOR)
-        c2 = Convocatoria(empresa_id=self.empresa_1.id, titulo="Data Analyst", status=Convocatoria.ESTADO_PUBLICADA)
-        c3 = Convocatoria(empresa_id=self.empresa_2.id, titulo="Mobile Dev", status=Convocatoria.ESTADO_BORRADOR)
+        c1 = Convocatoria(company_id=self.empresa_1.id, titulo="Dev Ops", status=Convocatoria.ESTADO_BORRADOR)
+        c2 = Convocatoria(company_id=self.empresa_1.id, titulo="Data Analyst", status=Convocatoria.ESTADO_PUBLICADA)
+        c3 = Convocatoria(company_id=self.empresa_2.id, titulo="Mobile Dev", status=Convocatoria.ESTADO_BORRADOR)
 
         self.repository.save(c1)
         self.repository.save(c2)
@@ -136,36 +136,36 @@ class TestConvocatoriaRepository(unittest.TestCase):
 
     def test_delete_existente_retorna_true_e_inexistente_retorna_false(self):
         convocatoria = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Temporal",
             status=Convocatoria.ESTADO_BORRADOR,
         )
-        guardada = self.repository.save(convocatoria)
+        saved = self.repository.save(convocatoria)
 
-        borrado = self.repository.delete(guardada.id)
+        borrado = self.repository.delete(saved.id)
         self.assertTrue(borrado)
-        self.assertIsNone(self.repository.find_by_id(guardada.id))
+        self.assertIsNone(self.repository.find_by_id(saved.id))
 
         borrado_inexistente = self.repository.delete(99999)
         self.assertFalse(borrado_inexistente)
 
     def test_search_por_estado_y_coincidencia_texto(self):
         c1 = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Desarrollador Django",
             descripcion="Backend robusto",
             status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["Python", "Django"],
         )
         c2 = Convocatoria(
-            empresa_id=self.empresa_1.id,
+            company_id=self.empresa_1.id,
             titulo="Desarrollador React",
             descripcion="Frontend con Next.js",
             status=Convocatoria.ESTADO_PUBLICADA,
             habilidades_requeridas=["JavaScript", "React"],
         )
         c3 = Convocatoria(
-            empresa_id=self.empresa_2.id,
+            company_id=self.empresa_2.id,
             titulo="Ingeniero Django Borrador",
             descripcion="En revisión",
             status=Convocatoria.ESTADO_BORRADOR,

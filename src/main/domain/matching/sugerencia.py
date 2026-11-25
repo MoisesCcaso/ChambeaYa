@@ -2,11 +2,11 @@ from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStr
 
 
 class Sugerencia:
-    def __init__(self, id=None, practicante_id=None, convocatoria_id=None,
+    def __init__(self, id=None, intern_id=None, convocatoria_id=None,
                  puntaje_match=None, habilidades_coincidentes=None, convocatoria=None,
                  matching_strategy=None):
         self.id = id
-        self.practicante_id = practicante_id
+        self.intern_id = intern_id
         self.convocatoria_id = convocatoria_id
         self.puntaje_match = puntaje_match or 0.0
         self.habilidades_coincidentes = habilidades_coincidentes or []

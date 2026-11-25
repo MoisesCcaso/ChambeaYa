@@ -1,103 +1,103 @@
-"""Pruebas unitarias para Parameter Objects (DTOs / Command Objects) en capa de aplicación (Issue #180)."""
+"""Unit tests for the profiles Parameter Objects (DTOs) (Issue #180)."""
 
 import unittest
 from unittest.mock import create_autospec
 
-from profiles.application.dtos import ActualizarEmpresaDTO, ActualizarPracticanteDTO
-from profiles.application.empresa_application_service import EmpresaApplicationService
-from profiles.application.practicante_application_service import PracticanteApplicationService
+from profiles.application.dtos import UpdateCompanyDTO, UpdateInternDTO
+from profiles.application.company_application_service import CompanyApplicationService
+from profiles.application.intern_application_service import InternApplicationService
 from identity.domain.i_user_repository import IUserRepository
 from identity.domain.user import User
-from profiles.domain.i_empresa_repository import IEmpresaRepository
-from profiles.domain.i_practicante_repository import IPracticanteRepository
-from profiles.domain.practicante import Practicante
+from profiles.domain.i_company_repository import ICompanyRepository
+from profiles.domain.i_intern_repository import IInternRepository
+from profiles.domain.intern import Intern
 
 
-class TestPerfilParameterObjectsDTO(unittest.TestCase):
-    """Pruebas unitarias de ActualizarPracticanteDTO y ActualizarEmpresaDTO."""
+class TestProfileParameterObjectsDTO(unittest.TestCase):
+    """Unit tests for UpdateInternDTO and UpdateCompanyDTO."""
 
     def setUp(self):
-        self.practicante_repo = create_autospec(IPracticanteRepository, instance=True, spec_set=True)
-        self.empresa_repo = create_autospec(IEmpresaRepository, instance=True, spec_set=True)
-        self.usuario_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
-        self.practicante_service = PracticanteApplicationService(
-            practicante_repository=self.practicante_repo,
-            user_repository=self.usuario_repo,
+        self.intern_repo = create_autospec(IInternRepository, instance=True, spec_set=True)
+        self.company_repo = create_autospec(ICompanyRepository, instance=True, spec_set=True)
+        self.user_repo = create_autospec(IUserRepository, instance=True, spec_set=True)
+        self.intern_service = InternApplicationService(
+            intern_repository=self.intern_repo,
+            user_repository=self.user_repo,
         )
-        self.empresa_service = EmpresaApplicationService(
-            empresa_repository=self.empresa_repo,
-            user_repository=self.usuario_repo,
+        self.company_service = CompanyApplicationService(
+            company_repository=self.company_repo,
+            user_repository=self.user_repo,
         )
 
-    def test_update_practicante_acepta_dto_tipado(self):
-        self.usuario_repo.find_by_id.return_value = User(
+    def test_update_intern_accepts_typed_dto(self):
+        self.user_repo.find_by_id.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
             role=User.ROLE_INTERN,
             status=User.STATUS_ACTIVE,
         )
-        self.practicante_repo.find_practicante_by_user_id.return_value = None
-        self.practicante_repo.save_practicante.side_effect = lambda p: p
+        self.intern_repo.find_intern_by_user_id.return_value = None
+        self.intern_repo.save_intern.side_effect = lambda p: p
 
-        dto = ActualizarPracticanteDTO(
-            nombres="Omar",
-            apellidos="Rivera",
+        dto = UpdateInternDTO(
+            first_names="Omar",
+            last_names="Rivera",
             dni="12345678",
-            carnet_universitario="20210001",
-            habilidades=["Python", "Clean Architecture"],
-            formacion_educativa=["UNSA"],
+            university_id_card="20210001",
+            skills=["Python", "Clean Architecture"],
+            education=["UNSA"],
         )
-        practicante = self.practicante_service.update_practicante(10, dto)
+        intern = self.intern_service.update_intern(10, dto)
 
-        self.assertEqual(practicante.nombres, "Omar")
-        self.assertEqual(practicante.apellidos, "Rivera")
-        self.assertTrue(practicante.identidad_verificada)
-        self.assertEqual(practicante.habilidades, ["Python", "Clean Architecture"])
+        self.assertEqual(intern.first_names, "Omar")
+        self.assertEqual(intern.last_names, "Rivera")
+        self.assertTrue(intern.identity_verified)
+        self.assertEqual(intern.skills, ["Python", "Clean Architecture"])
 
-    def test_actualizar_practicante_dto_distingue_campos_omitidos(self):
-        existing = Practicante(
+    def test_update_intern_dto_tells_omitted_fields_apart(self):
+        existing = Intern(
             id=1,
             user_id=10,
-            nombres="Omar",
-            apellidos="Rivera",
+            first_names="Omar",
+            last_names="Rivera",
             dni="12345678",
-            identidad_verificada=True,
+            identity_verified=True,
         )
-        self.usuario_repo.find_by_id.return_value = User(
+        self.user_repo.find_by_id.return_value = User(
             id=10,
             email="alumno@unsa.edu.pe",
             password_hash="h",
             role=User.ROLE_INTERN,
             status=User.STATUS_ACTIVE,
         )
-        self.practicante_repo.find_practicante_by_user_id.return_value = existing
-        self.practicante_repo.save_practicante.side_effect = lambda p: p
+        self.intern_repo.find_intern_by_user_id.return_value = existing
+        self.intern_repo.save_intern.side_effect = lambda p: p
 
-        dto = ActualizarPracticanteDTO.from_dict({"nombres": "Omar Joaquin", "apellidos": "Rivera"})
-        actualizado = self.practicante_service.update_practicante(10, dto)
+        dto = UpdateInternDTO.from_dict({"nombres": "Omar Joaquin", "apellidos": "Rivera"})
+        actualizado = self.intern_service.update_intern(10, dto)
 
-        self.assertEqual(actualizado.nombres, "Omar Joaquin")
+        self.assertEqual(actualizado.first_names, "Omar Joaquin")
         self.assertEqual(actualizado.dni, "12345678")
-        self.assertTrue(actualizado.identidad_verificada)
+        self.assertTrue(actualizado.identity_verified)
 
-    def test_update_empresa_acepta_dto_tipado(self):
-        self.usuario_repo.find_by_id.return_value = User(
+    def test_update_company_accepts_typed_dto(self):
+        self.user_repo.find_by_id.return_value = User(
             id=20,
             email="rrhh@empresa.pe",
             password_hash="h",
             role=User.ROLE_COMPANY,
             status=User.STATUS_ACTIVE,
         )
-        self.empresa_repo.find_empresa_by_user_id.return_value = None
-        self.empresa_repo.save_empresa.side_effect = lambda e: e
+        self.company_repo.find_company_by_user_id.return_value = None
+        self.company_repo.save_company.side_effect = lambda e: e
 
-        dto = ActualizarEmpresaDTO(razon_social="Tech Peru SAC", ruc="20100070970")
-        empresa = self.empresa_service.update_empresa(20, dto)
+        dto = UpdateCompanyDTO(legal_name="Tech Peru SAC", ruc="20100070970")
+        company = self.company_service.update_company(20, dto)
 
-        self.assertEqual(empresa.razon_social, "Tech Peru SAC")
-        self.assertEqual(empresa.ruc.numero, "20100070970")
-        self.assertTrue(empresa.verificada)
+        self.assertEqual(company.legal_name, "Tech Peru SAC")
+        self.assertEqual(company.ruc.number, "20100070970")
+        self.assertTrue(company.verified)
 
 
 if __name__ == "__main__":

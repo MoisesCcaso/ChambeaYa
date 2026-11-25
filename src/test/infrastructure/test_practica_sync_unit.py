@@ -34,10 +34,10 @@ def _ensure_orm_stubs():
     class DummyPracticaModel:
         query = MagicMock()
 
-        def __init__(self, id=None, postulacion_id=None, practicante_id=None, status=None):
+        def __init__(self, id=None, postulacion_id=None, intern_id=None, status=None):
             self.id = id
             self.postulacion_id = postulacion_id
-            self.practicante_id = practicante_id
+            self.intern_id = intern_id
             self.status = status
             self.entregables = []
             self.evaluaciones = []
@@ -111,7 +111,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         model = SimpleNamespace(
             id=5,
             postulacion_id=1,
-            practicante_id=2,
+            intern_id=2,
             status=Practica.ESTADO_EN_CURSO,
             entregables=[entregable_keep, entregable_drop],
             evaluaciones=[eval_keep, eval_drop],
@@ -120,7 +120,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         practica = Practica(
             id=5,
             postulacion_id=1,
-            practicante_id=2,
+            intern_id=2,
             status=Practica.ESTADO_FINALIZADA,
             entregables=[
                 Entregable(id=10, practica_id=5, archivo="keep.pdf", fecha_subida=fecha),

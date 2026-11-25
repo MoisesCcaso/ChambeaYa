@@ -5,15 +5,15 @@ UNSET = object()
 
 
 @dataclass(frozen=True)
-class ActualizarPracticanteDTO:
-    """Parameter Object para actualización de perfil de practicante (Introduce Parameter Object)."""
+class UpdateInternDTO:
+    """Parameter Object to update an intern profile (Introduce Parameter Object)."""
 
-    nombres: Optional[str] = None
-    apellidos: Optional[str] = None
+    first_names: Optional[str] = None
+    last_names: Optional[str] = None
     dni: object = UNSET
-    carnet_universitario: object = UNSET
-    habilidades: object = UNSET
-    formacion_educativa: object = UNSET
+    university_id_card: object = UNSET
+    skills: object = UNSET
+    education: object = UNSET
 
     @classmethod
     def from_dict(cls, data):
@@ -21,16 +21,16 @@ class ActualizarPracticanteDTO:
             return data
         payload = data or {}
         return cls(
-            nombres=payload.get("nombres"),
-            apellidos=payload.get("apellidos"),
+            first_names=payload.get("nombres"),
+            last_names=payload.get("apellidos"),
             dni=payload["dni"] if "dni" in payload else UNSET,
-            carnet_universitario=(
+            university_id_card=(
                 payload["carnet_universitario"]
                 if "carnet_universitario" in payload
                 else UNSET
             ),
-            habilidades=payload["habilidades"] if "habilidades" in payload else UNSET,
-            formacion_educativa=(
+            skills=payload["habilidades"] if "habilidades" in payload else UNSET,
+            education=(
                 payload["formacion_educativa"]
                 if "formacion_educativa" in payload
                 else UNSET
@@ -39,10 +39,10 @@ class ActualizarPracticanteDTO:
 
 
 @dataclass(frozen=True)
-class ActualizarEmpresaDTO:
-    """Parameter Object para actualización de perfil de empresa (Introduce Parameter Object)."""
+class UpdateCompanyDTO:
+    """Parameter Object to update a company profile (Introduce Parameter Object)."""
 
-    razon_social: Optional[str] = None
+    legal_name: Optional[str] = None
     ruc: Optional[str] = None
 
     @classmethod
@@ -51,6 +51,6 @@ class ActualizarEmpresaDTO:
             return data
         payload = data or {}
         return cls(
-            razon_social=payload.get("razon_social"),
+            legal_name=payload.get("razon_social"),
             ruc=payload.get("ruc"),
         )

@@ -8,11 +8,11 @@ class ConvocatoriaApplicationService:
         self.convocatoria_repository = convocatoria_repository
         self.convocatoria_fabrica = convocatoria_fabrica or ConvocatoriaFabrica()
 
-    def create_convocatoria(self, empresa_id, data):
+    def create_convocatoria(self, company_id, data):
         self._require_repository()
         command = ConvocatoriaCommand.from_dict(data)
         convocatoria = self.convocatoria_fabrica.crear_convocatoria(
-            empresa_id,
+            company_id,
             command.titulo,
             descripcion=command.descripcion,
             habilidades_requeridas=command.habilidades_requeridas,
@@ -20,21 +20,21 @@ class ConvocatoriaApplicationService:
         )
         return self.convocatoria_repository.save(convocatoria)
 
-    def publish(self, empresa_id, convocatoria_id):
+    def publish(self, company_id, convocatoria_id):
         self._require_repository()
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La convocatoria no pertenece a esta empresa")
 
         convocatoria.publicar()
         return self.convocatoria_repository.save(convocatoria)
 
-    def update(self, empresa_id, convocatoria_id, data):
+    def update(self, company_id, convocatoria_id, data):
         self._require_repository()
         command = ConvocatoriaCommand.from_dict(data)
-        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria = self._find_owned(company_id, convocatoria_id)
         convocatoria.actualizar(
             titulo=command.titulo,
             descripcion=command.descripcion,
@@ -43,23 +43,23 @@ class ConvocatoriaApplicationService:
         )
         return self.convocatoria_repository.save(convocatoria)
 
-    def close(self, empresa_id, convocatoria_id):
+    def close(self, company_id, convocatoria_id):
         self._require_repository()
-        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria = self._find_owned(company_id, convocatoria_id)
         convocatoria.cerrar()
         return self.convocatoria_repository.save(convocatoria)
 
-    def reopen(self, empresa_id, convocatoria_id):
+    def reopen(self, company_id, convocatoria_id):
         self._require_repository()
-        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria = self._find_owned(company_id, convocatoria_id)
         convocatoria.reabrir()
         return self.convocatoria_repository.save(convocatoria)
 
-    def duplicate(self, empresa_id, convocatoria_id):
+    def duplicate(self, company_id, convocatoria_id):
         self._require_repository()
-        original = self._find_owned(empresa_id, convocatoria_id)
+        original = self._find_owned(company_id, convocatoria_id)
         return self.create_convocatoria(
-            empresa_id,
+            company_id,
             {
                 "titulo": f"Copia de {original.titulo}",
                 "descripcion": original.descripcion,
@@ -68,9 +68,9 @@ class ConvocatoriaApplicationService:
             },
         )
 
-    def delete(self, empresa_id, convocatoria_id):
+    def delete(self, company_id, convocatoria_id):
         self._require_repository()
-        convocatoria = self._find_owned(empresa_id, convocatoria_id)
+        convocatoria = self._find_owned(company_id, convocatoria_id)
         convocatoria.validar_eliminacion()
         if not self.convocatoria_repository.delete(convocatoria_id):
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
@@ -87,15 +87,15 @@ class ConvocatoriaApplicationService:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
         return convocatoria
 
-    def list_for_empresa(self, empresa_id):
+    def list_for_empresa(self, company_id):
         self._require_repository()
-        return self.convocatoria_repository.find_by_empresa_id(empresa_id)
+        return self.convocatoria_repository.find_by_empresa_id(company_id)
 
-    def _find_owned(self, empresa_id, convocatoria_id):
+    def _find_owned(self, company_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La convocatoria no pertenece a esta empresa")
         return convocatoria
 

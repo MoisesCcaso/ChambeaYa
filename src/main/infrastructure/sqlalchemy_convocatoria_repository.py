@@ -13,7 +13,7 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
             model = db.session.get(ConvocatoriaModel, convocatoria.id)
 
         if model is None:
-            model = ConvocatoriaModel(empresa_id=convocatoria.empresa_id)
+            model = ConvocatoriaModel(company_id=convocatoria.company_id)
             db.session.add(model)
 
         model.titulo = convocatoria.titulo
@@ -35,8 +35,8 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         models = ConvocatoriaModel.query.all()
         return [self._to_convocatoria_domain(model) for model in models]
 
-    def find_by_empresa_id(self, empresa_id):
-        models = ConvocatoriaModel.query.filter_by(empresa_id=empresa_id).all()
+    def find_by_empresa_id(self, company_id):
+        models = ConvocatoriaModel.query.filter_by(company_id=company_id).all()
         return [self._to_convocatoria_domain(model) for model in models]
 
     def delete(self, convocatoria_id):
@@ -69,7 +69,7 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
 
         convocatoria = Convocatoria(
             id=model.id,
-            empresa_id=model.empresa_id,
+            company_id=model.company_id,
             titulo=model.titulo,
             descripcion=model.descripcion,
             status=model.status,

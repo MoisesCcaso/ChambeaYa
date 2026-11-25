@@ -16,7 +16,7 @@ class TestConvocatoriaDomain(unittest.TestCase):
     def setUp(self):
         self.convocatoria = Convocatoria(
             id=1,
-            empresa_id=10,
+            company_id=10,
             titulo="Practicante Backend Python",
             descripcion="Desarrollo de APIs REST",
             status=Convocatoria.ESTADO_BORRADOR,
@@ -166,14 +166,14 @@ class TestConvocatoriaFabrica(unittest.TestCase):
 
     def test_crear_convocatoria_con_datos_validos(self):
         convocatoria = self.fabrica.crear_convocatoria(
-            empresa_id=42,
+            company_id=42,
             titulo="  Practicante Fullstack  ",
             habilidades_requeridas=[" React ", " Node "],
             descripcion="  Búsqueda de practicante proactivo  ",
             beneficios=["  Almuerzo  "],
         )
 
-        self.assertEqual(convocatoria.empresa_id, 42)
+        self.assertEqual(convocatoria.company_id, 42)
         self.assertEqual(convocatoria.titulo, "Practicante Fullstack")
         self.assertEqual(convocatoria.descripcion, "Búsqueda de practicante proactivo")
         self.assertEqual(convocatoria.status, Convocatoria.ESTADO_BORRADOR)
@@ -182,24 +182,24 @@ class TestConvocatoriaFabrica(unittest.TestCase):
 
     def test_crear_convocatoria_sin_empresa_lanza_error(self):
         with self.assertRaises(ValueError) as ctx:
-            self.fabrica.crear_convocatoria(empresa_id=None, titulo="Titulo Valido")
+            self.fabrica.crear_convocatoria(company_id=None, titulo="Titulo Valido")
         self.assertIn("La empresa es obligatoria", str(ctx.exception))
 
     def test_crear_convocatoria_sin_titulo_o_vacio_lanza_error(self):
         with self.assertRaises(ValueError) as ctx:
-            self.fabrica.crear_convocatoria(empresa_id=1, titulo="   ")
+            self.fabrica.crear_convocatoria(company_id=1, titulo="   ")
         self.assertIn("El título es obligatorio", str(ctx.exception))
 
     def test_crear_convocatoria_con_tipos_invalidos_en_listas_lanza_error(self):
         with self.assertRaises(ValueError) as ctx:
             self.fabrica.crear_convocatoria(
-                empresa_id=1, titulo="Valido", habilidades_requeridas="string_no_lista"
+                company_id=1, titulo="Valido", habilidades_requeridas="string_no_lista"
             )
         self.assertIn("Las habilidades requeridas deben ser una lista", str(ctx.exception))
 
         with self.assertRaises(ValueError) as ctx2:
             self.fabrica.crear_convocatoria(
-                empresa_id=1, titulo="Valido", beneficios="string_no_lista"
+                company_id=1, titulo="Valido", beneficios="string_no_lista"
             )
         self.assertIn("Los beneficios deben ser una lista", str(ctx2.exception))
 
@@ -211,12 +211,12 @@ class TestPostulacionDomain(unittest.TestCase):
         self.postulacion = Postulacion(
             id=10,
             convocatoria_id=100,
-            practicante_id=200,
+            intern_id=200,
             status=Postulacion.STATUS_PENDING,
         )
 
     def test_estado_inicial_por_defecto_es_pendiente(self):
-        postulacion = Postulacion(id=1, convocatoria_id=2, practicante_id=3)
+        postulacion = Postulacion(id=1, convocatoria_id=2, intern_id=3)
         self.assertEqual(postulacion.status, Postulacion.STATUS_PENDING)
 
     def test_seleccionar_desde_pendiente_cambia_a_seleccionada(self):

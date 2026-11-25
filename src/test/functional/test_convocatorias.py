@@ -27,7 +27,7 @@ def test_con_01_crea_convocatoria_valida_como_borrador(driver, base_url):
     page.create_draft(
         titulo=titulo,
         descripcion="Apoyo en pruebas funcionales y documentación.",
-        habilidades="Python, Selenium, pytest",
+        skills="Python, Selenium, pytest",
         beneficios="Mentoría, horario flexible",
     )
 
@@ -48,7 +48,7 @@ def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
     page.fill_convocatoria(
         titulo="",
         descripcion="Convocatoria de prueba sin título.",
-        habilidades="Python",
+        skills="Python",
     )
     filas_antes = len(
         driver.find_element(*page.TABLE).find_elements(By.TAG_NAME, "tr")
@@ -78,7 +78,7 @@ def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
     page.create_draft(
         titulo=titulo,
         descripcion="Convocatoria creada para probar su publicación.",
-        habilidades="Python, Selenium",
+        skills="Python, Selenium",
     )
 
     assert page.convocatoria_is_borrador(titulo)
@@ -101,7 +101,7 @@ def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
     page.create_draft(
         titulo=titulo,
         descripcion="Convocatoria para verificar que publicar no se repita.",
-        habilidades="Python, Selenium",
+        skills="Python, Selenium",
     )
 
     assert page.convocatoria_is_borrador(titulo)
@@ -125,7 +125,7 @@ def test_con_05_cierra_convocatoria_publicada(driver, base_url):
     page.create_draft(
         titulo=titulo,
         descripcion="Convocatoria creada para probar el cierre.",
-        habilidades="Python, Selenium",
+        skills="Python, Selenium",
     )
 
     assert page.convocatoria_is_borrador(titulo)

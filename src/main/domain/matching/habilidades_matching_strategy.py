@@ -15,9 +15,9 @@ class HabilidadesMatchingStrategy(MatchingStrategy):
         puntaje = len(coincidentes) / len(habilidades_requeridas) * 100
         return puntaje, list(coincidentes)
 
-    def _normalizar_habilidades(self, habilidades):
+    def _normalizar_habilidades(self, skills):
         return {
-            str(habilidad).strip().casefold()
-            for habilidad in habilidades or []
-            if str(habilidad).strip()
+            str(skill).strip().casefold()
+            for skill in skills or []
+            if str(skill).strip()
         }

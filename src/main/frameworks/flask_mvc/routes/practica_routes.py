@@ -26,7 +26,7 @@ def serialize_practica(practica):
     return {
         "id": practica.id,
         "postulacion_id": practica.postulacion_id,
-        "practicante_id": practica.practicante_id,
+        "practicante_id": practica.intern_id,
         "estado": practica.status,
     }
 
@@ -60,11 +60,11 @@ def get_authenticated_user_id():
     return session.get("usuario_id")
 
 
-def get_authenticated_empresa():
+def get_authenticated_company():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return None
-    return container.get_perfil_repository().find_empresa_by_user_id(user_id)
+    return container.get_profile_repository().find_company_by_user_id(user_id)
 
 
 @practica_bp.post("")
@@ -72,12 +72,12 @@ def start_practica():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     postulacion_id = (request.get_json(silent=True) or {}).get("postulacion_id")
-    practica = build_practica_service().start_practica(empresa.id, postulacion_id)
+    practica = build_practica_service().start_practica(company.id, postulacion_id)
     return jsonify(serialize_practica(practica)), 201
 
 
@@ -105,12 +105,12 @@ def register_evaluation(practica_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     payload = request.get_json(silent=True) or {}
-    practica = build_practica_service().evaluate(empresa.id, practica_id, payload.get("puntaje"))
+    practica = build_practica_service().evaluate(company.id, practica_id, payload.get("puntaje"))
     data = serialize_practica(practica)
     return jsonify(data), 201
 
@@ -182,8 +182,8 @@ def delete_deliverable(practica_id, entregable_id):
         build_practica_service().delete_deliverable(user_id, practica_id, entregable_id)
     )
 
-    nombre = Path(data["archivo"]).name
-    ruta = Path(current_app.config["UPLOAD_FOLDER"]) / nombre
+    name = Path(data["archivo"]).name
+    ruta = Path(current_app.config["UPLOAD_FOLDER"]) / name
     try:
         if ruta.is_file():
             ruta.unlink()
@@ -201,11 +201,11 @@ def delete_evaluation(practica_id, evaluacion_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
     data = serialize_evaluacion(
-        build_practica_service().delete_evaluation(empresa.id, practica_id, evaluacion_id)
+        build_practica_service().delete_evaluation(company.id, practica_id, evaluacion_id)
     )
     return jsonify(data), 200
 
@@ -222,13 +222,13 @@ def download_deliverable(practica_id, entregable_id):
     entregable = next((item for item in entregables if item.id == entregable_id), None)
     if entregable is None:
         return jsonify({"error": "Entregable no encontrado"}), 404
-    nombre = Path(entregable.archivo).name
-    ruta = Path(current_app.config["UPLOAD_FOLDER"]) / nombre
+    name = Path(entregable.archivo).name
+    ruta = Path(current_app.config["UPLOAD_FOLDER"]) / name
     if not ruta.is_file():
         return jsonify({"error": "Archivo de entregable no encontrado"}), 404
     return send_from_directory(
         current_app.config["UPLOAD_FOLDER"],
-        nombre,
+        name,
         as_attachment=True,
     )
 
@@ -238,9 +238,9 @@ def finish_practica(practica_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))
+    data = serialize_practica(build_practica_service().finish(company.id, practica_id))
     return jsonify(data), 200

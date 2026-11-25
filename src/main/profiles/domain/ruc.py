@@ -1,32 +1,32 @@
 class RUC:
-    def __init__(self, numero=None):
-        self.numero = numero
+    def __init__(self, number=None):
+        self.number = number
 
-    def es_valido(self):
+    def is_valid(self):
         """
-        Valida el número de RUC (formato + dígito verificador,
-        algoritmo SUNAT módulo 11).
+        Validates the RUC number (format + check digit,
+        SUNAT modulo 11 algorithm).
         """
-        prefijos_validos = ("10", "15", "17", "20")
-        factores = (5, 4, 3, 2, 7, 6, 5, 4, 3, 2)
-        numero = self.numero
+        valid_prefixes = ("10", "15", "17", "20")
+        factors = (5, 4, 3, 2, 7, 6, 5, 4, 3, 2)
+        number = self.number
 
-        if not numero or not isinstance(numero, str) or not numero.isdigit() or len(numero) != 11:
+        if not number or not isinstance(number, str) or not number.isdigit() or len(number) != 11:
             return False
 
-        if numero[:2] not in prefijos_validos:
+        if number[:2] not in valid_prefixes:
             return False
 
-        digitos = [int(d) for d in numero[:10]]
-        suma = sum(d * f for d, f in zip(digitos, factores))
-        resto = suma % 11
-        result = 11 - resto
+        digits = [int(d) for d in number[:10]]
+        total = sum(d * f for d, f in zip(digits, factors))
+        remainder = total % 11
+        result = 11 - remainder
 
         if result == 10:
-            digito_verificador = 0
+            check_digit = 0
         elif result == 11:
-            digito_verificador = 1
+            check_digit = 1
         else:
-            digito_verificador = result
+            check_digit = result
 
-        return digito_verificador == int(numero[10])
+        return check_digit == int(number[10])

@@ -47,13 +47,13 @@ def issue_certificado(practica_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    perfil_repository = container.get_perfil_repository()
-    empresa = perfil_repository.find_empresa_by_user_id(user_id)
-    if empresa is None:
+    profile_repository = container.get_profile_repository()
+    company = profile_repository.find_company_by_user_id(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     certificado, creado = build_certificacion_service().issue_certificate(
-        empresa.id, practica_id
+        company.id, practica_id
     )
 
     return jsonify(serialize_certificado(certificado)), 201 if creado else 200
@@ -61,9 +61,9 @@ def issue_certificado(practica_id):
 
 @certificado_bp.get("/verificar/<codigo_qr_valor>")
 def verify_certificado(codigo_qr_valor):
-    es_valido = build_certificacion_service().verify_certificate(codigo_qr_valor)
+    is_valid = build_certificacion_service().verify_certificate(codigo_qr_valor)
 
-    return jsonify({"codigo_qr_valor": codigo_qr_valor, "valido": es_valido}), 200
+    return jsonify({"codigo_qr_valor": codigo_qr_valor, "valido": is_valid}), 200
 
 
 @certificado_bp.get("/practica/<int:practica_id>")

@@ -38,14 +38,14 @@ class ConvocatoriaPage(BasePage):
         self,
         titulo: str,
         descripcion: str = "",
-        habilidades: str = "",
+        skills: str = "",
         beneficios: str = "",
     ) -> "ConvocatoriaPage":
         """Completa los campos del formulario de convocatoria."""
         fields = (
             (self.TITLE, titulo),
             (self.DESCRIPTION, descripcion),
-            (self.SKILLS, habilidades),
+            (self.SKILLS, skills),
             (self.BENEFITS, beneficios),
         )
         for locator, value in fields:
@@ -62,12 +62,12 @@ class ConvocatoriaPage(BasePage):
         self,
         titulo: str,
         descripcion: str = "",
-        habilidades: str = "",
+        skills: str = "",
         beneficios: str = "",
     ) -> None:
         """Completa y guarda una nueva convocatoria como borrador."""
         self.start_new_convocatoria()
-        self.fill_convocatoria(titulo, descripcion, habilidades, beneficios)
+        self.fill_convocatoria(titulo, descripcion, skills, beneficios)
         self.save_draft()
         self.wait_for(
             lambda _driver: self.driver.find_element(*self.DIALOG).get_attribute(
@@ -161,9 +161,9 @@ class ConvocatoriaPage(BasePage):
             )
         ]
 
-    def candidate_is_listed(self, nombre: str) -> bool:
+    def candidate_is_listed(self, name: str) -> bool:
         """Indica si el nombre indicado aparece entre los candidatos."""
-        return nombre in self.candidate_names()
+        return name in self.candidate_names()
 
     def _dismiss_toasts(self) -> None:
         """Cierra avisos flotantes que podrían cubrir los controles de la tabla."""

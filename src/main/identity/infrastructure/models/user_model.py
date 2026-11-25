@@ -15,14 +15,14 @@ class UserModel(TimestampMixin, db.Model):
     password_reset_token = db.Column(db.String(255), unique=True, nullable=True, index=True)
     password_reset_expires_at = db.Column(db.DateTime(timezone=True), nullable=True)
 
-    practicante = db.relationship(
-        "PracticanteModel",
+    intern = db.relationship(
+        "InternModel",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",
     )
-    empresa = db.relationship(
-        "EmpresaModel",
+    company = db.relationship(
+        "CompanyModel",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",

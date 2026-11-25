@@ -1,8 +1,8 @@
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from profiles.infrastructure.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.company_model import CompanyModel
 from notifications.infrastructure.models.notification_model import NotificationModel
-from profiles.infrastructure.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
@@ -14,9 +14,9 @@ from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 __all__ = [
     "CertificadoModel",
     "ConvocatoriaModel",
-    "EmpresaModel",
+    "CompanyModel",
     "NotificationModel",
-    "PracticanteModel",
+    "InternModel",
     "SugerenciaModel",
     "UserModel",
     "PracticaModel",

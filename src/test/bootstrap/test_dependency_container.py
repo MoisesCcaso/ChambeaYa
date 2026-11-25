@@ -10,7 +10,7 @@ class TestDependencyContainer(unittest.TestCase):
 
     def test_container_provides_repositories(self):
         self.assertIsNotNone(self.container.get_user_repository())
-        self.assertIsNotNone(self.container.get_perfil_repository())
+        self.assertIsNotNone(self.container.get_profile_repository())
         self.assertIsNotNone(self.container.get_convocatoria_repository())
         self.assertIsNotNone(self.container.get_postulacion_repository())
         self.assertIsNotNone(self.container.get_practica_repository())
@@ -26,16 +26,16 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_matching_service())
         self.assertIsNotNone(self.container.get_notification_service())
         self.assertIsNotNone(self.container.get_certificacion_service())
-        self.assertIsNotNone(self.container.get_practicante_service())
-        self.assertIsNotNone(self.container.get_empresa_service())
+        self.assertIsNotNone(self.container.get_intern_service())
+        self.assertIsNotNone(self.container.get_company_service())
 
     def test_container_allows_overriding_repositories(self):
         mock_repo = MagicMock()
-        self.container.override_repository("perfil", mock_repo)
-        self.assertIs(self.container.get_perfil_repository(), mock_repo)
+        self.container.override_repository("profile", mock_repo)
+        self.assertIs(self.container.get_profile_repository(), mock_repo)
 
         self.container.reset()
-        self.assertIsNot(self.container.get_perfil_repository(), mock_repo)
+        self.assertIsNot(self.container.get_profile_repository(), mock_repo)
 
     def test_container_allows_overriding_services(self):
         mock_service = MagicMock()

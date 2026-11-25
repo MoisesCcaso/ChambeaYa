@@ -9,14 +9,14 @@ NOT_FOUND: Final = "Práctica no encontrada"
 
 
 class PracticaApplicationService:
-    def __init__(self, practica_repository=None, perfil_repository=None, postulacion_repository=None, convocatoria_repository=None, notification_service=None):
+    def __init__(self, practica_repository=None, profile_repository=None, postulacion_repository=None, convocatoria_repository=None, notification_service=None):
         self.practica_repository = practica_repository
-        self.perfil_repository = perfil_repository
+        self.profile_repository = profile_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.notification_service = notification_service
 
-    def start_practica(self, empresa_id, postulacion_id):
+    def start_practica(self, company_id, postulacion_id):
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
@@ -27,14 +27,14 @@ class PracticaApplicationService:
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La postulación no pertenece a esta empresa")
 
         existing = self.practica_repository.find_by_postulacion_id(postulacion_id)
         if existing is not None:
             raise ConflictError("La práctica ya fue iniciada")
 
-        practica = Practica.iniciar(postulacion_id, postulacion.practicante_id)
+        practica = Practica.iniciar(postulacion_id, postulacion.intern_id)
         return self.practica_repository.save(practica)
 
     def upload_deliverable(self, user_id, practica_id, archivo):
@@ -55,7 +55,7 @@ class PracticaApplicationService:
         self.practica_repository.save(practica)
         return eliminado
 
-    def evaluate(self, empresa_id, practica_id, puntaje):
+    def evaluate(self, company_id, practica_id, puntaje):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
@@ -67,23 +67,23 @@ class PracticaApplicationService:
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
         practica.registrar_evaluacion(puntaje)
-        guardada = self.practica_repository.save(practica)
-        self._notificar_evaluacion(guardada)
-        return guardada
+        saved = self.practica_repository.save(practica)
+        self._notificar_evaluacion(saved)
+        return saved
 
     def _notificar_evaluacion(self, practica):
-        if self.notification_service is None or self.perfil_repository is None:
+        if self.notification_service is None or self.profile_repository is None:
             return
-        practicante_id = getattr(practica, "practicante_id", None)
-        if not practicante_id:
+        intern_id = getattr(practica, "intern_id", None)
+        if not intern_id:
             return
         try:
-            practicante = self.perfil_repository.find_practicante_by_id(practicante_id)
-            user_id = getattr(practicante, "user_id", None)
+            intern = self.profile_repository.find_intern_by_id(intern_id)
+            user_id = getattr(intern, "user_id", None)
             if user_id:
                 self.notification_service.create_notification(
                     recipient_user_id=user_id,
@@ -99,41 +99,41 @@ class PracticaApplicationService:
         practica = self._get_practica_visible(user_id, practica_id)
         return practica.obtener_historial_evaluaciones()
 
-    def delete_evaluation(self, empresa_id, practica_id, evaluacion_id):
+    def delete_evaluation(self, company_id, practica_id, evaluacion_id):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
             raise NotFoundError(NOT_FOUND)
-        self._require_empresa_owner(empresa_id, practica)
+        self._require_empresa_owner(company_id, practica)
         eliminada = practica.eliminar_evaluacion(evaluacion_id)
         self.practica_repository.save(practica)
         return eliminada
 
-    def finish(self, empresa_id, practica_id):
+    def finish(self, company_id, practica_id):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
             raise NotFoundError(NOT_FOUND)
-        self._require_empresa_owner(empresa_id, practica)
+        self._require_empresa_owner(company_id, practica)
 
         practica.finalizar()
         return self.practica_repository.save(practica)
 
     def list_for_user(self, user_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is not None:
-            return self.practica_repository.find_by_practicante_id(practicante.id)
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is not None:
+            return self.practica_repository.find_by_practicante_id(intern.id)
 
-        empresa = self.perfil_repository.find_empresa_by_user_id(user_id)
-        if empresa is None:
+        company = self.profile_repository.find_company_by_user_id(user_id)
+        if company is None:
             raise NotFoundError("Perfil no encontrado")
 
         if hasattr(self.practica_repository, "find_by_empresa_id"):
-            return self.practica_repository.find_by_empresa_id(empresa.id)
+            return self.practica_repository.find_by_empresa_id(company.id)
 
         practicas = []
-        for convocatoria in self.convocatoria_repository.find_by_empresa_id(empresa.id):
+        for convocatoria in self.convocatoria_repository.find_by_empresa_id(company.id):
             for postulacion in self.postulacion_repository.find_by_convocatoria_id(
                 convocatoria.id
             ):
@@ -147,15 +147,15 @@ class PracticaApplicationService:
         return self._get_practica_visible(user_id, practica_id)
 
     def _get_practica_autorizada(self, user_id, practica_id):
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is None:
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is None:
             raise ForbiddenError("Perfil de practicante no encontrado")
 
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
             raise NotFoundError(NOT_FOUND)
 
-        if practica.practicante_id != practicante.id:
+        if practica.intern_id != intern.id:
             raise ForbiddenError("No autorizado para acceder a esta práctica")
 
         return practica
@@ -165,25 +165,25 @@ class PracticaApplicationService:
         if practica is None:
             raise NotFoundError(NOT_FOUND)
 
-        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
-        if practicante is not None and practica.practicante_id == practicante.id:
+        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        if intern is not None and practica.intern_id == intern.id:
             return practica
 
-        empresa = self.perfil_repository.find_empresa_by_user_id(user_id)
-        if empresa is not None:
-            self._require_empresa_owner(empresa.id, practica)
+        company = self.profile_repository.find_company_by_user_id(user_id)
+        if company is not None:
+            self._require_empresa_owner(company.id, practica)
             return practica
 
         raise ForbiddenError("No autorizado para acceder a esta práctica")
 
-    def _require_empresa_owner(self, empresa_id, practica):
+    def _require_empresa_owner(self, company_id, practica):
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a esta empresa")
         return convocatoria
 
@@ -192,7 +192,7 @@ class PracticaApplicationService:
             repository is None
             for repository in (
                 self.practica_repository,
-                self.perfil_repository,
+                self.profile_repository,
                 self.postulacion_repository,
                 self.convocatoria_repository,
             )

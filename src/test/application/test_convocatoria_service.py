@@ -57,15 +57,15 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
             "habilidades_requeridas": ["Python"],
             "beneficios": ["Remoto"],
         }
-        convocatoria_guardada = Convocatoria(id=1, empresa_id=5, titulo="Practicante Python")
+        convocatoria_guardada = Convocatoria(id=1, company_id=5, titulo="Practicante Python")
         self.mock_repo.save.return_value = convocatoria_guardada
 
-        result = self.service.create_convocatoria(empresa_id=5, data=data)
+        result = self.service.create_convocatoria(company_id=5, data=data)
 
         self.assertEqual(result, convocatoria_guardada)
         self.mock_repo.save.assert_called_once()
         convocatoria_pasada = self.mock_repo.save.call_args[0][0]
-        self.assertEqual(convocatoria_pasada.empresa_id, 5)
+        self.assertEqual(convocatoria_pasada.company_id, 5)
         self.assertEqual(convocatoria_pasada.titulo, "Practicante Python")
         self.assertEqual(convocatoria_pasada.status, Convocatoria.ESTADO_BORRADOR)
 
@@ -73,25 +73,25 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
         self.mock_repo.find_by_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
-            self.service.publish(empresa_id=1, convocatoria_id=99)
+            self.service.publish(company_id=1, convocatoria_id=99)
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
         self.mock_repo.save.assert_not_called()
 
     def test_publish_convocatoria_de_otra_empresa_lanza_error(self):
-        convocatoria = Convocatoria(id=10, empresa_id=2, status=Convocatoria.ESTADO_BORRADOR)
+        convocatoria = Convocatoria(id=10, company_id=2, status=Convocatoria.ESTADO_BORRADOR)
         self.mock_repo.find_by_id.return_value = convocatoria
 
         with self.assertRaises(ValueError) as ctx:
-            self.service.publish(empresa_id=1, convocatoria_id=10)
+            self.service.publish(company_id=1, convocatoria_id=10)
         self.assertIn("La convocatoria no pertenece a esta empresa", str(ctx.exception))
         self.mock_repo.save.assert_not_called()
 
     def test_publish_exitoso_cambia_a_publicada_y_guarda(self):
-        convocatoria = Convocatoria(id=10, empresa_id=1, status=Convocatoria.ESTADO_BORRADOR)
+        convocatoria = Convocatoria(id=10, company_id=1, status=Convocatoria.ESTADO_BORRADOR)
         self.mock_repo.find_by_id.return_value = convocatoria
         self.mock_repo.save.return_value = convocatoria
 
-        result = self.service.publish(empresa_id=1, convocatoria_id=10)
+        result = self.service.publish(company_id=1, convocatoria_id=10)
 
         self.assertEqual(result.status, Convocatoria.ESTADO_PUBLICADA)
         self.mock_repo.find_by_id.assert_called_once_with(10)
@@ -100,7 +100,7 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
     def test_update_modifica_campos_y_guarda(self):
         convocatoria = Convocatoria(
             id=10,
-            empresa_id=1,
+            company_id=1,
             titulo="Original",
             descripcion="Desc",
             status=Convocatoria.ESTADO_BORRADOR,
@@ -114,7 +114,7 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
             "habilidades_requeridas": ["FastAPI"],
             "beneficios": ["Seguro EPS"],
         }
-        result = self.service.update(empresa_id=1, convocatoria_id=10, data=nuevos_datos)
+        result = self.service.update(company_id=1, convocatoria_id=10, data=nuevos_datos)
 
         self.assertEqual(result.titulo, "Titulo Actualizado")
         self.assertEqual(result.descripcion, "Desc Nueva")
@@ -126,35 +126,35 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
         # Caso 1: No existe
         self.mock_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
-            self.service.update(empresa_id=1, convocatoria_id=99, data={})
+            self.service.update(company_id=1, convocatoria_id=99, data={})
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
 
         # Caso 2: Pertenece a otra empresa
-        convocatoria_ajena = Convocatoria(id=50, empresa_id=999)
+        convocatoria_ajena = Convocatoria(id=50, company_id=999)
         self.mock_repo.find_by_id.return_value = convocatoria_ajena
         with self.assertRaises(ValueError) as ctx2:
-            self.service.update(empresa_id=1, convocatoria_id=50, data={})
+            self.service.update(company_id=1, convocatoria_id=50, data={})
         self.assertIn("La convocatoria no pertenece a esta empresa", str(ctx2.exception))
 
     def test_close_y_reopen_flujo_completo(self):
-        convocatoria = Convocatoria(id=10, empresa_id=1, status=Convocatoria.ESTADO_PUBLICADA)
+        convocatoria = Convocatoria(id=10, company_id=1, status=Convocatoria.ESTADO_PUBLICADA)
         self.mock_repo.find_by_id.return_value = convocatoria
         self.mock_repo.save.return_value = convocatoria
 
         # Cerrar
-        cerrada = self.service.close(empresa_id=1, convocatoria_id=10)
+        cerrada = self.service.close(company_id=1, convocatoria_id=10)
         self.assertEqual(cerrada.status, Convocatoria.ESTADO_CERRADA)
         self.mock_repo.save.assert_called_with(convocatoria)
 
         # Reabrir
-        reabierta = self.service.reopen(empresa_id=1, convocatoria_id=10)
+        reabierta = self.service.reopen(company_id=1, convocatoria_id=10)
         self.assertEqual(reabierta.status, Convocatoria.ESTADO_PUBLICADA)
         self.mock_repo.save.assert_called_with(convocatoria)
 
     def test_duplicate_convocatoria(self):
         original = Convocatoria(
             id=10,
-            empresa_id=1,
+            company_id=1,
             titulo="Practicante Mobile",
             descripcion="Flutter dev",
             habilidades_requeridas=["Dart", "Flutter"],
@@ -162,10 +162,10 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
             status=Convocatoria.ESTADO_PUBLICADA,
         )
         self.mock_repo.find_by_id.return_value = original
-        duplicada = Convocatoria(id=11, empresa_id=1, titulo="Copia de Practicante Mobile")
+        duplicada = Convocatoria(id=11, company_id=1, titulo="Copia de Practicante Mobile")
         self.mock_repo.save.return_value = duplicada
 
-        result = self.service.duplicate(empresa_id=1, convocatoria_id=10)
+        result = self.service.duplicate(company_id=1, convocatoria_id=10)
 
         self.assertEqual(result.id, 11)
         self.assertEqual(result.titulo, "Copia de Practicante Mobile")
@@ -178,22 +178,22 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
         self.assertEqual(convocatoria_creada.status, Convocatoria.ESTADO_BORRADOR)
 
     def test_delete_en_borrador_exitoso(self):
-        convocatoria = Convocatoria(id=10, empresa_id=1, status=Convocatoria.ESTADO_BORRADOR)
+        convocatoria = Convocatoria(id=10, company_id=1, status=Convocatoria.ESTADO_BORRADOR)
         self.mock_repo.find_by_id.return_value = convocatoria
         self.mock_repo.delete.return_value = True
 
-        eliminada = self.service.delete(empresa_id=1, convocatoria_id=10)
+        eliminada = self.service.delete(company_id=1, convocatoria_id=10)
 
         self.assertEqual(eliminada, convocatoria)
         self.mock_repo.delete.assert_called_once_with(10)
 
     def test_delete_falla_si_repo_retorna_false(self):
-        convocatoria = Convocatoria(id=10, empresa_id=1, status=Convocatoria.ESTADO_BORRADOR)
+        convocatoria = Convocatoria(id=10, company_id=1, status=Convocatoria.ESTADO_BORRADOR)
         self.mock_repo.find_by_id.return_value = convocatoria
         self.mock_repo.delete.return_value = False
 
         with self.assertRaises(ValueError) as ctx:
-            self.service.delete(empresa_id=1, convocatoria_id=10)
+            self.service.delete(company_id=1, convocatoria_id=10)
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
 
     def test_search_delega_query_y_estado(self):
@@ -206,7 +206,7 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
         self.mock_repo.search.assert_called_once_with(query="Python", status="publicada")
 
     def test_find_by_id_existente_e_inexistente(self):
-        convocatoria = Convocatoria(id=5, empresa_id=1)
+        convocatoria = Convocatoria(id=5, company_id=1)
         self.mock_repo.find_by_id.return_value = convocatoria
 
         # Existente
@@ -221,10 +221,10 @@ class TestConvocatoriaApplicationService(unittest.TestCase):
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
 
     def test_list_for_empresa_delega_a_repositorio(self):
-        lista_empresa = [Convocatoria(id=1, empresa_id=3)]
+        lista_empresa = [Convocatoria(id=1, company_id=3)]
         self.mock_repo.find_by_empresa_id.return_value = lista_empresa
 
-        result = self.service.list_for_empresa(empresa_id=3)
+        result = self.service.list_for_empresa(company_id=3)
 
         self.assertEqual(result, lista_empresa)
         self.mock_repo.find_by_empresa_id.assert_called_once_with(3)

@@ -11,7 +11,7 @@ class Convocatoria:
     def __init__(
         self,
         id=None,
-        empresa_id=None,
+        company_id=None,
         titulo=None,
         descripcion=None,
         status=None,
@@ -21,7 +21,7 @@ class Convocatoria:
         fecha_cierre=None,
     ):
         self.id = id
-        self.empresa_id = empresa_id
+        self.company_id = company_id
         self.titulo = titulo
         self.descripcion = descripcion
         self._estado = estado_desde_nombre(status, fecha_cierre)
@@ -31,11 +31,11 @@ class Convocatoria:
 
     @property
     def status(self):
-        return self._estado.nombre
+        return self._estado.name
 
     @status.setter
-    def status(self, nombre):
-        self._estado = estado_desde_nombre(nombre)
+    def status(self, name):
+        self._estado = estado_desde_nombre(name)
 
     @property
     def fecha_cierre(self):
@@ -78,8 +78,8 @@ class Convocatoria:
         if habilidades_requeridas is not None:
             self.validar_lista(habilidades_requeridas, "Las habilidades requeridas")
             self.habilidades_requeridas = []
-            for habilidad in habilidades_requeridas:
-                self.agregar_habilidad_requerida(habilidad)
+            for skill in habilidades_requeridas:
+                self.agregar_habilidad_requerida(skill)
         if beneficios is not None:
             self.validar_lista(beneficios, "Los beneficios")
             self.beneficios = []
@@ -95,24 +95,24 @@ class Convocatoria:
         return titulo_normalizado
 
     @staticmethod
-    def validar_lista(valores, nombre):
-        if not isinstance(valores, list):
-            raise DomainError(f"{nombre} deben ser una lista")
-        return valores
+    def validar_lista(values_list, name):
+        if not isinstance(values_list, list):
+            raise DomainError(f"{name} deben ser una lista")
+        return values_list
 
-    def agregar_habilidad_requerida(self, habilidad):
-        habilidad_normalizada = self._normalizar_texto(habilidad)
-        if habilidad_normalizada and habilidad_normalizada not in self.habilidades_requeridas:
-            self.habilidades_requeridas.append(habilidad_normalizada)
+    def agregar_habilidad_requerida(self, skill):
+        normalized_skill = self._normalize_text(skill)
+        if normalized_skill and normalized_skill not in self.habilidades_requeridas:
+            self.habilidades_requeridas.append(normalized_skill)
         return self
     
     def agregar_beneficio(self, beneficio):
-        beneficio_normalizado = self._normalizar_texto(beneficio)
+        beneficio_normalizado = self._normalize_text(beneficio)
         if beneficio_normalizado and beneficio_normalizado not in self.beneficios:
             self.beneficios.append(beneficio_normalizado)
         return self
     
-    def _normalizar_texto(self, value):
+    def _normalize_text(self, value):
         if value is None:
             return None
         return str(value).strip()

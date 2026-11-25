@@ -69,20 +69,20 @@ class ProfilePage(BasePage):
 
     def fill_student_profile(
         self,
-        nombres: str | None = None,
-        apellidos: str | None = None,
+        first_names: str | None = None,
+        last_names: str | None = None,
         dni: str | None = None,
-        carnet: str | None = None,
+        card: str | None = None,
     ) -> "ProfilePage":
         """Completa los datos del formulario de practicante."""
-        if nombres is not None:
-            self._set_input(self.STUDENT_NOMBRES, nombres)
-        if apellidos is not None:
-            self._set_input(self.STUDENT_APELLIDOS, apellidos)
+        if first_names is not None:
+            self._set_input(self.STUDENT_NOMBRES, first_names)
+        if last_names is not None:
+            self._set_input(self.STUDENT_APELLIDOS, last_names)
         if dni is not None:
             self._set_input(self.STUDENT_DNI, dni)
-        if carnet is not None:
-            self._set_input(self.STUDENT_CARNET, carnet)
+        if card is not None:
+            self._set_input(self.STUDENT_CARNET, card)
         return self
 
     def submit_student_profile(self) -> None:
@@ -149,12 +149,12 @@ class ProfilePage(BasePage):
 
     def fill_company_profile(
         self,
-        razon_social: str | None = None,
+        legal_name: str | None = None,
         ruc: str | None = None,
     ) -> "ProfilePage":
         """Completa los datos del formulario de empresa."""
-        if razon_social is not None:
-            self._set_input(self.COMPANY_RAZON_SOCIAL, razon_social)
+        if legal_name is not None:
+            self._set_input(self.COMPANY_RAZON_SOCIAL, legal_name)
         if ruc is not None:
             self._set_input(self.COMPANY_RUC, ruc)
         return self
