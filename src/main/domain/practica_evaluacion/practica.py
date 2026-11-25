@@ -1,5 +1,6 @@
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
+from shared.errors import ConflictError, DomainError, NotFoundError
 
 
 class Practica:
@@ -18,7 +19,7 @@ class Practica:
     @classmethod
     def iniciar(cls, postulacion_id, practicante_id):
         if postulacion_id is None or practicante_id is None:
-            raise ValueError("Se requiere postulación y practicante para iniciar la práctica")
+            raise DomainError("Se requiere postulación y practicante para iniciar la práctica")
         return cls(
             postulacion_id=postulacion_id,
             practicante_id=practicante_id,
@@ -27,7 +28,7 @@ class Practica:
 
     def subir_entregable(self, archivo):
         if self.estado == self.ESTADO_FINALIZADA:
-            raise ValueError("No se pueden subir entregables a una práctica finalizada")
+            raise ConflictError("No se pueden subir entregables a una práctica finalizada")
 
         entregable = Entregable.crear(practica_id=self.id, archivo=archivo)
         self.entregables.append(entregable)
@@ -35,7 +36,7 @@ class Practica:
 
     def registrar_evaluacion(self, puntaje):
         if self.estado == self.ESTADO_FINALIZADA:
-            raise ValueError("No se pueden registrar evaluaciones en una práctica finalizada")
+            raise ConflictError("No se pueden registrar evaluaciones en una práctica finalizada")
 
         evaluacion = Evaluacion.crear(practica_id=self.id, puntaje=puntaje)
         self.evaluaciones.append(evaluacion)
@@ -43,35 +44,35 @@ class Practica:
 
     def eliminar_entregable(self, entregable_id):
         if self.estado != self.ESTADO_EN_CURSO:
-            raise ValueError("No se pueden eliminar entregables de una práctica finalizada")
+            raise ConflictError("No se pueden eliminar entregables de una práctica finalizada")
         entregable = next(
             (item for item in self.entregables if item.id == entregable_id),
             None,
         )
         if entregable is None:
-            raise ValueError("Entregable no encontrado")
+            raise NotFoundError("Entregable no encontrado")
         self.entregables.remove(entregable)
         return entregable
 
     def eliminar_evaluacion(self, evaluacion_id):
         if self.estado != self.ESTADO_EN_CURSO:
-            raise ValueError("No se pueden eliminar evaluaciones de una práctica finalizada")
+            raise ConflictError("No se pueden eliminar evaluaciones de una práctica finalizada")
         evaluacion = next(
             (item for item in self.evaluaciones if item.id == evaluacion_id),
             None,
         )
         if evaluacion is None:
-            raise ValueError("Evaluación no encontrada")
+            raise NotFoundError("Evaluación no encontrada")
         self.evaluaciones.remove(evaluacion)
         return evaluacion
 
     def finalizar(self):
         if self.estado != self.ESTADO_EN_CURSO:
-            raise ValueError("La práctica ya está finalizada")
+            raise ConflictError("La práctica ya está finalizada")
         if not self.entregables:
-            raise ValueError("No se puede finalizar una práctica sin entregables registrados")
+            raise ConflictError("No se puede finalizar una práctica sin entregables registrados")
         if not any(evaluacion.esta_aprobada() for evaluacion in self.evaluaciones):
-            raise ValueError(
+            raise ConflictError(
                 "No se puede finalizar una práctica sin una evaluación aprobada"
             )
 

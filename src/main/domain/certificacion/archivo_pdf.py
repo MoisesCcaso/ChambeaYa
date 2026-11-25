@@ -1,4 +1,5 @@
 import hashlib
+from shared.errors import DomainError
 class ArchivoPDF:
     def __init__(self, url=None, hash_integridad=None, contenido=None):
         self.url = url
@@ -8,7 +9,7 @@ class ArchivoPDF:
     @staticmethod
     def crear(practica_id, contenido, url=None):
         if not contenido:
-            raise ValueError("Debe proveerse el contenido del PDF para generar el archivo")
+            raise DomainError("Debe proveerse el contenido del PDF para generar el archivo")
 
         contenido_bytes = contenido.encode() if isinstance(contenido, str) else contenido
         hash_integridad = hashlib.sha256(contenido_bytes).hexdigest()

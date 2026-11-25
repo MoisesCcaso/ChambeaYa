@@ -2,6 +2,7 @@ import re
 
 from application.email_delivery_error import EmailDeliveryError
 from domain.auth.usuario import Usuario
+from shared.errors import AuthenticationError, ConflictError, DomainError
 
 
 EMAIL_PATTERN = re.compile(
@@ -28,12 +29,12 @@ class UsuarioApplicationService:
 
         normalized_email = self._normalize_email(email)
         if self.usuario_repository.find_by_email(normalized_email) is not None:
-            raise ValueError(
+            raise ConflictError(
                 "El correo ya está registrado. Si la cuenta está pendiente, "
                 "solicita un nuevo enlace de activación."
             )
         if password != password_confirmation:
-            raise ValueError("Las contraseñas no coinciden")
+            raise DomainError("Las contraseñas no coinciden")
 
         password_hash = self.autenticacion_dominio_servicio.generar_password_hash(password)
         usuario = Usuario(
@@ -65,7 +66,7 @@ class UsuarioApplicationService:
 
         usuario = self.usuario_repository.find_by_email(self._normalize_email(email))
         if not self.autenticacion_dominio_servicio.autenticar(usuario, password):
-            raise ValueError("Credenciales inválidas")
+            raise AuthenticationError("Credenciales inválidas")
 
         return usuario
 
@@ -109,16 +110,16 @@ class UsuarioApplicationService:
         self._require_repository()
 
         if not token:
-            raise ValueError("El token de activación es obligatorio")
+            raise DomainError("El token de activación es obligatorio")
 
         usuario = self.usuario_repository.find_by_activation_token(token)
         if usuario is None:
-            raise ValueError("Token de activación inválido")
+            raise DomainError("Token de activación inválido")
 
         if not self.autenticacion_dominio_servicio.validar_token(
             usuario.token_activacion,
         ):
-            raise ValueError("Token de activación expirado")
+            raise DomainError("Token de activación expirado")
 
         usuario.activar()
         return self.usuario_repository.save(usuario)
@@ -127,16 +128,16 @@ class UsuarioApplicationService:
         self._require_repository()
 
         if not token:
-            raise ValueError("El token de recuperación es obligatorio")
+            raise DomainError("El token de recuperación es obligatorio")
 
         usuario = self.usuario_repository.find_by_password_reset_token(token)
         if usuario is None:
-            raise ValueError("Token de recuperación inválido")
+            raise DomainError("Token de recuperación inválido")
 
         if not self.autenticacion_dominio_servicio.validar_token(
             usuario.token_recuperacion,
         ):
-            raise ValueError("Token de recuperación expirado")
+            raise DomainError("Token de recuperación expirado")
 
         password_hash = self.autenticacion_dominio_servicio.generar_password_hash(new_password)
         usuario.actualizar_password(password_hash)
@@ -156,9 +157,9 @@ class UsuarioApplicationService:
 
     def _normalize_email(self, email):
         if not email:
-            raise ValueError("El email es obligatorio")
+            raise DomainError("El email es obligatorio")
 
         normalized = str(email).strip().lower()
         if len(normalized) > 254 or not EMAIL_PATTERN.fullmatch(normalized):
-            raise ValueError("El email no es válido")
+            raise DomainError("El email no es válido")
         return normalized

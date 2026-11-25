@@ -1,6 +1,7 @@
 from application.dtos import ActualizarPracticanteDTO, UNSET
 from domain.auth.usuario import Usuario
 from domain.perfil.practicante import Practicante
+from shared.errors import ForbiddenError, NotFoundError
 
 
 class PracticanteApplicationService:
@@ -78,7 +79,7 @@ class PracticanteApplicationService:
         self._require_repositories()
         practicante = self.practicante_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
+            raise ForbiddenError("Perfil de practicante no encontrado")
 
         return practicante.identidad_verificada
 
@@ -101,11 +102,11 @@ class PracticanteApplicationService:
     def _require_practicante_user(self, usuario_id):
         usuario = self.usuario_repository.find_by_id(usuario_id)
         if usuario is None:
-            raise ValueError("Usuario no encontrado")
+            raise NotFoundError("Usuario no encontrado")
         if usuario.tipo != Usuario.TIPO_PRACTICANTE:
-            raise ValueError("El usuario no es practicante")
+            raise ForbiddenError("El usuario no es practicante")
         if usuario.estado != Usuario.ESTADO_ACTIVO:
-            raise ValueError("La cuenta no está activa")
+            raise ForbiddenError("La cuenta no está activa")
 
         return usuario
 

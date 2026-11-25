@@ -1,13 +1,14 @@
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
 from domain.practica_evaluacion.practica import Practica
+from shared.errors import ConflictError
 
 class CertificacionDominioServicio:
     def generar_certificado(self, practica, practicante, convocatoria):
         if practica.estado != Practica.ESTADO_FINALIZADA:
-            raise ValueError("Solo se puede certificar una práctica finalizada")
+            raise ConflictError("Solo se puede certificar una práctica finalizada")
         if not any(evaluacion.esta_aprobada() for evaluacion in practica.evaluaciones):
-            raise ValueError("La práctica no tiene una evaluación aprobada")
+            raise ConflictError("La práctica no tiene una evaluación aprobada")
 
         contenido = self._construir_contenido(practicante, convocatoria)
         codigo_qr = CodigoQR.generar(practica.id)

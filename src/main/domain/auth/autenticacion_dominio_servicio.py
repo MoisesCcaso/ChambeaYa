@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 
 from domain.auth.token_recuperacion import TokenRecuperacion
+from shared.errors import DomainError
 
 
 class AutenticacionDominioServicio:
@@ -10,18 +11,18 @@ class AutenticacionDominioServicio:
     
     def generar_password_hash(self, password):
         if not password:
-            raise ValueError("La contraseña es obligatoria")
+            raise DomainError("La contraseña es obligatoria")
         password = str(password)
         if len(password) < 8:
-            raise ValueError("La contraseña debe tener al menos 8 caracteres")
+            raise DomainError("La contraseña debe tener al menos 8 caracteres")
         if len(password) > 128:
-            raise ValueError("La contraseña no puede superar 128 caracteres")
+            raise DomainError("La contraseña no puede superar 128 caracteres")
         if not any(character.islower() for character in password):
-            raise ValueError("La contraseña debe incluir una letra minúscula")
+            raise DomainError("La contraseña debe incluir una letra minúscula")
         if not any(character.isupper() for character in password):
-            raise ValueError("La contraseña debe incluir una letra mayúscula")
+            raise DomainError("La contraseña debe incluir una letra mayúscula")
         if not any(character.isdigit() for character in password):
-            raise ValueError("La contraseña debe incluir un número")
+            raise DomainError("La contraseña debe incluir un número")
 
         return self.password_hasher.hash(password)
 

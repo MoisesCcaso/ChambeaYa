@@ -1,3 +1,4 @@
+from shared.errors import DomainError
 class NombreCompleto:
     def __init__(self, nombres=None, apellidos=None):
         self.nombres = nombres
@@ -7,7 +8,7 @@ class NombreCompleto:
         nombres = str(self.nombres or "").strip()
         apellidos = str(self.apellidos or "").strip()
         if not nombres or not apellidos:
-            raise ValueError("Nombres y apellidos son obligatorios")
+            raise DomainError("Nombres y apellidos son obligatorios")
         self.nombres = nombres
         self.apellidos = apellidos
         return self

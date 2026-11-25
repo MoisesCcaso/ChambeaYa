@@ -35,10 +35,7 @@ def suggest_convocatorias():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        resultados = build_matching_service().suggest_convocatorias(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    resultados = build_matching_service().suggest_convocatorias(usuario_id)
 
     return jsonify([serialize_resultado(r) for r in resultados]), 200
 
@@ -51,10 +48,7 @@ def calculate_match():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        resultados = build_matching_service().calculate_for_practicante(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    resultados = build_matching_service().calculate_for_practicante(usuario_id)
     data = [serialize_resultado(r) for r in resultados]
 
     if data:

@@ -50,18 +50,15 @@ def get_my_profile():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        usuario = container.get_usuario_repository().find_by_id(usuario_id)
-        if usuario is None:
-            return jsonify({"error": "Usuario no encontrado"}), 404
-        if usuario.tipo == "empresa":
-            perfil = build_empresa_service().get_empresa_profile(usuario_id)
-            serialize = serialize_empresa
-        else:
-            perfil = build_practicante_service().get_practicante_profile(usuario_id)
-            serialize = serialize_practicante
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = container.get_usuario_repository().find_by_id(usuario_id)
+    if usuario is None:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    if usuario.tipo == "empresa":
+        perfil = build_empresa_service().get_empresa_profile(usuario_id)
+        serialize = serialize_empresa
+    else:
+        perfil = build_practicante_service().get_practicante_profile(usuario_id)
+        serialize = serialize_practicante
 
     if perfil is None:
         profile_type = "empresa" if usuario.tipo == "empresa" else "practicante"
@@ -77,10 +74,7 @@ def update_my_profile():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
-    try:
-        data = serialize_practicante(build_practicante_service().update_practicante(usuario_id, payload))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = serialize_practicante(build_practicante_service().update_practicante(usuario_id, payload))
 
     return jsonify(data), 200
 
@@ -91,10 +85,7 @@ def update_my_company():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
-    try:
-        data = serialize_empresa(build_empresa_service().update_empresa(usuario_id, payload))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = serialize_empresa(build_empresa_service().update_empresa(usuario_id, payload))
 
     return jsonify(data), 200
 
@@ -105,11 +96,8 @@ def add_my_skill():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
-    try:
-        practicante = build_practicante_service().add_habilidad(usuario_id, payload.get("habilidad"))
-        data = serialize_practicante(practicante)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practicante = build_practicante_service().add_habilidad(usuario_id, payload.get("habilidad"))
+    data = serialize_practicante(practicante)
 
     return jsonify(data), 200
 
@@ -121,11 +109,8 @@ def add_my_education():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
-    try:
-        practicante = build_practicante_service().add_formacion(usuario_id, payload.get("formacion"))
-        data = serialize_practicante(practicante)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practicante = build_practicante_service().add_formacion(usuario_id, payload.get("formacion"))
+    data = serialize_practicante(practicante)
 
     return jsonify(data), 200
 
@@ -137,15 +122,12 @@ def verify_my_identity():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
-    try:
-        practicante = build_practicante_service().register_identity(
-            usuario_id,
-            dni=payload.get("dni"),
-            carnet_universitario=payload.get("carnet_universitario"),
-        )
-        data = serialize_practicante(practicante)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practicante = build_practicante_service().register_identity(
+        usuario_id,
+        dni=payload.get("dni"),
+        carnet_universitario=payload.get("carnet_universitario"),
+    )
+    data = serialize_practicante(practicante)
 
     return jsonify(data), 200
 
@@ -156,9 +138,6 @@ def get_my_reputation():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        data = {"score_reputacion": build_practicante_service().get_reputation_score(usuario_id)}
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = {"score_reputacion": build_practicante_service().get_reputation_score(usuario_id)}
 
     return jsonify(data), 200

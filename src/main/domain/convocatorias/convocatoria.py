@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from domain.convocatorias.estado_convocatoria import estado_desde_nombre
+from shared.errors import ConflictError, DomainError
 
 
 class Convocatoria:
@@ -58,7 +59,7 @@ class Convocatoria:
 
     def validar_eliminacion(self):
         if self.estado != self.ESTADO_BORRADOR:
-            raise ValueError("Solo una convocatoria en borrador puede eliminarse")
+            raise ConflictError("Solo una convocatoria en borrador puede eliminarse")
         return self
 
     def actualizar(
@@ -69,7 +70,7 @@ class Convocatoria:
         beneficios=None,
     ):
         if self.estado != self.ESTADO_BORRADOR:
-            raise ValueError("Solo una convocatoria en borrador puede editarse")
+            raise ConflictError("Solo una convocatoria en borrador puede editarse")
         if titulo is not None:
             self.titulo = self.normalizar_titulo(titulo)
         if descripcion is not None:
@@ -90,13 +91,13 @@ class Convocatoria:
     def normalizar_titulo(titulo):
         titulo_normalizado = str(titulo).strip() if titulo is not None else ""
         if not titulo_normalizado:
-            raise ValueError("El título es obligatorio")
+            raise DomainError("El título es obligatorio")
         return titulo_normalizado
 
     @staticmethod
     def validar_lista(valores, nombre):
         if not isinstance(valores, list):
-            raise ValueError(f"{nombre} deben ser una lista")
+            raise DomainError(f"{nombre} deben ser una lista")
         return valores
 
     def agregar_habilidad_requerida(self, habilidad):

@@ -2,6 +2,7 @@ from application.dtos import ActualizarEmpresaDTO
 from domain.auth.usuario import Usuario
 from domain.perfil.empresa import Empresa
 from domain.perfil.ruc import RUC
+from shared.errors import DomainError, ForbiddenError, NotFoundError
 
 
 class EmpresaApplicationService:
@@ -25,9 +26,9 @@ class EmpresaApplicationService:
         if dto.razon_social is not None:
             empresa.razon_social = str(dto.razon_social).strip()
         if not empresa.razon_social:
-            raise ValueError("La razón social es obligatoria")
+            raise DomainError("La razón social es obligatoria")
         if not empresa.verificar_ruc():
-            raise ValueError("El RUC no es válido")
+            raise DomainError("El RUC no es válido")
         return self.empresa_repository.save_empresa(empresa)
 
     update_profile = update_empresa
@@ -42,11 +43,11 @@ class EmpresaApplicationService:
     def _require_empresa_user(self, usuario_id):
         usuario = self.usuario_repository.find_by_id(usuario_id)
         if usuario is None:
-            raise ValueError("Usuario no encontrado")
+            raise NotFoundError("Usuario no encontrado")
         if usuario.tipo != Usuario.TIPO_EMPRESA:
-            raise ValueError("El usuario no es empresa")
+            raise ForbiddenError("El usuario no es empresa")
         if usuario.estado != Usuario.ESTADO_ACTIVO:
-            raise ValueError("La cuenta no está activa")
+            raise ForbiddenError("La cuenta no está activa")
 
         return usuario
 

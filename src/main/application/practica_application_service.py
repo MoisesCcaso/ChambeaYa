@@ -3,6 +3,7 @@ from typing import Final
 from domain.convocatorias.postulacion import Postulacion
 from domain.practica_evaluacion.practica import Practica
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
+from shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 NOT_FOUND: Final = "Práctica no encontrada"
 
@@ -19,19 +20,19 @@ class PracticaApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         if postulacion.estado != Postulacion.ESTADO_SELECCIONADA:
-            raise ValueError("La postulación debe estar seleccionada para iniciar la práctica")
+            raise ConflictError("La postulación debe estar seleccionada para iniciar la práctica")
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La postulación no pertenece a esta empresa")
+            raise ForbiddenError("La postulación no pertenece a esta empresa")
 
         existente = self.practica_repository.find_by_postulacion_id(postulacion_id)
         if existente is not None:
-            raise ValueError("La práctica ya fue iniciada")
+            raise ConflictError("La práctica ya fue iniciada")
 
         practica = Practica.iniciar(postulacion_id, postulacion.practicante_id)
         return self.practica_repository.save(practica)
@@ -58,16 +59,16 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError(NOT_FOUND)
+            raise NotFoundError(NOT_FOUND)
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
+            raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
         practica.registrar_evaluacion(puntaje)
         guardada = self.practica_repository.save(practica)
@@ -102,7 +103,7 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError(NOT_FOUND)
+            raise NotFoundError(NOT_FOUND)
         self._require_empresa_owner(empresa_id, practica)
         eliminada = practica.eliminar_evaluacion(evaluacion_id)
         self.practica_repository.save(practica)
@@ -112,7 +113,7 @@ class PracticaApplicationService:
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError(NOT_FOUND)
+            raise NotFoundError(NOT_FOUND)
         self._require_empresa_owner(empresa_id, practica)
 
         practica.finalizar()
@@ -126,7 +127,7 @@ class PracticaApplicationService:
 
         empresa = self.perfil_repository.find_empresa_by_user_id(usuario_id)
         if empresa is None:
-            raise ValueError("Perfil no encontrado")
+            raise NotFoundError("Perfil no encontrado")
 
         if hasattr(self.practica_repository, "find_by_empresa_id"):
             return self.practica_repository.find_by_empresa_id(empresa.id)
@@ -148,21 +149,21 @@ class PracticaApplicationService:
     def _get_practica_autorizada(self, usuario_id, practica_id):
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Perfil de practicante no encontrado")
+            raise ForbiddenError("Perfil de practicante no encontrado")
 
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError(NOT_FOUND)
+            raise NotFoundError(NOT_FOUND)
 
         if practica.practicante_id != practicante.id:
-            raise ValueError("No autorizado para acceder a esta práctica")
+            raise ForbiddenError("No autorizado para acceder a esta práctica")
 
         return practica
 
     def _get_practica_visible(self, usuario_id, practica_id):
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError(NOT_FOUND)
+            raise NotFoundError(NOT_FOUND)
 
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is not None and practica.practicante_id == practicante.id:
@@ -173,17 +174,17 @@ class PracticaApplicationService:
             self._require_empresa_owner(empresa.id, practica)
             return practica
 
-        raise ValueError("No autorizado para acceder a esta práctica")
+        raise ForbiddenError("No autorizado para acceder a esta práctica")
 
     def _require_empresa_owner(self, empresa_id, practica):
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La práctica no pertenece a esta empresa")
+            raise ForbiddenError("La práctica no pertenece a esta empresa")
         return convocatoria
 
     def _require_repositories(self):

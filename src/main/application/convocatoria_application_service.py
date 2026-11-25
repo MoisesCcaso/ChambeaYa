@@ -1,6 +1,7 @@
 from application.dtos import ConvocatoriaCommand
 from domain.convocatorias.convocatoria_fabrica import ConvocatoriaFabrica
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
+from shared.errors import ForbiddenError, NotFoundError
 
 class ConvocatoriaApplicationService:
     def __init__(self, convocatoria_repository=None, convocatoria_fabrica=None):
@@ -23,9 +24,9 @@ class ConvocatoriaApplicationService:
         self._require_repository()
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
+            raise ForbiddenError("La convocatoria no pertenece a esta empresa")
 
         convocatoria.publicar()
         return self.convocatoria_repository.save(convocatoria)
@@ -72,7 +73,7 @@ class ConvocatoriaApplicationService:
         convocatoria = self._find_owned(empresa_id, convocatoria_id)
         convocatoria.validar_eliminacion()
         if not self.convocatoria_repository.delete(convocatoria_id):
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         return convocatoria
 
     def search(self, query=None, estado=None):
@@ -83,7 +84,7 @@ class ConvocatoriaApplicationService:
         self._require_repository()
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         return convocatoria
 
     def list_for_empresa(self, empresa_id):
@@ -93,9 +94,9 @@ class ConvocatoriaApplicationService:
     def _find_owned(self, empresa_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
+            raise ForbiddenError("La convocatoria no pertenece a esta empresa")
         return convocatoria
 
     def _require_repository(self):

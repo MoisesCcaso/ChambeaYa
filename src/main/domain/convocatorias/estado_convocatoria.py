@@ -1,4 +1,5 @@
 from abc import ABC
+from shared.errors import ConflictError
 
 
 class EstadoConvocatoria(ABC):
@@ -12,13 +13,13 @@ class EstadoConvocatoria(ABC):
     fecha_cierre = None
 
     def publicar(self):
-        raise ValueError("Solo una convocatoria en borrador puede publicarse")
+        raise ConflictError("Solo una convocatoria en borrador puede publicarse")
 
     def cerrar(self, fecha_cierre):
-        raise ValueError("Solo una convocatoria publicada puede cerrarse")
+        raise ConflictError("Solo una convocatoria publicada puede cerrarse")
 
     def reabrir(self):
-        raise ValueError("Solo una convocatoria cerrada puede reabrirse")
+        raise ConflictError("Solo una convocatoria cerrada puede reabrirse")
 
 
 class BorradorState(EstadoConvocatoria):

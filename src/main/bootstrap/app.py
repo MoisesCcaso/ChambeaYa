@@ -1,13 +1,13 @@
 import os
 from pathlib import Path
 
-from flask import Flask, jsonify
-from flask_wtf.csrf import CSRFError, CSRFProtect
-from sqlalchemy.exc import IntegrityError
+from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 from config import config_by_name
 from bootstrap.demo import register_demo_commands
 from bootstrap.email_cli import register_email_commands
+from bootstrap.error_handlers import register_error_handlers
 from bootstrap.routes import register_routes
 from bootstrap import models  # noqa: F401
 from shared.database import db, migrate
@@ -44,18 +44,5 @@ def create_app(config_name=None):
     register_routes(app)
     register_demo_commands(app)
     register_email_commands(app)
-
-    @app.errorhandler(IntegrityError)
-    def handle_integrity_error(_error):
-        db.session.rollback()
-        return jsonify({"error": "El registro ya existe o contiene datos en conflicto"}), 409
-
-    @app.errorhandler(CSRFError)
-    def handle_csrf_error(error):
-        return jsonify({"error": f"Solicitud rechazada: {error.description}"}), 400
-
-    @app.errorhandler(413)
-    def handle_payload_too_large(_error):
-        return jsonify({"error": "El archivo excede el límite de 10 MB"}), 413
-
+    register_error_handlers(app)
     return app

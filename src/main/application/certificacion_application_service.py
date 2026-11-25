@@ -1,5 +1,6 @@
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
+from shared.errors import ForbiddenError, NotFoundError
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
@@ -17,21 +18,21 @@ class CertificacionApplicationService:
 
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
-            raise ValueError("Práctica no encontrada")
+            raise NotFoundError("Práctica no encontrada")
 
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
+            raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
         practicante = self.perfil_repository.find_practicante_by_id(practica.practicante_id)
         if practicante is None:
-            raise ValueError("Practicante no encontrado")
+            raise NotFoundError("Practicante no encontrado")
 
         existente = self.certificado_repository.find_by_practica_id(practica_id)
         if existente is not None:
@@ -65,7 +66,7 @@ class CertificacionApplicationService:
 
         certificado = self.certificado_repository.find_by_codigo(codigo_qr_valor)
         if certificado is None:
-            raise ValueError("Certificado no encontrado")
+            raise NotFoundError("Certificado no encontrado")
 
         qr_valido = certificado.verificar_qr(codigo_qr_valor)
         documento_valido = (
