@@ -6,7 +6,7 @@ from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.perfil.practicante import Practicante
 from domain.perfil.empresa import Empresa
 from domain.perfil.ruc import RUC
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 

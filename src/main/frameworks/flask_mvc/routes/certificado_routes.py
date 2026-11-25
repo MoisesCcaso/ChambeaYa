@@ -5,8 +5,8 @@ from flask import Blueprint, jsonify, send_file, session, url_for
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA, CERTIFICADO_NO_ENCONTRADO
+from bootstrap.dependencies import container
+from shared.http_messages import NOT_AUTHENTICATED, COMPANY_NOT_FOUND, CERTIFICATE_NOT_FOUND
 
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
@@ -45,12 +45,12 @@ def get_authenticated_user_id():
 def issue_certificado(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     perfil_repository = container.get_perfil_repository()
     empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     try:
         certificado, creado = build_certificacion_service().issue_certificate(
@@ -76,7 +76,7 @@ def verify_certificado(codigo_qr_valor):
 def get_certificado_by_practica(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     practica_service = container.get_practica_service()
     try:
@@ -85,7 +85,7 @@ def get_certificado_by_practica(practica_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     if certificado is None:
-        return jsonify({"error": CERTIFICADO_NO_ENCONTRADO}), 404
+        return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
     return jsonify(serialize_certificado(certificado)), 200
 
 
@@ -93,7 +93,7 @@ def get_certificado_by_practica(practica_id):
 def download_certificado_pdf(practica_id):
     certificado = container.get_certificado_repository().find_by_practica_id(practica_id)
     if certificado is None or certificado.documento is None:
-        return jsonify({"error": CERTIFICADO_NO_ENCONTRADO}), 404
+        return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
     if not certificado.verificar_integridad(certificado.documento.contenido):
         return jsonify({"error": "El certificado perdió su integridad"}), 409
 
@@ -124,7 +124,7 @@ def download_certificado_pdf(practica_id):
 def download_certificado_qr(codigo_qr_valor):
     certificado = container.get_certificado_repository().find_by_codigo(codigo_qr_valor)
     if certificado is None or certificado.codigo_qr is None:
-        return jsonify({"error": CERTIFICADO_NO_ENCONTRADO}), 404
+        return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
 
     buffer = BytesIO()
     verification_url = url_for(

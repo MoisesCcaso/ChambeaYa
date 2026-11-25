@@ -3,8 +3,8 @@
 import unittest
 
 from domain.matching.sugerencia import Sugerencia
-from frameworks.flask_mvc.app import create_app
-from frameworks.sqlalchemy_orm.database import db
+from bootstrap.app import create_app
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel

@@ -13,7 +13,7 @@ mkdir -p "$D"
 [ -f "$D/secret_key" ] || python3 -c 'import secrets; print(secrets.token_hex())' > "$D/secret_key"
 
 # modo demo: ProductionConfig exige cookies Secure y el login no funcionaria por http
-export FLASK_APP=frameworks.flask_mvc.app:create_app FLASK_ENV=demo DEMO_PASSWORD=Demo1234
+export FLASK_APP=bootstrap.app:create_app FLASK_ENV=demo DEMO_PASSWORD=Demo1234
 export DATABASE_URL="sqlite:///$DB" FLASK_PORT="$PORT"
 SECRET_KEY=$(cat "$D/secret_key")
 export SECRET_KEY

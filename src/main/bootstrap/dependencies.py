@@ -24,13 +24,13 @@ from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 
 class DependencyContainer:
-    """Contenedor de dependencias e inyector para la capa web (SOLID-DIP)."""
+    """Dependency container and injector for the web layer (SOLID-DIP)."""
 
     def __init__(self):
         self._repos = {}
         self._services = {}
 
-    # Resolutores de Repositorios
+    # Repository resolvers
     def get_usuario_repository(self):
         return self._repos.get("usuario") or SqlAlchemyUsuarioRepository()
 
@@ -55,7 +55,7 @@ class DependencyContainer:
     def get_matching_repository(self):
         return self._repos.get("matching") or SqlAlchemyMatchingRepository()
 
-    # Resolutores de Servicios de Aplicación
+    # Application service resolvers
     def get_usuario_service(self):
         if "usuario_service" in self._services:
             return self._services["usuario_service"]

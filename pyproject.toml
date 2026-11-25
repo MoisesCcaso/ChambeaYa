@@ -38,13 +38,15 @@ packages = [
     { include = "domain", from = "src/main" },           # capa de dominio (entidades y reglas)
     { include = "frameworks", from = "src/main" },       # Flask, SQLAlchemy, migraciones
     { include = "infrastructure", from = "src/main" },   # repositorios, SMTP
+    { include = "bootstrap", from = "src/main" },        # composition root: Flask app, wiring, web, migrations
+    { include = "shared", from = "src/main" },           # shared kernel: database, mixins, messages
     { include = "config.py", from = "src/main" },
     { include = "run.py", from = "src/main" },
 ]
 include = [
-    { path = "src/main/frameworks/flask_mvc/templates/**/*", format = ["sdist", "wheel"] },
-    { path = "src/main/frameworks/flask_mvc/static/**/*", format = ["sdist", "wheel"] },
-    { path = "src/main/frameworks/migrations/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/bootstrap/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/bootstrap/static/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/bootstrap/migrations/**/*", format = ["sdist", "wheel"] },
 ]
 exclude = ["**/__pycache__/**", "**/*.pyc"]
 
@@ -58,8 +60,8 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["application", "domain", "frameworks", "infrastructure"]
-omit = ["src/main/frameworks/migrations/*", "*/__pycache__/*"]
+source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared"]
+omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]
 output = "reports/coverage.xml"
@@ -70,4 +72,4 @@ directory = "reports/htmlcov"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-exclude = ["src/main/frameworks/migrations", ".venv"]
+exclude = ["src/main/bootstrap/migrations", ".venv"]

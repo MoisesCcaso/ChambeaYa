@@ -24,12 +24,12 @@ if ($Reset -and (Test-Path -LiteralPath $demoDatabase)) {
     Write-Host "Base de demostración reiniciada." -ForegroundColor Yellow
 }
 
-& $pythonPath -m flask --app frameworks.flask_mvc.app:create_app db upgrade
+& $pythonPath -m flask --app bootstrap.app:create_app db upgrade
 if ($LASTEXITCODE -ne 0) {
     throw "No se pudieron aplicar las migraciones."
 }
 
-& $pythonPath -m flask --app frameworks.flask_mvc.app:create_app seed-demo
+& $pythonPath -m flask --app bootstrap.app:create_app seed-demo
 if ($LASTEXITCODE -ne 0) {
     throw "No se pudieron crear los datos de demostración."
 }
@@ -42,4 +42,4 @@ Write-Host "  Empresa:      empresa@demo.local / $env:DEMO_PASSWORD"
 Write-Host ""
 Write-Host "Presiona Ctrl+C para detener la aplicación."
 
-& $pythonPath -m flask --app frameworks.flask_mvc.app:create_app run --no-reload
+& $pythonPath -m flask --app bootstrap.app:create_app run --no-reload

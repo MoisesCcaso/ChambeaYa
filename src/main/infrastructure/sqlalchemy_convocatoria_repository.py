@@ -2,7 +2,7 @@ import json
 
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.convocatoria import Convocatoria
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
 
 

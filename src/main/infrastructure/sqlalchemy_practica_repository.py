@@ -2,7 +2,7 @@ from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from domain.practica_evaluacion.practica import Practica
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel

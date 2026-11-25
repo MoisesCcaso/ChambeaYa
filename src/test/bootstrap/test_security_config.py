@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 import config
 from config import ProductionConfig
-from frameworks.flask_mvc.app import create_app
-from frameworks.sqlalchemy_orm.database import db
+from bootstrap.app import create_app
+from shared.database import db
 
 
 class CsrfProtectionTest(unittest.TestCase):

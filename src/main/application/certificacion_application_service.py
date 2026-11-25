@@ -1,5 +1,5 @@
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
@@ -21,11 +21,11 @@ class CertificacionApplicationService:
 
         postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
         if postulacion is None:
-            raise ValueError(POSTULACION_NO_ENCONTRADA)
+            raise ValueError(JOB_APPLICATION_NOT_FOUND)
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
+            raise ValueError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La práctica no pertenece a una convocatoria de esta empresa")
 

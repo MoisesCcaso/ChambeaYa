@@ -1,5 +1,5 @@
-from frameworks.sqlalchemy_orm.database import db
-from frameworks.sqlalchemy_orm.models.mixins import TimestampMixin
+from shared.database import db
+from shared.mixins import TimestampMixin
 
 
 class SugerenciaModel(TimestampMixin, db.Model):

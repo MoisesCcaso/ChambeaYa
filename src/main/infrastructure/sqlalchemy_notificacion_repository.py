@@ -3,7 +3,7 @@ import json
 from domain.notificaciones.notificacion import Notificacion
 from domain.notificaciones.i_notificacion_writer import INotificacionWriter
 from domain.notificaciones.i_notificacion_reader import INotificacionReader
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
 
 

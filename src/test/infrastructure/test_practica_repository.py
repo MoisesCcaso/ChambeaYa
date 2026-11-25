@@ -7,7 +7,7 @@ import pytest
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.practica import Practica
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
