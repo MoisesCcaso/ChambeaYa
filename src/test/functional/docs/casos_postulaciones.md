@@ -1,7 +1,7 @@
 # Casos de prueba – Oportunidades, postulaciones y certificado público (I6)
 
 Técnica de caja negra: **casos de uso y estados**. Automatizados en
-[`test_postulaciones.py`](../test_postulaciones.py) (1 método por caso).
+[`test_job_applications.py`](../test_job_applications.py) (1 método por caso).
 
 | ID | Objeto de prueba | Escenario / Acciones | Valores de prueba | Resultado esperado | Resultado obtenido |
 |----|------------------|----------------------|-------------------|--------------------|--------------------|
@@ -14,7 +14,7 @@ Técnica de caja negra: **casos de uso y estados**. Automatizados en
 
 Notas:
 
-- Cada caso crea sus propios datos por API (`postulacion_data.py`), así que no
+- Cada caso crea sus propios datos por API (`job_application_data.py`), así que no
   depende de otros casos ni modifica a `practicante@demo.local`; POS-01 usa esa
   cuenta solo para leer.
 - POS-05 recorre el flujo completo por API: convocatoria publicada,
@@ -27,7 +27,7 @@ Notas:
 
 ```bash
 .\demo.ps1 -Reset                      # Windows: reinicia la BD demo y deja la app en :5000
-poetry run pytest src/test/functional/test_postulaciones.py
+poetry run pytest src/test/functional/test_job_applications.py
 ```
 
 `FLASK_ENV=demo` activa `EXPOSE_AUTH_TOKENS`, necesario para activar las

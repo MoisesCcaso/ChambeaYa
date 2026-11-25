@@ -1,4 +1,4 @@
-"""Protección CSRF y SECRET_KEY (hotspots de SonarQube S4502 y S2068)."""
+"""CSRF protection and SECRET_KEY (SonarQube hotspots S4502 and S2068)."""
 
 import importlib
 import os
@@ -29,12 +29,12 @@ class CsrfProtectionTest(unittest.TestCase):
         html = self.client.get("/ingresar").get_data(as_text=True)
         return re.search(r'<meta name="csrf-token" content="([^"]+)"', html).group(1)
 
-    def test_post_sin_token_csrf_es_rechazado(self):
+    def test_post_without_csrf_token_is_rejected(self):
         response = self.client.post("/auth/login", json={"email": "a@b.com", "password": "x"})
         self.assertEqual(400, response.status_code)
         self.assertIn("Solicitud rechazada", response.get_json()["error"])
 
-    def test_post_con_token_csrf_llega_a_la_ruta(self):
+    def test_post_with_csrf_token_reaches_the_route(self):
         response = self.client.post(
             "/auth/login",
             json={"email": "a@b.com", "password": "x"},
@@ -55,17 +55,17 @@ class CsrfProtectionTest(unittest.TestCase):
         self.assertEqual(401, response.status_code)
         self.assertEqual({"error": "Credenciales inválidas"}, response.get_json())
 
-    def test_get_no_requiere_token(self):
+    def test_get_does_not_require_a_token(self):
         self.assertEqual(200, self.client.get("/convocatorias").status_code)
 
 
 class SecretKeyTest(unittest.TestCase):
-    def test_produccion_sin_secret_key_falla(self):
+    def test_production_without_secret_key_fails(self):
         with patch.object(ProductionConfig, "SECRET_KEY", None):
             with self.assertRaisesRegex(RuntimeError, "SECRET_KEY"):
                 create_app("production")
 
-    def test_desarrollo_sin_secret_key_genera_una_aleatoria(self):
+    def test_development_without_secret_key_generates_a_random_one(self):
         entorno = {k: v for k, v in os.environ.items() if k != "SECRET_KEY"}
         try:
             with patch.dict(os.environ, entorno, clear=True), patch("dotenv.load_dotenv"):

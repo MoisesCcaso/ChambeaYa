@@ -1,8 +1,8 @@
-"""Pruebas funcionales del registro de cuentas (I1).
+"""Functional tests for account registration (I1).
 
-Técnicas de caja negra: clases de equivalencia y valores límite sobre la
-vista /registro. Los casos que crean cuentas usan un correo único, así que
-se pueden repetir sin reiniciar la base demo.
+Black-box techniques: equivalence classes and boundary values on the
+/registro view. Cases that create accounts use a unique email, so they
+can be repeated without resetting the demo database.
 """
 
 import uuid
@@ -17,18 +17,18 @@ PASSWORD_REQUIREMENTS_ERROR = "La contraseña todavía no cumple todos los requi
 
 
 def unique_email() -> str:
-    """Genera un correo que no existe en la base de datos."""
+    """Generates an email that does not exist in the database."""
     return f"reg-{uuid.uuid4().hex[:12]}@test.local"
 
 
 @pytest.fixture
 def page(driver, base_url) -> RegisterPage:
-    """Abre la vista de registro antes de cada prueba."""
+    """Opens the registration view before each test."""
     return RegisterPage(driver, base_url).open()
 
 
-def test_reg_01_registro_valido_de_practicante(page):
-    """Datos válidos crean la cuenta y llevan a la activación."""
+def test_reg_01_valid_intern_registration(page):
+    """Valid data creates the account and leads to activation."""
     page.register(unique_email(), VALID_PASSWORD, role="practicante")
 
     assert page.feedback_text() == "Cuenta creada. Te llevaremos a la activación."
@@ -37,8 +37,8 @@ def test_reg_01_registro_valido_de_practicante(page):
     assert "token=" in page.driver.current_url
 
 
-def test_reg_02_contrasena_de_7_caracteres_no_cumple_longitud(page):
-    """Límite inferior: 7 caracteres no cumplen la regla y el navegador bloquea el envío."""
+def test_reg_02_7_character_password_fails_length(page):
+    """Lower bound: 7 characters fail the rule and the browser blocks submitting."""
     page.fill(unique_email(), "Abcd123")
 
     assert page.rule_is_valid("length") is False
@@ -50,8 +50,8 @@ def test_reg_02_contrasena_de_7_caracteres_no_cumple_longitud(page):
     assert not page.is_feedback_visible()
 
 
-def test_reg_03_contrasena_de_8_caracteres_cumple_todas_las_reglas(page):
-    """Límite exacto: 8 caracteres con mayúscula, minúscula y número cumplen todo."""
+def test_reg_03_8_character_password_meets_all_rules(page):
+    """Exact bound: 8 characters with upper, lower case and a digit meet every rule."""
     page.fill(unique_email(), "Abcd1234")
 
     assert page.rules_status() == {rule: True for rule in RegisterPage.PASSWORD_RULES}
@@ -67,8 +67,8 @@ def test_reg_03_contrasena_de_8_caracteres_cumple_todas_las_reglas(page):
     ],
     ids=["sin-mayuscula", "sin-minuscula", "sin-numero"],
 )
-def test_reg_04_contrasena_sin_clase_de_caracter_requerida(page, password, missing_rule):
-    """Clases inválidas: falta una mayúscula, una minúscula o un número."""
+def test_reg_04_password_missing_a_required_character_class(page, password, missing_rule):
+    """Invalid classes: missing an uppercase letter, a lowercase letter or a digit."""
     page.fill(unique_email(), password)
 
     status = page.rules_status()
@@ -82,8 +82,8 @@ def test_reg_04_contrasena_sin_clase_de_caracter_requerida(page, password, missi
     assert page.current_path() == "/registro"
 
 
-def test_reg_05_confirmacion_distinta_de_la_contrasena(page):
-    """Si la confirmación no coincide, no se crea la cuenta."""
+def test_reg_05_confirmation_differs_from_password(page):
+    """If the confirmation does not match, the account is not created."""
     page.fill(unique_email(), VALID_PASSWORD, "Abcd1235")
     page.submit()
 
@@ -93,7 +93,7 @@ def test_reg_05_confirmacion_distinta_de_la_contrasena(page):
 
 
 def test_reg_06_email_ya_registrado(page):
-    """Un correo que ya tiene cuenta es rechazado por el servidor."""
+    """An email that already has an account is rejected by the server."""
     page.register(DEMO_EMAIL, VALID_PASSWORD)
 
     assert page.feedback_text() == (
@@ -104,8 +104,8 @@ def test_reg_06_email_ya_registrado(page):
     assert page.current_path() == "/registro"
 
 
-def test_reg_06_email_con_formato_invalido(page):
-    """Un correo sin @ es bloqueado por la validación del navegador."""
+def test_reg_06_email_with_invalid_format(page):
+    """An email without @ is blocked by the browser validation."""
     page.fill("sin-arroba", VALID_PASSWORD)
 
     assert page.field_validation_message("email") != ""

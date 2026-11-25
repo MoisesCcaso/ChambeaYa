@@ -1,4 +1,4 @@
-"""Fixtures compartidas para las pruebas del proyecto."""
+"""Fixtures shared by the project's tests."""
 
 import pytest
 
@@ -8,7 +8,7 @@ from shared.database import db
 
 @pytest.fixture
 def app(tmp_path):
-    """Crea una aplicación aislada con SQLite en memoria para cada prueba."""
+    """Creates an isolated app with in-memory SQLite for each test."""
     application = create_app("testing")
     application.config.update(
         TESTING=True,
@@ -28,12 +28,12 @@ def app(tmp_path):
 
 @pytest.fixture
 def client(app):
-    """Cliente HTTP de prueba asociado a la aplicación aislada."""
+    """Test HTTP client bound to the isolated app."""
     return app.test_client()
 
 
 @pytest.fixture
 def app_context(app):
-    """Contexto de aplicación para pruebas que consultan SQLAlchemy directamente."""
+    """App context for tests that query SQLAlchemy directly."""
     with app.app_context():
         yield

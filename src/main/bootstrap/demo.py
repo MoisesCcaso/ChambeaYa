@@ -235,7 +235,7 @@ def seed_demo_data(password):
 def register_demo_commands(app):
     @app.cli.command("seed-demo")
     def seed_demo_command():
-        """Carga cuentas y datos para la presentación local."""
+        """Loads demo accounts and data for a local presentation."""
         password = current_app.config.get("DEMO_PASSWORD")
         if not password:
             raise click.ClickException(

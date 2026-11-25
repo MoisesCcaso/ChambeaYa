@@ -3,7 +3,7 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
-from unittest.mock import call, create_autospec
+from unittest.mock import create_autospec
 
 from internships.application.internship_application_service import InternshipApplicationService
 from recruitment.domain.job_posting import JobPosting

@@ -1,6 +1,6 @@
 from recruitment.application.dtos import JobPostingCommand
 from recruitment.domain.job_posting_factory import JobPostingFactory
-from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
+from shared.error_messages import JOB_POSTING_NOT_FOUND
 from shared.errors import ForbiddenError, NotFoundError
 
 class JobPostingApplicationService:

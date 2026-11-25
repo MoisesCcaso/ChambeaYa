@@ -1,9 +1,9 @@
-"""Datos de prueba para los flujos de activación y recuperación (I3).
+"""Test data for the activation and recovery flows (I3).
 
-Crea cuentas únicas por la API de autenticación para que cada prueba sea
-independiente de las demás y no altere las cuentas demo. Requiere que la
-aplicación exponga los tokens (``EXPOSE_AUTH_TOKENS=true``, activo en la
-configuración ``demo``, ``development`` sin SMTP y ``testing``).
+Creates unique accounts through the authentication API so every test is
+independent of the others and does not alter the demo accounts. Requires the
+app to expose the tokens (``EXPOSE_AUTH_TOKENS=true``, on in the ``demo``
+configuration, in ``development`` without SMTP and in ``testing``).
 """
 
 import json
@@ -17,12 +17,12 @@ VALID_PASSWORD = "Abcd1234"
 
 
 def unique_email() -> str:
-    """Genera un correo que no existe en la base de datos."""
+    """Generates an email that does not exist in the database."""
     return f"func-{uuid.uuid4().hex[:12]}@test.local"
 
 
 def csrf_token(opener, base_url: str) -> str:
-    """Lee el token CSRF de la página de ingreso con la sesión del ``opener``."""
+    """Reads the CSRF token from the login page with the ``opener`` session."""
     with opener.open(f"{base_url.rstrip('/')}/ingresar", timeout=10) as response:
         html = response.read().decode("utf-8")
     match = re.search(r'<meta name="csrf-token" content="([^"]+)"', html)
@@ -31,7 +31,7 @@ def csrf_token(opener, base_url: str) -> str:
 
 
 def _post(base_url: str, path: str, payload: dict) -> dict:
-    """Envía un POST JSON a la API y devuelve el cuerpo decodificado."""
+    """Sends a JSON POST to the API and returns the decoded body."""
     opener = request.build_opener(request.HTTPCookieProcessor(CookieJar()))
     req = request.Request(
         f"{base_url.rstrip('/')}{path}",
@@ -55,7 +55,7 @@ def _post(base_url: str, path: str, payload: dict) -> dict:
 def register_pending_user(
     base_url: str, password: str = VALID_PASSWORD
 ) -> dict:
-    """Registra un practicante sin activar y devuelve email, password y token."""
+    """Registers an inactive intern and returns email, password and token."""
     email = unique_email()
     data = _post(
         base_url,
@@ -78,7 +78,7 @@ def register_pending_user(
 def register_active_user(
     base_url: str, password: str = VALID_PASSWORD
 ) -> dict:
-    """Registra y activa un practicante; devuelve email y password."""
+    """Registers and activates an intern; returns email and password."""
     user = register_pending_user(base_url, password)
     _post(base_url, "/auth/activate", {"token": user["activation_token"]})
     return user

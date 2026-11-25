@@ -1,1 +1,1 @@
-"""Pruebas funcionales automatizadas con Selenium."""
+"""Automated functional tests with Selenium."""

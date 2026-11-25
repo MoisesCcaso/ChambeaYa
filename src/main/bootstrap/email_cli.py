@@ -14,7 +14,7 @@ def register_email_commands(app):
         help="Dirección que recibirá el correo de prueba.",
     )
     def test_email(recipient):
-        """Comprueba la configuración SMTP enviando un correo real."""
+        """Checks the SMTP configuration by sending a real email."""
         if current_app.config.get("MAIL_DELIVERY_MODE") != "smtp":
             raise click.ClickException(
                 "MAIL_DELIVERY_MODE debe ser smtp para realizar una prueba real."

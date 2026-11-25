@@ -1,7 +1,7 @@
 # Casos de prueba – Activación y recuperación de contraseña (I3)
 
 Técnica de caja negra: **casos de uso**. Automatizados en
-[`test_recuperacion.py`](../test_recuperacion.py) (1 método por caso).
+[`test_recovery.py`](../test_recovery.py) (1 método por caso).
 
 | ID | Objeto de prueba | Escenario / Acciones | Valores de prueba | Resultado esperado | Resultado obtenido |
 |----|------------------|----------------------|-------------------|--------------------|--------------------|
@@ -23,7 +23,7 @@ Notas:
 
 ```bash
 scripts/demo_reset.sh            # reinicia la BD demo y deja la app en :5000
-poetry run pytest src/test/functional/test_recuperacion.py
+poetry run pytest src/test/functional/test_recovery.py
 ```
 
 `FLASK_ENV=demo` activa `EXPOSE_AUTH_TOKENS`, necesario para obtener los

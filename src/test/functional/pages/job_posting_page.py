@@ -1,4 +1,4 @@
-"""Page Object para crear y consultar convocatorias de empresa."""
+"""Page Object to create and query company job postings."""
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -6,8 +6,8 @@ from selenium.webdriver.common.keys import Keys
 from .base_page import BasePage
 
 
-class ConvocatoriaPage(BasePage):
-    """Acciones y consultas de la vista de convocatorias en `/app`."""
+class JobPostingPage(BasePage):
+    """Actions and queries for the job postings view in `/app`."""
 
     MENU = (By.CSS_SELECTOR, '[data-view="convocatorias"]')
     PANEL = (By.CSS_SELECTOR, '[data-view-panel="convocatorias"]')
@@ -22,26 +22,26 @@ class ConvocatoriaPage(BasePage):
     TABLE = (By.ID, "openings-table")
     TOAST_CLOSE_BUTTONS = (By.CSS_SELECTOR, '#toast-region .toast button[aria-label="Cerrar"]')
 
-    def open_convocatorias(self) -> "ConvocatoriaPage":
-        """Abre la sección de convocatorias desde el menú de empresa."""
+    def open_job_postings(self) -> "JobPostingPage":
+        """Opens the job postings section from the company menu."""
         self.wait_until_clickable(self.MENU).click()
         self.wait_until_visible(self.PANEL)
         return self
 
-    def start_new_convocatoria(self) -> "ConvocatoriaPage":
-        """Abre el formulario modal para crear una convocatoria."""
+    def start_new_job_posting(self) -> "JobPostingPage":
+        """Opens the modal form to create a job posting."""
         self.wait_until_clickable(self.NEW_BUTTON).click()
         self.wait_until_visible(self.DIALOG)
         return self
 
-    def fill_convocatoria(
+    def fill_job_posting(
         self,
         title: str,
         description: str = "",
         skills: str = "",
         benefits: str = "",
-    ) -> "ConvocatoriaPage":
-        """Completa los campos del formulario de convocatoria."""
+    ) -> "JobPostingPage":
+        """Fills in the job posting form fields."""
         fields = (
             (self.TITLE, title),
             (self.DESCRIPTION, description),
@@ -55,7 +55,7 @@ class ConvocatoriaPage(BasePage):
         return self
 
     def save_draft(self) -> None:
-        """Guarda el formulario como borrador."""
+        """Saves the form as a draft."""
         self.wait_until_clickable(self.SAVE_BUTTON).click()
 
     def create_draft(
@@ -65,19 +65,19 @@ class ConvocatoriaPage(BasePage):
         skills: str = "",
         benefits: str = "",
     ) -> None:
-        """Completa y guarda una nueva convocatoria como borrador."""
-        self.start_new_convocatoria()
-        self.fill_convocatoria(title, description, skills, benefits)
+        """Fills in and saves a new job posting as a draft."""
+        self.start_new_job_posting()
+        self.fill_job_posting(title, description, skills, benefits)
         self.save_draft()
         self.wait_for(
             lambda _driver: self.driver.find_element(*self.DIALOG).get_attribute(
                 "open"
             ) is None
         )
-        self.convocatoria_row(title)
+        self.job_posting_row(title)
 
-    def convocatoria_row(self, title: str):
-        """Devuelve la fila de la tabla que corresponde al título indicado."""
+    def job_posting_row(self, title: str):
+        """Returns the table row for the given title."""
         return self.wait_until_visible(
             (
                 By.XPATH,
@@ -85,14 +85,14 @@ class ConvocatoriaPage(BasePage):
             )
         )
 
-    def convocatoria_is_borrador(self, title: str) -> bool:
-        """Indica si la fila de la convocatoria muestra el estado borrador."""
-        return "borrador" in self.convocatoria_row(title).text.casefold()
+    def job_posting_is_draft(self, title: str) -> bool:
+        """Whether the job posting row shows the draft status."""
+        return "borrador" in self.job_posting_row(title).text.casefold()
 
     def publish_job_posting(self, title: str) -> None:
-        """Publica el borrador identificado por su título y espera la actualización."""
+        """Publishes the draft identified by its title and waits for the update."""
         self._dismiss_toasts()
-        row = self.convocatoria_row(title)
+        row = self.job_posting_row(title)
         publish_button = row.find_element(
             By.CSS_SELECTOR, "[data-publish-opening]"
         )
@@ -104,8 +104,8 @@ class ConvocatoriaPage(BasePage):
             )
         )
 
-    def convocatoria_is_publicada(self, title: str) -> bool:
-        """Indica si la tabla muestra la convocatoria como publicada."""
+    def job_posting_is_published(self, title: str) -> bool:
+        """Whether the table shows the job posting as published."""
         return self.wait_until_visible(
             (
                 By.XPATH,
@@ -113,15 +113,15 @@ class ConvocatoriaPage(BasePage):
             )
         ).is_displayed()
 
-    def can_publish_convocatoria(self, title: str) -> bool:
-        """Indica si la fila de la convocatoria ofrece la acción Publicar."""
-        row = self.convocatoria_row(title)
+    def can_publish_job_posting(self, title: str) -> bool:
+        """Whether the job posting row offers the Publish action."""
+        row = self.job_posting_row(title)
         return bool(row.find_elements(By.CSS_SELECTOR, "[data-publish-opening]"))
 
     def close_job_posting(self, title: str) -> None:
-        """Cierra una convocatoria publicada y espera el estado actualizado."""
+        """Closes a published job posting and waits for the updated status."""
         self._dismiss_toasts()
-        row = self.convocatoria_row(title)
+        row = self.job_posting_row(title)
         close_button = row.find_element(By.CSS_SELECTOR, "[data-close-opening]")
         close_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
@@ -131,8 +131,8 @@ class ConvocatoriaPage(BasePage):
             )
         )
 
-    def convocatoria_is_cerrada(self, title: str) -> bool:
-        """Indica si la tabla muestra la convocatoria como cerrada."""
+    def job_posting_is_closed(self, title: str) -> bool:
+        """Whether the table shows the job posting as closed."""
         return self.wait_until_visible(
             (
                 By.XPATH,
@@ -141,8 +141,8 @@ class ConvocatoriaPage(BasePage):
         ).is_displayed()
 
     def open_candidates(self, title: str) -> None:
-        """Abre la lista de candidatos de una convocatoria publicada o cerrada."""
-        row = self.convocatoria_row(title)
+        """Opens the candidate list of a published or closed job posting."""
+        row = self.job_posting_row(title)
         row.find_element(By.CSS_SELECTOR, "[data-candidates-opening]").click()
         self.wait_until_visible((By.ID, "candidates-dialog"))
         self.wait_for(
@@ -153,7 +153,7 @@ class ConvocatoriaPage(BasePage):
         )
 
     def candidate_names(self) -> list[str]:
-        """Devuelve los nombres visibles en la lista de candidatos."""
+        """Returns the names shown in the candidate list."""
         return [
             heading.text.strip()
             for heading in self.driver.find_elements(
@@ -162,10 +162,10 @@ class ConvocatoriaPage(BasePage):
         ]
 
     def candidate_is_listed(self, name: str) -> bool:
-        """Indica si el nombre indicado aparece entre los candidatos."""
+        """Whether the given name appears among the candidates."""
         return name in self.candidate_names()
 
     def _dismiss_toasts(self) -> None:
-        """Cierra avisos flotantes que podrían cubrir los controles de la tabla."""
+        """Closes floating notices that could cover the table controls."""
         for button in self.driver.find_elements(*self.TOAST_CLOSE_BUTTONS):
             button.click()

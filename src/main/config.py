@@ -15,7 +15,7 @@ def env_bool(name, default=False):
 
 
 class Config:
-    # Sin SECRET_KEY fuera de producción: clave aleatoria por proceso (las sesiones no sobreviven reinicios).
+    # Without SECRET_KEY outside production: a random key per process (sessions do not survive restarts).
     SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///chambeaya.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
