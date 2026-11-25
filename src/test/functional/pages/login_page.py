@@ -1,4 +1,4 @@
-"""Page Object para los flujos de inicio de sesión."""
+"""Page Object for the login flows."""
 
 from urllib.parse import urlparse
 
@@ -8,14 +8,14 @@ from .base_page import BasePage
 
 
 class LoginPage(BasePage):
-    """Acciones y consultas de la vista de inicio de sesión."""
+    """Actions and queries for the login view."""
 
     def open_login(self) -> None:
-        """Abre el formulario de ingreso."""
+        """Opens the login form."""
         self.open("/ingresar")
 
     def login(self, email: str, password: str) -> None:
-        """Completa las credenciales y envía el formulario."""
+        """Fills in the credentials and submits the form."""
         self.wait_until_visible((By.NAME, "email")).send_keys(email)
         self.wait_until_visible((By.NAME, "password")).send_keys(password)
         self.wait_until_clickable(
@@ -23,22 +23,22 @@ class LoginPage(BasePage):
         ).click()
 
     def wait_for_path(self, path: str) -> None:
-        """Espera hasta que el navegador llegue a la ruta indicada."""
+        """Waits until the browser reaches the given path."""
         self.wait_for(lambda _driver: self.current_path == path)
 
     def logout(self) -> None:
-        """Cierra la sesión desde el panel y espera el formulario de ingreso."""
+        """Logs out from the dashboard and waits for the login form."""
         self.wait_until_clickable((By.ID, "logout-button")).click()
         self.wait_for_path("/ingresar")
 
     @property
     def current_path(self) -> str:
-        """Ruta actual del navegador, sin dominio ni query string."""
+        """Current browser path, without domain or query string."""
         return urlparse(self.driver.current_url).path
 
     @property
     def role_label(self) -> str:
-        """Espera la carga del rol y devuelve su etiqueta en el panel."""
+        """Waits for the role to load and returns its dashboard label."""
         locator = (By.ID, "sidebar-role")
         self.wait_for(
             lambda browser: (
@@ -51,12 +51,12 @@ class LoginPage(BasePage):
         return self.driver.find_element(*locator).text.strip()
 
     def company_menu_is_visible(self) -> bool:
-        """Espera la opción de convocatorias del menú de empresa."""
+        """Waits for the job postings option in the company menu."""
         return self.wait_until_visible(
             (By.CSS_SELECTOR, '[data-view="convocatorias"]')
         ).is_displayed()
 
     @property
     def error_message(self) -> str:
-        """Espera y devuelve el mensaje de error del formulario."""
+        """Waits for and returns the form error message."""
         return self.wait_until_visible((By.ID, "form-feedback")).text.strip()

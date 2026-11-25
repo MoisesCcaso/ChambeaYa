@@ -4,8 +4,11 @@ pipeline {
   options { timestamps(); disableConcurrentBuilds() }
   environment {
     POETRY_VIRTUALENVS_IN_PROJECT = 'true'
+    // API REST y cliente (vistas) en procesos y puertos distintos
     APP_PORT = '5000'
+    APP_CLIENT_PORT = '5003'
     STAGING_PORT = '5001'
+    STAGING_CLIENT_PORT = '5002'
   }
   stages {
     stage('Build (Poetry)') {
@@ -40,12 +43,13 @@ pipeline {
     }
     stage('Staging efimero') {
       // instancia desechable con BD nueva dentro del workspace: las pruebas no tocan el servidor real
-      steps { sh 'sh scripts/ci/deploy.sh "$WORKSPACE/.staging" "$STAGING_PORT"' }
+      steps { sh 'sh scripts/ci/deploy.sh "$WORKSPACE/.staging" "$STAGING_PORT" "$STAGING_CLIENT_PORT"' }
     }
     stage('Pruebas funcionales (Selenium)') {
       steps {
         sh '''
-          CHAMBEAYA_BASE_URL="http://127.0.0.1:$STAGING_PORT" .poetry-venv/bin/poetry run pytest src/test/functional \
+          CHAMBEAYA_BASE_URL="http://127.0.0.1:$STAGING_CLIENT_PORT" CHAMBEAYA_API_URL="http://127.0.0.1:$STAGING_PORT" \
+            .poetry-venv/bin/poetry run pytest src/test/functional \
             --junitxml=reports/functional.xml --html=reports/functional.html --self-contained-html
         '''
       }
@@ -53,13 +57,13 @@ pipeline {
         always {
           junit 'reports/functional.xml'
           archiveArtifacts artifacts: 'reports/functional.html', allowEmptyArchive: true
-          sh 'kill "$(cat "$WORKSPACE/.staging/app.pid")" 2>/dev/null || true'
+          sh 'for f in app client; do kill "$(cat "$WORKSPACE/.staging/$f.pid")" 2>/dev/null || true; done'
         }
       }
     }
     stage('Despliegue') {
       // solo se llega aqui si todo lo anterior paso; fuera del workspace para sobrevivir a cleanWs
-      steps { sh 'sh scripts/ci/deploy.sh "$JENKINS_HOME/chambeaya" "$APP_PORT"' }
+      steps { sh 'sh scripts/ci/deploy.sh "$JENKINS_HOME/chambeaya" "$APP_PORT" "$APP_CLIENT_PORT"' }
     }
   }
   post { always { cleanWs() } }

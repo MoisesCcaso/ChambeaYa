@@ -18,8 +18,9 @@ poetry install
 
 ## 1. Levantar la aplicación demo
 
-Las pruebas necesitan la app corriendo en `http://127.0.0.1:5000` con los datos
-demo. Dejarla abierta en una terminal aparte.
+Las pruebas necesitan la API REST en `http://127.0.0.1:5000` y el cliente (vistas)
+en `http://127.0.0.1:5001`, con los datos demo. El navegador abre el cliente y los
+datos de prueba se crean llamando a la API. Dejar ambos abiertos en una terminal aparte.
 
 **Windows (PowerShell):**
 
@@ -30,11 +31,7 @@ demo. Dejarla abierta en una terminal aparte.
 **Linux / macOS** (equivalente a `demo.ps1`):
 
 ```bash
-export FLASK_ENV=demo SECRET_KEY=chambeaya-demo-local DATABASE_URL=sqlite:///chambeaya-demo.db DEMO_PASSWORD=Demo1234
-rm -f instance/chambeaya-demo.db          # equivalente a -Reset (opcional)
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-poetry run flask --app frameworks.flask_mvc.app:create_app seed-demo
-poetry run flask --app frameworks.flask_mvc.app:create_app run --no-reload
+scripts/demo_reset.sh            # reinicia la BD demo; --no-reset para conservarla
 ```
 
 En modo demo la app expone los tokens de activación y recuperación
@@ -58,10 +55,10 @@ poetry run pytest src/test/functional \
   --html=reports/functional.html --self-contained-html
 
 # Un solo archivo
-poetry run pytest src/test/functional/test_registro.py
+poetry run pytest src/test/functional/test_registration.py
 
 # Un solo caso
-poetry run pytest "src/test/functional/test_registro.py::test_reg_05_confirmacion_distinta_de_la_contrasena"
+poetry run pytest "src/test/functional/test_registration.py::test_reg_05_confirmation_differs_from_password"
 ```
 
 Chrome se ejecuta en modo headless (sin ventana), según `conftest.py`.
@@ -72,7 +69,8 @@ Los reportes `reports/functional.xml` y `reports/functional.html` están en
 ### Usar otra URL o puerto
 
 ```bash
-CHAMBEAYA_BASE_URL=http://127.0.0.1:5055 poetry run pytest src/test/functional
+CHAMBEAYA_BASE_URL=http://127.0.0.1:5055 CHAMBEAYA_API_URL=http://127.0.0.1:5054 \
+  poetry run pytest src/test/functional
 ```
 
 ### Solo pruebas unitarias (sin navegador ni app)

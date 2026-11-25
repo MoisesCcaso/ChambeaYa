@@ -34,22 +34,29 @@ dev = [
 
 [tool.poetry]
 packages = [
-    { include = "application", from = "src/main" },      # capa de aplicación (casos de uso)
-    { include = "domain", from = "src/main" },           # capa de dominio (entidades y reglas)
-    { include = "frameworks", from = "src/main" },       # Flask, SQLAlchemy, migraciones
-    { include = "infrastructure", from = "src/main" },   # repositorios, SMTP
+    { include = "client", from = "src/main" },           # client (views): HTML/CSS/JS that consume the REST API
+    { include = "bootstrap", from = "src/main" },        # composition root: REST API app, wiring, migrations
+    { include = "shared", from = "src/main" },           # shared kernel: database, mixins, messages
+    { include = "notifications", from = "src/main" },    # bounded context: notifications
+    { include = "identity", from = "src/main" },         # bounded context: identity and access
+    { include = "profiles", from = "src/main" },         # bounded context: intern and company profiles
+    { include = "recruitment", from = "src/main" },      # bounded context: job postings and applications
+    { include = "matching", from = "src/main" },         # bounded context: skill-based suggestions
+    { include = "internships", from = "src/main" },      # bounded context: internships, deliverables, evaluations
+    { include = "certification", from = "src/main" },    # bounded context: digital certificates
     { include = "config.py", from = "src/main" },
     { include = "run.py", from = "src/main" },
 ]
 include = [
-    { path = "src/main/frameworks/flask_mvc/templates/**/*", format = ["sdist", "wheel"] },
-    { path = "src/main/frameworks/flask_mvc/static/**/*", format = ["sdist", "wheel"] },
-    { path = "src/main/frameworks/migrations/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/client/templates/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/client/static/**/*", format = ["sdist", "wheel"] },
+    { path = "src/main/bootstrap/migrations/**/*", format = ["sdist", "wheel"] },
 ]
 exclude = ["**/__pycache__/**", "**/*.pyc"]
 
 [project.scripts]
 chambeaya = "run:main"
+chambeaya-client = "client.run:main"
 
 [tool.pytest.ini_options]
 testpaths = ["src/test"]
@@ -58,8 +65,8 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["application", "domain", "frameworks", "infrastructure"]
-omit = ["src/main/frameworks/migrations/*", "*/__pycache__/*"]
+source = ["client", "bootstrap", "shared", "identity", "profiles", "recruitment", "matching", "internships", "certification", "notifications"]
+omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]
 output = "reports/coverage.xml"
@@ -70,4 +77,4 @@ directory = "reports/htmlcov"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
-exclude = ["src/main/frameworks/migrations", ".venv"]
+exclude = ["src/main/bootstrap/migrations", ".venv"]

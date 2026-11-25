@@ -1,11 +1,11 @@
-"""Operaciones comunes para los Page Objects funcionales."""
+"""Common operations for the functional Page Objects."""
 
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
 class BasePage:
-    """Base mínima con navegación y esperas explícitas."""
+    """Minimal base with navigation and explicit waits."""
 
     def __init__(self, driver, base_url: str, timeout: int = 10):
         self.driver = driver
@@ -13,19 +13,19 @@ class BasePage:
         self.wait = WebDriverWait(driver, timeout)
 
     def open(self, path: str = "/") -> None:
-        """Navega a una ruta absoluta o relativa a la aplicación."""
+        """Navigates to an absolute path or one relative to the app."""
         is_absolute_url = path.startswith(("http://", "https://"))
         url = path if is_absolute_url else f"{self.base_url}/{path.lstrip('/')}"
         self.driver.get(url)
 
     def wait_for(self, condition):
-        """Espera una condición de Selenium y devuelve su resultado."""
+        """Waits for a Selenium condition and returns its result."""
         return self.wait.until(condition)
 
     def wait_until_visible(self, locator):
-        """Espera y devuelve un elemento visible."""
+        """Waits for and returns a visible element."""
         return self.wait_for(EC.visibility_of_element_located(locator))
 
     def wait_until_clickable(self, locator):
-        """Espera y devuelve un elemento habilitado para hacer clic."""
+        """Waits for and returns a clickable element."""
         return self.wait_for(EC.element_to_be_clickable(locator))

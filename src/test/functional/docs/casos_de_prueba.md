@@ -1,7 +1,7 @@
 # Casos de prueba – Perfiles (I4)
 
 Técnica de caja negra: **clases de equivalencia y análisis de valores límite**.  
-Automatizados en [`test_perfiles.py`](../test_perfiles.py) (1 método por caso).
+Automatizados en [`test_profiles.py`](../test_profiles.py) (1 método por caso).
 
 | ID | Objeto de prueba | Escenario / Acciones | Valores de prueba | Resultado esperado |
 |:---|:---|:---|:---|:---|
@@ -19,4 +19,4 @@ Automatizados en [`test_perfiles.py`](../test_perfiles.py) (1 método por caso).
 - Credenciales practicante demo: `practicante@demo.local` / `Demo1234`
 - Credenciales empresa demo: `empresa@demo.local` / `Demo1234`
 - Page Object: [`pages/profile_page.py`](../pages/profile_page.py)
-- Archivo de prueba: [`test_perfiles.py`](../test_perfiles.py)
+- Archivo de prueba: [`test_profiles.py`](../test_profiles.py)
