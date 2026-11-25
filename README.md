@@ -10,10 +10,11 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
 poetry install
 cp .env.example .env            # Windows: Copy-Item .env.example .env
 poetry run flask --app bootstrap.app:create_app db upgrade
-poetry run flask --app bootstrap.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app run --debug --port 5000   # API REST
+poetry run flask --app client.app:create_app run --debug --port 5001      # cliente (otra terminal)
 ```
 
-Abre `http://127.0.0.1:5000`. Para una demo con datos precargados, consulta el [modo demo](#92-modo-demo).
+Abre el cliente en `http://127.0.0.1:5001`; la API REST queda en `http://127.0.0.1:5000`. Para una demo con datos precargados, consulta el [modo demo](#92-modo-demo).
 
 ---
 
@@ -422,8 +423,11 @@ src/main/<contexto>/
 │  infrastructure (repositorios SQLAlchemy, modelos ORM,│
 │                  SMTP)                                │
 └──────────────────────────────────────────────────────┘
-   api.py → lo único que otros contextos pueden importar
+   api.py → API pública interna: fachada (IdentityApi, ProfilesApi, …) y
+            entidades publicadas; lo único que otros contextos pueden usar
 ```
+
+Son las capas de la arquitectura objetivo: **Controlador** (`controllers`) → **Aplicación** (`application`) → **Dominio** (`domain`) ← **Persistencia** (`infrastructure`).
 
 **Regla de dependencia:** las capas externas dependen de las internas, nunca al revés. `controllers` → `application` → `domain`, e `infrastructure` implementa las interfaces de `domain`. El dominio no importa Flask, SQLAlchemy ni Werkzeug.
 
@@ -431,14 +435,45 @@ src/main/<contexto>/
 
 # 5. Visión General de Arquitectura
 
+**Cliente (Vistas) → API REST → Monolito Modular.** Son dos aplicaciones en dos procesos y puertos distintos, que solo se comunican por HTTP:
+
+```mermaid
+flowchart LR
+    browser(["Navegador"])
+    subgraph client["Cliente (vistas) · src/main/client · :5001"]
+        views["views.py · templates · static<br/>HTML/CSS/JS"]
+    end
+    subgraph api["Monolito modular · API REST · src/main/bootstrap + 7 contextos · :5000"]
+        direction TB
+        rest["controllers (JSON)"] --> appl["application"] --> dom["domain"]
+        infra["infrastructure (persistencia)"] --> dom
+    end
+    db[("BD compartida<br/>SQLite")]
+
+    browser -- "GET páginas" --> client
+    browser -- "fetch JSON · cookie de sesión + X-CSRFToken · CORS" --> api
+    infra --> db
+```
+
+- **Cliente** (`client.app:create_app`): solo sirve HTML, CSS y JS. No importa código del backend ni accede a la base. El JS llama a la API con `fetch(API_URL + ruta, {credentials: "include"})`, obtiene el CSRF desde `GET /auth/csrf-token` y hace en el navegador las redirecciones según la sesión (`/auth/me`).
+- **API REST** (`bootstrap.app:create_app`): solo responde JSON (también los errores, incluido el 404). Acepta por CORS únicamente los orígenes de `CLIENT_ORIGINS`, con credenciales.
+- **Sesión:** la API y el cliente corren en el mismo host (`127.0.0.1`) para que la cookie de sesión (`SameSite=Lax`) viaje entre los dos puertos.
+
+| Variable | Dónde | Valor local |
+|----------|-------|-------------|
+| `API_URL` | cliente | `http://127.0.0.1:5000` |
+| `CLIENT_ORIGINS` | API (CORS) | `http://127.0.0.1:5001` |
+| `APP_URL` | API (links de correos y QR del certificado) | `http://127.0.0.1:5001` |
+
 ## 5.1 Diagrama de Paquetes
 
-Monolito modular: una sola aplicación Flask y una sola base de datos, divididas en bounded contexts. Las flechas indican dependencias de código permitidas.
+Monolito modular: una sola API Flask y una sola base de datos, divididas en bounded contexts. El cliente es un paquete aparte que no importa el backend. Las flechas indican dependencias de código permitidas.
 
 ```mermaid
 flowchart TB
-    subgraph bootstrap["bootstrap (composition root)"]
-        app["app.py · dependencies.py · error_handlers.py<br/>templates · static · migrations"]
+    client[["client (vistas)<br/>views · templates · static"]]
+    subgraph bootstrap["bootstrap (composition root de la API)"]
+        app["app.py · dependencies.py · cors.py<br/>error_handlers.py · migrations"]
     end
     subgraph contexts["bounded contexts"]
         direction LR
@@ -454,13 +489,15 @@ flowchart TB
         direction TB
         controllers["controllers"] --> application["application"] --> domain["domain"]
         infrastructure["infrastructure"] --> domain
-        api["api.py"] --> domain
+        api["api.py (fachada)"] --> application
+        api --> domain
     end
     shared[["shared kernel<br/>database · mixins · errors · messages"]]
 
     bootstrap --> contexts
     contexts --> shared
     bootstrap --> shared
+    client -. "HTTP (API REST)" .-> bootstrap
 ```
 
 ## 5.2 Estructura del Proyecto
@@ -479,19 +516,23 @@ ChambeaYa/
 └── src/
     ├── main/
     │   ├── config.py
-    │   ├── run.py
-    │   ├── bootstrap/             ← composition root
+    │   ├── run.py                 ← entrada `chambeaya` (API REST)
+    │   ├── client/                ← cliente (vistas), app aparte
+    │   │   ├── app.py · run.py    ← create_app() y entrada `chambeaya-client`
+    │   │   ├── views.py           ← rutas que solo renderizan HTML
+    │   │   └── templates/ · static/   ← interfaz web (en español)
+    │   ├── bootstrap/             ← composition root de la API
     │   │   ├── app.py             ← create_app()
-    │   │   ├── dependencies.py    ← contenedor de dependencias (DIP)
+    │   │   ├── dependencies.py    ← contenedor de dependencias (DIP) y fachadas get_*_api()
+    │   │   ├── cors.py            ← CORS para el origen del cliente
     │   │   ├── error_handlers.py  ← errores → JSON con su código HTTP
-    │   │   ├── routes.py · web_routes.py · health_routes.py
+    │   │   ├── routes.py · health_routes.py
     │   │   ├── models.py          ← registro de los modelos ORM
     │   │   ├── demo.py · email_cli.py
-    │   │   ├── templates/ · static/   ← interfaz web (en español)
     │   │   └── migrations/        ← Alembic
     │   ├── shared/                ← shared kernel: database, mixins, errors, mensajes
     │   ├── identity/              ← cada contexto:
-    │   ├── profiles/              │   ├── api.py (si otro contexto lo usa)
+    │   ├── profiles/              │   ├── api.py (fachada pública)
     │   ├── recruitment/           │   ├── domain/
     │   ├── matching/              │   ├── application/
     │   ├── internships/           │   ├── infrastructure/ (repos + models/)
@@ -502,8 +543,9 @@ ChambeaYa/
         ├── identity/ profiles/ recruitment/ matching/
         ├── internships/ certification/ notifications/   ← dominio, aplicación e infraestructura del contexto
         ├── shared/
-        ├── bootstrap/             ← app, contenedor, errores, plantillas y flujos HTTP completos
-        ├── architecture/          ← reglas de dependencia entre contextos
+        ├── bootstrap/             ← app, contenedor, errores, CORS y flujos HTTP completos
+        ├── client/                ← vistas, plantillas y assets del cliente
+        ├── architecture/          ← reglas de dependencia entre contextos y con el cliente
         └── functional/            ← Selenium (Page Objects)
 ```
 
@@ -514,11 +556,21 @@ ChambeaYa/
 | **`<contexto>/domain`** | Entidades, value objects, interfaces de repositorio, servicios de dominio | `shared` y, si hace falta, el `api.py` de otro contexto |
 | **`<contexto>/application`** | Casos de uso, orquestación y DTOs | Su `domain` |
 | **`<contexto>/infrastructure`** | Repositorios SQLAlchemy, modelos ORM, envío de correo | Su `domain` (implementa sus interfaces) y `shared` |
-| **`<contexto>/controllers`** | Blueprints Flask: HTTP, serialización JSON | Su `application`, `shared` y el contenedor de `bootstrap` |
+| **`<contexto>/controllers`** | Blueprints Flask: HTTP, serialización JSON | Su `application`, `shared` y el contenedor de `bootstrap` (sus propios getters o las fachadas `get_*_api()` de otros contextos) |
+| **`<contexto>/api.py`** | API pública interna: fachada sobre sus repositorios y servicios, y entidades publicadas | Su `domain` y su `application` |
 | **`shared`** | Shared kernel: `db`, mixins, errores de negocio con su código HTTP, mensajes | Ningún contexto |
-| **`bootstrap`** | Composition root: crea la app, conecta repositorios y servicios, registra blueprints y errores | Todos los contextos |
+| **`bootstrap`** | Composition root de la API: crea la app, conecta repositorios, servicios y fachadas, registra blueprints, CORS y errores | Todos los contextos |
+| **`client`** | Cliente (vistas): renderiza HTML y sirve CSS/JS que consumen la API REST | Solo Flask; nada del backend |
 
-La inyección de dependencias ocurre en **`bootstrap/dependencies.py`**. Ahí se crean los objetos concretos y se pasan como abstracciones a los servicios de cada contexto. Así un servicio de `recruitment` recibe el repositorio de perfiles sin importar código de `profiles`.
+La inyección de dependencias ocurre en **`bootstrap/dependencies.py`**. Ahí se crean los objetos concretos. Cada servicio recibe sus propios repositorios y, para hablar con otro contexto, la **fachada** de ese contexto (`get_profiles_api()`, `get_recruitment_api()`, …). Así un servicio de `recruitment` busca practicantes con `profiles.find_intern_by_user_id(...)` sin conocer el repositorio ni el código de `profiles`.
+
+| Fachada (`<contexto>/api.py`) | Métodos que usan los demás contextos |
+|-------------------------------|--------------------------------------|
+| `IdentityApi` | `find_user(user_id)` |
+| `ProfilesApi` | `find_intern_by_user_id`, `find_intern_by_id`, `find_company_by_user_id` |
+| `RecruitmentApi` | `find_job_posting`, `find_job_application`, `list_job_postings`, `job_application_ids_for_company` |
+| `InternshipsApi` | `find_internship`, `find_by_job_application_id`, `get_for_user` |
+| `NotificationsApi` | `notify(recipient_user_id, notification_type, message, metadata)` |
 
 ## 5.4 Context Map
 
@@ -533,33 +585,33 @@ flowchart LR
     notifications["notifications<br/>(Notification)"]
     shared[["shared kernel<br/>db · errors · messages"]]
 
-    identity -- "U/D · identity.api" --> profiles
-    profiles -- "U/D" --> recruitment
-    profiles -- "U/D" --> matching
-    profiles -- "U/D" --> internships
-    profiles -- "U/D" --> certification
-    recruitment -- "U/D · recruitment.api" --> matching
-    recruitment -- "U/D · recruitment.api" --> internships
-    recruitment -- "U/D" --> certification
-    internships <-. "partnership" .-> recruitment
-    internships -- "U/D · internships.api" --> certification
-    recruitment -- "eventos" --> notifications
-    internships -- "eventos" --> notifications
-    certification -- "eventos" --> notifications
-    matching -- "eventos" --> notifications
+    identity -- "U/D · IdentityApi" --> profiles
+    profiles -- "U/D · ProfilesApi" --> recruitment
+    profiles -- "U/D · ProfilesApi" --> matching
+    profiles -- "U/D · ProfilesApi" --> internships
+    profiles -- "U/D · ProfilesApi" --> certification
+    recruitment -- "U/D · RecruitmentApi" --> matching
+    recruitment -- "U/D · RecruitmentApi" --> internships
+    recruitment -- "U/D · RecruitmentApi" --> certification
+    internships <-. "partnership · InternshipsApi" .-> recruitment
+    internships -- "U/D · InternshipsApi" --> certification
+    recruitment -- "NotificationsApi" --> notifications
+    internships -- "NotificationsApi" --> notifications
+    certification -- "NotificationsApi" --> notifications
+    matching -- "NotificationsApi" --> notifications
 ```
 
 | Relación | Tipo | Cómo se integran |
 |----------|------|------------------|
-| identity → profiles | Customer/Supplier + Published Language | `profiles` usa `identity.api.User` (roles y estados) y el repositorio de usuarios que inyecta el contenedor |
-| profiles → recruitment, matching, internships, certification | Customer/Supplier | Reciben el repositorio de perfiles por constructor (`find_intern_by_user_id`, `find_company_by_user_id`) |
-| recruitment → matching, internships, certification | Customer/Supplier + Published Language | `recruitment.api` publica `JobPosting` y `JobApplication`; los repositorios se inyectan |
-| internships ↔ recruitment | Partnership | `recruitment` consulta si una postulación ya tiene práctica, e `internships` parte de una postulación seleccionada |
-| internships → certification | Customer/Supplier + Published Language | `certification` usa `internships.api.Internship` para validar que la práctica esté finalizada |
-| * → notifications | Subdominio genérico (Open Host Service) | Los contextos llaman a `NotificationApplicationService.create_notification(...)` |
+| identity → profiles | Customer/Supplier + Published Language | `profiles` recibe `IdentityApi` (`find_user`) y usa `identity.api.User` (roles y estados) |
+| profiles → recruitment, matching, internships, certification | Customer/Supplier | Reciben `ProfilesApi` por constructor (`find_intern_by_user_id`, `find_company_by_user_id`, …) |
+| recruitment → matching, internships, certification | Customer/Supplier + Published Language | Reciben `RecruitmentApi`; `recruitment.api` publica además `JobPosting` y `JobApplication` |
+| internships ↔ recruitment | Partnership | `recruitment` consulta `InternshipsApi.find_by_job_application_id` para saber si una postulación ya tiene práctica; `internships` lista las prácticas de una empresa con `RecruitmentApi.job_application_ids_for_company` |
+| internships → certification | Customer/Supplier + Published Language | `certification` usa `InternshipsApi` (`find_internship`, `get_for_user`) e `internships.api.Internship` |
+| * → notifications | Subdominio genérico (Open Host Service) | Los contextos llaman a `NotificationsApi.notify(...)` |
 | todos → shared | Shared Kernel | `db`, `TimestampMixin`, `DomainError`/`NotFoundError`/…, mensajes compartidos |
 
-Todos los contextos comparten una sola base de datos (monolito modular). Las claves foráneas entre tablas de distintos contextos se mantienen, pero ningún contexto importa los modelos ORM de otro. Por ejemplo, `internships` consulta por empresa con `table()/column()` de SQLAlchemy.
+Todos los contextos comparten una sola base de datos (monolito modular). Las claves foráneas entre tablas de distintos contextos se mantienen, pero ningún contexto importa los modelos ORM de otro ni consulta sus tablas: los datos de otro contexto se piden siempre por su fachada.
 
 ## 5.5 Reglas de dependencia verificadas
 
@@ -569,7 +621,11 @@ Todos los contextos comparten una sola base de datos (monolito modular). Las cla
 2. un contexto importa `bootstrap` (salvo `controllers` → `bootstrap.dependencies`);
 3. una capa `domain` depende de `application`, `infrastructure`, `controllers` o de un framework;
 4. `shared` depende de un contexto o de `bootstrap`;
-5. a un contexto le falta alguna de sus 4 capas, o reaparecen los paquetes por capa técnica (`application/`, `domain/`, `infrastructure/`, `frameworks/`).
+5. a un contexto le falta alguna de sus 4 capas, reaparece `presentation/` (ahora `controllers/`) o los paquetes por capa técnica (`application/`, `domain/`, `infrastructure/`, `frameworks/`);
+6. un controlador usa un getter del contenedor de otro contexto en vez de su fachada `get_*_api()`. El dueño de cada getter se deduce de las clases que construye en `dependencies.py`;
+7. un servicio armado por el contenedor recibe un repositorio o servicio de otro contexto en vez de una fachada `*Api`;
+8. `client` importa el backend o el backend importa `client`;
+9. `bootstrap/` vuelve a tener `templates/` o `static/`.
 
 ---
 
@@ -712,11 +768,11 @@ class MatchingApplicationService:
     def suggest_job_postings(self, user_id, threshold=50.0):
         self._require_repositories()
 
-        intern = self.profile_repository.find_intern_by_user_id(user_id)
+        intern = self.profiles.find_intern_by_user_id(user_id)  # ProfilesApi
         if intern is None:
             raise ForbiddenError("Practicante no encontrado")
 
-        job_postings = self.job_posting_repository.find_all()
+        job_postings = self.recruitment.list_job_postings()  # RecruitmentApi
         return self.matching_domain_service.filter_job_postings(intern, job_postings, threshold)
 
 # src/main/matching/domain/matching_domain_service.py — Domain Service
@@ -902,8 +958,8 @@ def issue_certificate_route(internship_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    profile_repository = container.get_profile_repository()
-    company = profile_repository.find_company_by_user_id(user_id)
+    profiles = container.get_profiles_api()
+    company = profiles.find_company_by_user_id(user_id)
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
@@ -1109,7 +1165,7 @@ def serialize_notification(notification):
 
 ### 6.4.2 OCP — Open/Closed Principle
 
-Para agregar un nuevo tipo de notificación solo se crea una constante en `Notification` y se invoca `create_notification()` desde un hook. No se modifica el ApplicationService, las rutas ni el repositorio del contexto `notifications`.
+Para agregar un nuevo tipo de notificación solo se crea una constante en `Notification` y se invoca `NotificationsApi.notify()` desde un hook. No se modifica el ApplicationService, las rutas ni el repositorio del contexto `notifications`.
 
 ```python
 # src/main/notifications/domain/notification.py — Abierto a extensión
@@ -1145,7 +1201,7 @@ class NotificationApplicationService:
         return self.writer.save(notification)
 
 # Hook en recruitment/controllers/job_application_routes.py — extensión sin modificar el contexto notifications
-container.get_notification_service().create_notification(
+container.get_notifications_api().notify(
     recipient_user_id=intern.user_id,
     notification_type="POSTULACION_RECHAZADA",
     message="Tu postulación no fue seleccionada",
@@ -1528,7 +1584,7 @@ El seguimiento del proyecto se realizó mediante un tablero basado en la metodol
 | Área | Herramientas |
 |------|--------------|
 | Lenguaje | Python 3.12 o superior |
-| Web | Flask 3, Flask-WTF (CSRF), plantillas Jinja, CSS y JavaScript nativo |
+| Web | API REST con Flask 3 y Flask-WTF (CSRF), CORS propio; cliente aparte con Flask, plantillas Jinja, CSS y JavaScript nativo |
 | Persistencia | SQLAlchemy, Flask-SQLAlchemy, Alembic, Flask-Migrate, SQLite |
 | Documentos | ReportLab (PDF) y QRCode |
 | Dependencias y build | Poetry 2.4.3 |
@@ -1554,7 +1610,8 @@ El proyecto requiere **Python 3.12 o superior** y **Poetry 2.4.3**, la versión 
 poetry install
 Copy-Item .env.example .env
 poetry run flask --app bootstrap.app:create_app db upgrade
-poetry run flask --app bootstrap.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app run --debug --port 5000   # terminal 1: API REST
+poetry run flask --app client.app:create_app run --debug --port 5001      # terminal 2: cliente
 ```
 
 **Linux o macOS:**
@@ -1563,14 +1620,17 @@ poetry run flask --app bootstrap.app:create_app run --debug
 poetry install
 cp .env.example .env
 poetry run flask --app bootstrap.app:create_app db upgrade
-poetry run flask --app bootstrap.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app run --debug --port 5000   # terminal 1: API REST
+poetry run flask --app client.app:create_app run --debug --port 5001      # terminal 2: cliente
 ```
 
-La aplicación queda disponible en `http://127.0.0.1:5000`. Para comprobarla:
+El cliente queda en `http://127.0.0.1:5001` y la API REST en `http://127.0.0.1:5000`. Desde el wheel, los mismos procesos se inician con `chambeaya` (API) y `chambeaya-client` (cliente). Para comprobarlos:
 
 ```bash
 curl http://127.0.0.1:5000/health
 # {"service":"ChambeaYa","status":"ok"}
+curl -I http://127.0.0.1:5001/
+# HTTP/1.1 200 OK
 ```
 
 **Instalar la versión correcta de Poetry.** Comprueba que `poetry --version` muestre exactamente `2.4.3` antes de instalar las dependencias. En Ubuntu, si la versión del sistema es antigua, instala la requerida con pipx y usa su ruta explícita para no seleccionar la de `/usr/bin/poetry`:
@@ -1588,7 +1648,7 @@ En Windows y macOS, instala Poetry 2.4.3 siguiendo la [guía oficial de instalac
 
 ## 9.2 Modo demo
 
-La demo usa una base SQLite independiente (`instance/chambeaya-demo.db`) con datos precargados. No modifica `chambeaya.db` ni requiere servicios externos.
+La demo usa una base SQLite independiente (`instance/chambeaya-demo.db`) con datos precargados. No modifica `chambeaya.db` ni requiere servicios externos. Los scripts levantan la API REST en `http://127.0.0.1:5000`, en segundo plano, y el cliente en `http://127.0.0.1:5001`, que es el que se abre en el navegador. `Ctrl+C` detiene ambos.
 
 | Sistema | Iniciar | Reiniciar los datos e iniciar |
 |---------|---------|-------------------------------|
@@ -1647,7 +1707,7 @@ En modo demo los tokens de activación y recuperación se muestran en pantalla, 
 
 ### Problemas frecuentes
 
-- **El puerto 5000 está ocupado:** detén la otra aplicación con `Ctrl+C`.
+- **El puerto 5000 o 5001 está ocupado:** detén la otra aplicación con `Ctrl+C`.
 - **Cambió el esquema de la base:** vuelve a iniciar la demo con reinicio (`.\demo.ps1 -Reset` o `scripts/demo_reset.sh`).
 
 ## 9.3 Verificación de correo (SMTP)
@@ -1655,7 +1715,7 @@ En modo demo los tokens de activación y recuperación se muestran en pantalla, 
 Las cuentas nuevas permanecen en estado `pendiente` hasta que el usuario abre el enlace de activación enviado a su correo. Para usar un servidor SMTP real, configura en `.env`:
 
 ```env
-APP_URL=http://127.0.0.1:5000
+APP_URL=http://127.0.0.1:5001
 MAIL_DELIVERY_MODE=smtp
 MAIL_SERVER=smtp.tu-proveedor.com
 MAIL_PORT=587
@@ -1667,7 +1727,7 @@ MAIL_SENDER=ChambeaYa <no-reply@tu-dominio.com>
 EXPOSE_AUTH_TOKENS=false
 ```
 
-`APP_URL` debe ser la dirección desde la que el usuario puede abrir la aplicación. Si el correo se abre en otro dispositivo, usa una dirección de red o una URL pública en lugar de `127.0.0.1`.
+`APP_URL` debe ser la dirección del **cliente**, desde la que el usuario abre la aplicación. Los enlaces de activación y recuperación, y el QR del certificado, apuntan a sus vistas. Si el correo se abre en otro dispositivo, usa una dirección de red o una URL pública en lugar de `127.0.0.1`.
 
 En los modos `console` y `demo` los tokens pueden exponerse para facilitar las pruebas locales. Ese comportamiento debe permanecer desactivado cuando se envían correos reales.
 
@@ -1683,7 +1743,7 @@ No uses la contraseña normal de Gmail ni subas el archivo `.env` al repositorio
 
 # 10. Interfaz web
 
-La interfaz está implementada directamente sobre Flask con plantillas Jinja, CSS y JavaScript nativo. No requiere un proceso de compilación adicional.
+La interfaz es el **cliente**: una app Flask aparte (`src/main/client`, puerto 5001) que solo sirve plantillas Jinja, CSS y JavaScript nativo. No requiere un proceso de compilación adicional y no importa código del backend.
 
 | Ruta | Vista |
 |------|-------|
@@ -1701,26 +1761,27 @@ La ruta `/app` detecta el rol de la sesión y presenta únicamente sus funciones
 - **Practicante:** perfil, oportunidades, sugerencias, postulaciones, prácticas, entregables, evaluaciones, certificados y notificaciones.
 - **Empresa:** perfil, convocatorias, candidatos, selección, prácticas, evaluaciones, emisión de certificados y notificaciones.
 
-Las vistas consumen los endpoints de la [API REST](#11-api-rest) con la sesión de Flask. Los errores de validación y de autorización se muestran en contexto, y las acciones incluyen estados de carga, confirmaciones y estados vacíos.
+Las vistas consumen los endpoints de la [API REST](#11-api-rest) por HTTP: `common.js` antepone `window.CHAMBEAYA_API_URL` (valor de `API_URL`) a cada ruta, envía la cookie de sesión con `credentials: "include"` y obtiene el token CSRF desde `GET /auth/csrf-token`. Lo renueva después del login y del logout. Los links que devuelve la API (entregables, PDF y QR del certificado) se arman con `Chambea.apiUrl()`. Como el cliente no ve la sesión, las redirecciones las hace el JS: `/app` vuelve a `/ingresar` si `/auth/me` responde 401, e `/ingresar` y `/registro` pasan a `/app` si ya hay sesión. Los errores de validación y de autorización se muestran en contexto, y las acciones incluyen estados de carga, confirmaciones y estados vacíos.
 
 **Diseño.** Paleta sobria de azul profundo y grises fríos, con `#0062fc` como color primario, tomado de la identidad gráfica de ChambeaYa. No usa degradados. Las pantallas priorizan tablas, listas y secciones amplias sobre grupos repetitivos de tarjetas, con navegación adaptable para escritorio, tableta y móvil.
 
 | Archivo | Contenido |
 |---------|-----------|
-| `src/main/bootstrap/templates/` | Estructura de las vistas |
-| `src/main/bootstrap/static/css/app.css` | Sistema visual y responsive |
-| `src/main/bootstrap/static/icons.svg` | Iconografía SVG reutilizable |
-| `src/main/bootstrap/static/img/` | Logos horizontal y cuadrado |
-| `src/main/bootstrap/static/js/common.js` | Utilidades y cliente HTTP |
-| `src/main/bootstrap/static/js/app.js` | Interacción de la aplicación |
-| `src/main/bootstrap/static/js/auth.js` | Flujos de autenticación |
-| `src/main/bootstrap/static/js/verify.js` | Validación de certificados |
+| `src/main/client/app.py` · `views.py` | App del cliente y rutas de las vistas |
+| `src/main/client/templates/` | Estructura de las vistas |
+| `src/main/client/static/css/app.css` | Sistema visual y responsive |
+| `src/main/client/static/icons.svg` | Iconografía SVG reutilizable |
+| `src/main/client/static/img/` | Logos horizontal y cuadrado |
+| `src/main/client/static/js/common.js` | Utilidades y cliente HTTP de la API (URL base, cookie, CSRF) |
+| `src/main/client/static/js/app.js` | Interacción de la aplicación |
+| `src/main/client/static/js/auth.js` | Flujos de autenticación |
+| `src/main/client/static/js/verify.js` | Validación de certificados |
 
 ---
 
 # 11. API REST
 
-El backend expone una API REST en JSON (Flask). Todos los endpoints comparten las mismas convenciones de autenticación, CSRF y errores, así que la API se puede probar de punta a punta con `curl` o cualquier cliente HTTP.
+El backend expone una API REST en JSON (Flask, puerto 5000). Todos los endpoints, incluidos los errores, responden JSON y comparten las mismas convenciones de autenticación, CSRF y errores. Por eso la API se puede probar de punta a punta con `curl`, Postman o cualquier cliente HTTP. El navegador la usa desde el cliente (`:5001`) gracias a CORS: solo los orígenes de `CLIENT_ORIGINS` reciben `Access-Control-Allow-Origin` y `Allow-Credentials`, y el preflight `OPTIONS` responde 200.
 
 ### Cómo probar la API
 
@@ -2018,15 +2079,16 @@ El `Jenkinsfile` de la raíz define el pipeline. Jenkins lo ejecuta automáticam
 | 2 | Pruebas unitarias | pytest sin funcionales, con cobertura y reporte JUnit | Se detiene |
 | 3 | Análisis SonarQube | `sonar-scanner` con `sonar-project.properties` | Se detiene |
 | 4 | Quality Gate | Espera el veredicto de SonarQube (máx. 5 min) | Se detiene |
-| 5 | Staging efímero | Instala el wheel en el workspace con BD nueva, en `127.0.0.1:5001` | Se detiene |
-| 6 | Pruebas funcionales | Selenium contra staging; luego se apaga staging | Se detiene |
-| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`, en `127.0.0.1:5000` | Rollback automático |
+| 5 | Staging efímero | Instala el wheel en el workspace con BD nueva: API en `127.0.0.1:5001`, cliente en `127.0.0.1:5002` | Se detiene |
+| 6 | Pruebas funcionales | Selenium contra el cliente de staging (`CHAMBEAYA_BASE_URL`), con los datos de prueba creados por la API (`CHAMBEAYA_API_URL`); luego se apaga staging | Se detiene |
+| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`: API en `127.0.0.1:5000`, cliente en `127.0.0.1:5003` | Rollback automático |
 
 **Despliegue (`scripts/ci/deploy.sh`).** Lo usan staging y el despliegue final:
 
 - Cada versión se instala en `releases/<timestamp>`, y el symlink `current` apunta a la activa. Se conservan la versión activa y la anterior.
 - La base de datos persiste entre despliegues: solo se aplican `db upgrade` y `seed-demo` (que es idempotente). Antes de migrar se respalda.
-- Si la versión nueva no responde en `/health`, se restauran la versión anterior y su base de datos.
+- Uso: `deploy.sh <dir> <api_port> <client_port>`. Levanta `chambeaya` (API) y `chambeaya-client` (cliente) con `API_URL`, `APP_URL` y `CLIENT_ORIGINS` coherentes.
+- Si la versión nueva no responde (API en `/health` y cliente en `/`), se restauran la versión anterior y su base de datos.
 - El servidor corre en modo demo y solo en localhost, porque `ProductionConfig` exige cookies `Secure` (HTTPS).
 
 **Configuración necesaria en Jenkins:**
