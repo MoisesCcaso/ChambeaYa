@@ -2,18 +2,18 @@
 
 import pytest
 
-from domain.certificacion.archivo_pdf import ArchivoPDF
-from domain.certificacion.certificado import Certificado
-from domain.certificacion.codigo_qr import CodigoQR
+from certification.domain.archivo_pdf import ArchivoPDF
+from certification.domain.certificado import Certificado
+from certification.domain.codigo_qr import CodigoQR
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
+from certification.infrastructure.models.certificado_model import CertificadoModel
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from internships.infrastructure.models.internship_model import InternshipModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_certificado_repository import (
+from certification.infrastructure.sqlalchemy_certificado_repository import (
     SqlAlchemyCertificadoRepository,
 )
 

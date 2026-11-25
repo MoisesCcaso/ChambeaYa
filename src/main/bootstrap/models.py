@@ -1,4 +1,4 @@
-from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
+from certification.infrastructure.models.certificado_model import CertificadoModel
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from notifications.infrastructure.models.notification_model import NotificationModel

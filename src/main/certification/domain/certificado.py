@@ -1,4 +1,4 @@
-from domain.certificacion.archivo_pdf import ArchivoPDF
+from certification.domain.archivo_pdf import ArchivoPDF
 
 class Certificado:
     def __init__(self, id=None, internship_id=None, codigo_qr=None, documento=None):

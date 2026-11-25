@@ -1,5 +1,5 @@
-from domain.certificacion.certificado import Certificado
-from domain.certificacion.codigo_qr import CodigoQR
+from certification.domain.certificado import Certificado
+from certification.domain.codigo_qr import CodigoQR
 from internships.api import Internship
 from shared.errors import ConflictError
 

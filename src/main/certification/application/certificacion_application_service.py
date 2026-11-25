@@ -1,4 +1,4 @@
-from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
+from certification.domain.certificacion_dominio_servicio import CertificacionDominioServicio
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from shared.errors import ForbiddenError, NotFoundError
 

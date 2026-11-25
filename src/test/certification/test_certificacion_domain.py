@@ -9,14 +9,14 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from domain.certificacion.archivo_pdf import ArchivoPDF
-from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
-from domain.certificacion.certificado import Certificado
-from domain.certificacion.codigo_qr import CodigoQR
+from certification.domain.archivo_pdf import ArchivoPDF
+from certification.domain.certificacion_dominio_servicio import CertificacionDominioServicio
+from certification.domain.certificado import Certificado
+from certification.domain.codigo_qr import CodigoQR
 from internships.domain.evaluation import Evaluation
 from internships.domain.internship import Internship
 
-UUID4_PATH = "domain.certificacion.codigo_qr.uuid4"
+UUID4_PATH = "certification.domain.codigo_qr.uuid4"
 
 
 def _practica(status=Internship.STATUS_FINISHED, puntajes=(80,), internship_id=7):

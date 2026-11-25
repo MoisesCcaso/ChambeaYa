@@ -1,9 +1,9 @@
-from domain.certificacion.archivo_pdf import ArchivoPDF
-from domain.certificacion.certificado import Certificado
-from domain.certificacion.codigo_qr import CodigoQR
-from domain.certificacion.i_certificado_repository import ICertificadoRepository
+from certification.domain.archivo_pdf import ArchivoPDF
+from certification.domain.certificado import Certificado
+from certification.domain.codigo_qr import CodigoQR
+from certification.domain.i_certificado_repository import ICertificadoRepository
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
+from certification.infrastructure.models.certificado_model import CertificadoModel
  
  
 

@@ -6,9 +6,9 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import create_autospec
 
-from application.certificacion_application_service import CertificacionApplicationService
-from domain.certificacion.certificado import Certificado
-from domain.certificacion.i_certificado_repository import ICertificadoRepository
+from certification.application.certificacion_application_service import CertificacionApplicationService
+from certification.domain.certificado import Certificado
+from certification.domain.i_certificado_repository import ICertificadoRepository
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 from recruitment.domain.i_job_application_repository import IJobApplicationRepository
 from profiles.domain.i_profile_repository import IProfileRepository
