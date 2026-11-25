@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 from client.views import web_bp
 
@@ -20,5 +21,8 @@ def create_app(overrides=None):
         DEMO_PASSWORD=os.getenv("DEMO_PASSWORD"),
     )
     app.config.update(overrides or {})
+    # The client only serves GET views (writes go to the API, which has its own CSRF check);
+    # this still rejects any unsafe method that a future view might add without a token (Sonar S4502).
+    CSRFProtect(app)
     app.register_blueprint(web_bp)
     return app
