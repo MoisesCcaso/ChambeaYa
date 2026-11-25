@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, jsonify, session
 
 from bootstrap.dependencies import container
-from shared.http_messages import NO_AUTENTICADO
+from shared.http_messages import NOT_AUTHENTICATED
 
 
 matching_bp = Blueprint("matching", __name__, url_prefix="/matching")
@@ -33,7 +33,7 @@ def suggest_convocatorias():
     usuario_id = session.get("usuario_id")
 
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         resultados = build_matching_service().suggest_convocatorias(usuario_id)
@@ -49,7 +49,7 @@ def calculate_match():
     usuario_id = session.get("usuario_id")
 
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         resultados = build_matching_service().calculate_for_practicante(usuario_id)

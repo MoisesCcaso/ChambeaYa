@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, session
 
 from bootstrap.dependencies import container
-from shared.http_messages import NO_AUTENTICADO
+from shared.http_messages import NOT_AUTHENTICATED
 
 
 notificacion_bp = Blueprint("notificacion", __name__, url_prefix="/notificaciones")
@@ -31,7 +31,7 @@ def get_authenticated_user_id():
 def list_notificaciones():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         notificaciones = build_notificacion_service().list_notifications(usuario_id)
@@ -45,7 +45,7 @@ def list_notificaciones():
 def count_no_leidas():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         cantidad = build_notificacion_service().count_unread(usuario_id)
@@ -59,7 +59,7 @@ def count_no_leidas():
 def marcar_leida(notificacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         build_notificacion_service().mark_as_read(usuario_id, notificacion_id)
@@ -73,7 +73,7 @@ def marcar_leida(notificacion_id):
 def marcar_todas_leidas():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         build_notificacion_service().mark_all_as_read(usuario_id)

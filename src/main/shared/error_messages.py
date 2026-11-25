@@ -1,4 +1,4 @@
 from typing import Final
 
-CONVOCATORIA_NO_ENCONTRADA: Final = "Convocatoria no encontrada"
-POSTULACION_NO_ENCONTRADA: Final = "Postulación no encontrada"
+JOB_POSTING_NOT_FOUND: Final = "Convocatoria no encontrada"
+JOB_APPLICATION_NOT_FOUND: Final = "Postulación no encontrada"

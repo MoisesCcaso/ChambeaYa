@@ -12,7 +12,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from bootstrap.dependencies import container
-from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
+from shared.http_messages import NOT_AUTHENTICATED, COMPANY_NOT_FOUND
 
 
 practica_bp = Blueprint("practica", __name__, url_prefix="/practicas")
@@ -71,10 +71,10 @@ def get_authenticated_empresa():
 def start_practica():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     postulacion_id = (request.get_json(silent=True) or {}).get("postulacion_id")
     try:
@@ -88,7 +88,7 @@ def start_practica():
 def list_practicas():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     try:
         practicas = build_practica_service().list_for_user(usuario_id)
     except ValueError as exc:
@@ -100,7 +100,7 @@ def list_practicas():
 def get_practica(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     try:
         practica = build_practica_service().get_for_user(usuario_id, practica_id)
     except ValueError as exc:
@@ -112,11 +112,11 @@ def get_practica(practica_id):
 def register_evaluation(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -131,7 +131,7 @@ def register_evaluation(practica_id):
 def upload_deliverable(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     service = build_practica_service()
     archivo_subido = request.files.get("archivo")
@@ -168,7 +168,7 @@ def upload_deliverable(practica_id):
 def get_deliverables_history(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
@@ -182,7 +182,7 @@ def get_deliverables_history(practica_id):
 def get_evaluations_history(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         evaluaciones = build_practica_service().get_evaluations_history(usuario_id, practica_id)
@@ -198,7 +198,7 @@ def get_evaluations_history(practica_id):
 def delete_deliverable(practica_id, entregable_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     try:
         data = serialize_entregable(
             build_practica_service().delete_deliverable(usuario_id, practica_id, entregable_id)
@@ -224,10 +224,10 @@ def delete_deliverable(practica_id, entregable_id):
 def delete_evaluation(practica_id, evaluacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     try:
         data = serialize_evaluacion(
             build_practica_service().delete_evaluation(empresa.id, practica_id, evaluacion_id)
@@ -243,7 +243,7 @@ def delete_evaluation(practica_id, evaluacion_id):
 def download_deliverable(practica_id, entregable_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     try:
         entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
     except ValueError as exc:
@@ -267,10 +267,10 @@ def download_deliverable(practica_id, entregable_id):
 def finish_practica(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     try:
         data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))

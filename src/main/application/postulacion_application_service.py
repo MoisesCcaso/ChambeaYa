@@ -2,7 +2,7 @@ from typing import Final
 
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
-from shared.error_messages import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"
@@ -35,7 +35,7 @@ class PostulacionApplicationService:
 
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
+            raise ValueError(JOB_POSTING_NOT_FOUND)
         if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
             raise ValueError("Solo se puede postular a convocatorias publicadas")
 
@@ -88,10 +88,10 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(POSTULACION_NO_ENCONTRADA)
+            raise ValueError(JOB_APPLICATION_NOT_FOUND)
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
+            raise ValueError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La convocatoria no pertenece a esta empresa")
 
@@ -156,7 +156,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(POSTULACION_NO_ENCONTRADA)
+            raise ValueError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
         postulacion.rechazar()
         return self.postulacion_repository.save(postulacion)
@@ -168,7 +168,7 @@ class PostulacionApplicationService:
             raise ValueError(NOT_FOUND_PRACTICANTE)
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(POSTULACION_NO_ENCONTRADA)
+            raise ValueError(JOB_APPLICATION_NOT_FOUND)
         if postulacion.practicante_id != practicante.id:
             raise ValueError("La postulación no pertenece a este practicante")
         postulacion.cancelar()
@@ -178,7 +178,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(POSTULACION_NO_ENCONTRADA)
+            raise ValueError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
         if self.practica_repository.find_by_postulacion_id(postulacion.id) is not None:
             raise ValueError(
@@ -190,7 +190,7 @@ class PostulacionApplicationService:
     def _require_owned_convocatoria(self, empresa_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(CONVOCATORIA_NO_ENCONTRADA)
+            raise ValueError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
             raise ValueError("La convocatoria no pertenece a esta empresa")
         return convocatoria

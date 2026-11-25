@@ -13,7 +13,7 @@ from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
 from domain.perfil.i_practicante_repository import IPracticanteRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
-from shared.error_messages import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 
 
 class TestPostulacionApplicationService(unittest.TestCase):
@@ -436,4 +436,4 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.mock_convocatoria_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(usuario_id=2, convocatoria_id=99)
-        self.assertEqual(str(ctx.exception), CONVOCATORIA_NO_ENCONTRADA)        
+        self.assertEqual(str(ctx.exception), JOB_POSTING_NOT_FOUND)        

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 
 from bootstrap.dependencies import container
-from shared.http_messages import NO_AUTENTICADO
+from shared.http_messages import NOT_AUTHENTICATED
 
 
 perfil_bp = Blueprint("perfil", __name__, url_prefix="/perfil")
@@ -48,7 +48,7 @@ def get_authenticated_user_id():
 def get_my_profile():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         usuario = container.get_usuario_repository().find_by_id(usuario_id)
@@ -74,7 +74,7 @@ def get_my_profile():
 def update_my_profile():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -88,7 +88,7 @@ def update_my_profile():
 def update_my_company():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -102,7 +102,7 @@ def update_my_company():
 def add_my_skill():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -118,7 +118,7 @@ def add_my_skill():
 def add_my_education():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -134,7 +134,7 @@ def add_my_education():
 def verify_my_identity():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     payload = request.get_json(silent=True) or {}
     try:
@@ -154,7 +154,7 @@ def verify_my_identity():
 def get_my_reputation():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     try:
         data = {"score_reputacion": build_practicante_service().get_reputation_score(usuario_id)}

@@ -1,5 +1,5 @@
-"""Mensajes de error compartidos por las rutas HTTP (SonarQube S1192)."""
+"""Error messages shared by the HTTP routes (SonarQube S1192)."""
 
-NO_AUTENTICADO = "No autenticado"
-EMPRESA_NO_ENCONTRADA = "Empresa no encontrada para este usuario"
-CERTIFICADO_NO_ENCONTRADO = "Certificado no encontrado"
+NOT_AUTHENTICATED = "No autenticado"
+COMPANY_NOT_FOUND = "Empresa no encontrada para este usuario"
+CERTIFICATE_NOT_FOUND = "Certificado no encontrado"

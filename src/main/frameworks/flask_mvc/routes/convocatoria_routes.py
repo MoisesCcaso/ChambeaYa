@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 
 from bootstrap.dependencies import container
-from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
+from shared.http_messages import NOT_AUTHENTICATED, COMPANY_NOT_FOUND
 
 
 convocatoria_bp = Blueprint("convocatoria", __name__, url_prefix="/convocatorias")
@@ -53,10 +53,10 @@ def list_convocatorias():
 def list_my_convocatorias():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     convocatorias = build_convocatoria_service().list_for_empresa(empresa.id)
     return jsonify([serialize_convocatoria(item) for item in convocatorias]), 200
 
@@ -79,11 +79,11 @@ def get_convocatoria(convocatoria_id):
 def create_convocatoria():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     if not empresa.verificada:
         return jsonify({"error": "La empresa debe estar verificada"}), 400
 
@@ -99,11 +99,11 @@ def create_convocatoria():
 def publish_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     try:
         convocatoria = build_convocatoria_service().publish(empresa.id, convocatoria_id)
@@ -117,10 +117,10 @@ def publish_convocatoria(convocatoria_id):
 def update_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     try:
         convocatoria = build_convocatoria_service().update(
             empresa.id,
@@ -136,11 +136,11 @@ def update_convocatoria(convocatoria_id):
 def close_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
 
     try:
         convocatoria = build_convocatoria_service().close(empresa.id, convocatoria_id)
@@ -153,10 +153,10 @@ def close_convocatoria(convocatoria_id):
 def reopen_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     try:
         convocatoria = build_convocatoria_service().reopen(empresa.id, convocatoria_id)
     except ValueError as exc:
@@ -168,10 +168,10 @@ def reopen_convocatoria(convocatoria_id):
 def duplicate_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     try:
         convocatoria = build_convocatoria_service().duplicate(empresa.id, convocatoria_id)
     except ValueError as exc:
@@ -183,10 +183,10 @@ def duplicate_convocatoria(convocatoria_id):
 def delete_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
-        return jsonify({"error": NO_AUTENTICADO}), 401
+        return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa(usuario_id)
     if empresa is None:
-        return jsonify({"error": EMPRESA_NO_ENCONTRADA}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 400
     try:
         convocatoria = build_convocatoria_service().delete(empresa.id, convocatoria_id)
     except ValueError as exc:

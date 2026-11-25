@@ -1,22 +1,22 @@
 import unittest
 from pathlib import Path
 
-from shared.error_messages import POSTULACION_NO_ENCONTRADA
+from shared.error_messages import JOB_APPLICATION_NOT_FOUND
 
 APPLICATION_DIR = Path(__file__).resolve().parents[2] / "main" / "application"
-SERVICIOS = (
+SERVICES = (
     "postulacion_application_service.py",
     "practica_application_service.py",
     "certificacion_application_service.py",
 )
 
 
-class TestMensajesError(unittest.TestCase):
-    def test_constante_postulacion_no_encontrada(self):
-        self.assertEqual(POSTULACION_NO_ENCONTRADA, "Postulación no encontrada")
+class TestErrorMessages(unittest.TestCase):
+    def test_job_application_not_found_constant(self):
+        self.assertEqual(JOB_APPLICATION_NOT_FOUND, "Postulación no encontrada")
 
-    def test_servicios_no_repiten_el_literal_postulacion_no_encontrada(self):
-        for nombre in SERVICIOS:
-            with self.subTest(servicio=nombre):
-                fuente = (APPLICATION_DIR / nombre).read_text(encoding="utf-8")
-                self.assertNotIn('"Postulación no encontrada"', fuente)
+    def test_services_do_not_repeat_the_job_application_not_found_literal(self):
+        for name in SERVICES:
+            with self.subTest(service=name):
+                source = (APPLICATION_DIR / name).read_text(encoding="utf-8")
+                self.assertNotIn('"Postulación no encontrada"', source)
