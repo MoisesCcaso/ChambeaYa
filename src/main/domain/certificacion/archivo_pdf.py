@@ -7,7 +7,7 @@ class ArchivoPDF:
         self.contenido = contenido
 
     @staticmethod
-    def crear(practica_id, contenido, url=None):
+    def create(internship_id, contenido, url=None):
         if not contenido:
             raise DomainError("Debe proveerse el contenido del PDF para generar el archivo")
 

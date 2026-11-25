@@ -1,4 +1,4 @@
-"""Centralized error handling: every API error is answered as JSON {"error": "<mensaje>"}."""
+"""Centralized error handling: every API error is answered as JSON {"error": "<text>"}."""
 
 from flask import jsonify, request
 from flask_wtf.csrf import CSRFError

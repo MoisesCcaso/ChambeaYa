@@ -6,7 +6,7 @@ from profiles.application.company_application_service import CompanyApplicationS
 from matching.application.matching_application_service import MatchingApplicationService
 from notifications.application.notification_application_service import NotificationApplicationService
 from recruitment.application.job_application_service import JobApplicationService
-from internships.application.practica_application_service import PracticaApplicationService
+from internships.application.internship_application_service import InternshipApplicationService
 from profiles.application.intern_application_service import InternApplicationService
 from identity.application.user_application_service import UserApplicationService
 from identity.domain.authentication_domain_service import AuthenticationDomainService
@@ -18,7 +18,7 @@ from matching.infrastructure.sqlalchemy_matching_repository import SqlAlchemyMat
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
 from profiles.infrastructure.sqlalchemy_profile_repository import SqlAlchemyProfileRepository
 from recruitment.infrastructure.sqlalchemy_job_application_repository import SqlAlchemyJobApplicationRepository
-from internships.infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
+from internships.infrastructure.sqlalchemy_internship_repository import SqlAlchemyInternshipRepository
 from identity.infrastructure.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from identity.infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
@@ -43,8 +43,8 @@ class DependencyContainer:
     def get_job_application_repository(self):
         return self._repos.get("job_application") or SqlAlchemyJobApplicationRepository()
 
-    def get_practica_repository(self):
-        return self._repos.get("practica") or SqlAlchemyPracticaRepository()
+    def get_internship_repository(self):
+        return self._repos.get("internship") or SqlAlchemyInternshipRepository()
 
     def get_certificado_repository(self):
         return self._repos.get("certificado") or SqlAlchemyCertificadoRepository()
@@ -76,13 +76,13 @@ class DependencyContainer:
             return self._services["job_posting_service"]
         return JobPostingApplicationService(self.get_job_posting_repository())
 
-    def get_practica_service(self):
-        if "practica_service" in self._services:
-            return self._services["practica_service"]
+    def get_internship_service(self):
+        if "internship_service" in self._services:
+            return self._services["internship_service"]
         notif_repo = self.get_notification_repository()
         notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
-        return PracticaApplicationService(
-            self.get_practica_repository(),
+        return InternshipApplicationService(
+            self.get_internship_repository(),
             self.get_profile_repository(),
             self.get_job_application_repository(),
             self.get_job_posting_repository(),
@@ -98,7 +98,7 @@ class DependencyContainer:
             self.get_job_application_repository(),
             self.get_job_posting_repository(),
             self.get_profile_repository(),
-            self.get_practica_repository(),
+            self.get_internship_repository(),
             notification_service=notif_service,
         )
 
@@ -125,7 +125,7 @@ class DependencyContainer:
         notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return CertificacionApplicationService(
             self.get_certificado_repository(),
-            self.get_practica_repository(),
+            self.get_internship_repository(),
             self.get_job_application_repository(),
             self.get_job_posting_repository(),
             self.get_profile_repository(),

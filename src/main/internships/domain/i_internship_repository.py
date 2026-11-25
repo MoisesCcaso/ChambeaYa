@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 
 
-class IPracticaRepository(ABC):
+class IInternshipRepository(ABC):
     @abstractmethod
-    def save(self, practica):
+    def save(self, internship):
         pass
 
     @abstractmethod
-    def find_by_id(self, practica_id):
+    def find_by_id(self, internship_id):
         pass
 
     @abstractmethod

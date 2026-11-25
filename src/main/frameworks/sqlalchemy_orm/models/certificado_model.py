@@ -6,8 +6,8 @@ class CertificadoModel(TimestampMixin, db.Model):
     __tablename__ = "certificados"
 
     id = db.Column(db.Integer, primary_key=True)
-    practica_id = db.Column(
-        db.Integer,
+    internship_id = db.Column(
+        "practica_id", db.Integer,
         db.ForeignKey("practicas.id"),
         unique=True,
         nullable=False,

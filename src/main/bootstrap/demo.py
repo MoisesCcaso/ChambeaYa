@@ -11,12 +11,12 @@ from werkzeug.security import generate_password_hash
 from shared.database import db
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
-from internships.infrastructure.models.entregable_model import EntregableModel
-from internships.infrastructure.models.evaluacion_model import EvaluacionModel
+from internships.infrastructure.models.deliverable_model import DeliverableModel
+from internships.infrastructure.models.evaluation_model import EvaluationModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from profiles.infrastructure.models.intern_model import InternModel
-from internships.infrastructure.models.practica_model import PracticaModel
+from internships.infrastructure.models.internship_model import InternshipModel
 from matching.infrastructure.models.suggestion_model import SuggestionModel
 from identity.infrastructure.models.user_model import UserModel
 
@@ -165,7 +165,7 @@ def seed_demo_data(password):
     db.session.add_all([selected_application, pending_application])
     db.session.flush()
 
-    practice = PracticaModel(
+    practice = InternshipModel(
         job_application_id=selected_application.id,
         intern_id=practitioner.id,
         status="EN_CURSO",
@@ -174,15 +174,15 @@ def seed_demo_data(password):
     db.session.flush()
     db.session.add_all(
         [
-            EntregableModel(
-                practica_id=practice.id,
-                archivo=DEMO_DELIVERABLE_NAME,
-                fecha_subida=now - timedelta(days=3),
+            DeliverableModel(
+                internship_id=practice.id,
+                file_name=DEMO_DELIVERABLE_NAME,
+                uploaded_at=now - timedelta(days=3),
             ),
-            EvaluacionModel(
-                practica_id=practice.id,
+            EvaluationModel(
+                internship_id=practice.id,
                 score=85.0,
-                fecha_evaluacion=now - timedelta(days=1),
+                evaluated_at=now - timedelta(days=1),
             ),
         ]
     )

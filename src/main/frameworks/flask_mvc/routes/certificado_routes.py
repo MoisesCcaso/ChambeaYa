@@ -19,7 +19,7 @@ def build_certificacion_service():
 def serialize_certificado(certificado):
     return {
         "id": certificado.id,
-        "practica_id": certificado.practica_id,
+        "practica_id": certificado.internship_id,
         "codigo_qr": {
             "valor": certificado.codigo_qr.value,
             "url_verificacion": (
@@ -31,7 +31,7 @@ def serialize_certificado(certificado):
         "documento": {
             "url": (
                 certificado.documento.url
-                or f"/certificados/practica/{certificado.practica_id}/pdf"
+                or f"/certificados/practica/{certificado.internship_id}/pdf"
             ),
         } if certificado.documento else None,
     }
@@ -41,8 +41,8 @@ def get_authenticated_user_id():
     return session.get("usuario_id")
 
 
-@certificado_bp.post("/<int:practica_id>/emitir")
-def issue_certificado(practica_id):
+@certificado_bp.post("/<int:internship_id>/emitir")
+def issue_certificado(internship_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
@@ -53,7 +53,7 @@ def issue_certificado(practica_id):
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     certificado, creado = build_certificacion_service().issue_certificate(
-        company.id, practica_id
+        company.id, internship_id
     )
 
     return jsonify(serialize_certificado(certificado)), 201 if creado else 200
@@ -66,27 +66,27 @@ def verify_certificado(codigo_qr_valor):
     return jsonify({"codigo_qr_valor": codigo_qr_valor, "valido": is_valid}), 200
 
 
-@certificado_bp.get("/practica/<int:practica_id>")
-def get_certificado_by_practica(practica_id):
+@certificado_bp.get("/practica/<int:internship_id>")
+def get_certificado_by_practica(internship_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    practica_service = container.get_practica_service()
-    practica_service.get_for_user(user_id, practica_id)
-    certificado = build_certificacion_service().find_by_practica_id(practica_id)
+    practica_service = container.get_internship_service()
+    practica_service.get_for_user(user_id, internship_id)
+    certificado = build_certificacion_service().find_by_practica_id(internship_id)
     if certificado is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
     return jsonify(serialize_certificado(certificado)), 200
 
 
-@certificado_bp.get("/practica/<int:practica_id>/pdf")
-def download_certificado_pdf(practica_id):
+@certificado_bp.get("/practica/<int:internship_id>/pdf")
+def download_certificado_pdf(internship_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    container.get_practica_service().get_for_user(user_id, practica_id)
-    certificado = container.get_certificado_repository().find_by_practica_id(practica_id)
+    container.get_internship_service().get_for_user(user_id, internship_id)
+    certificado = container.get_certificado_repository().find_by_practica_id(internship_id)
     if certificado is None or certificado.documento is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
     if not certificado.verificar_integridad(certificado.documento.contenido):
@@ -95,7 +95,7 @@ def download_certificado_pdf(practica_id):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     ancho, alto = A4
-    pdf.setTitle(f"Certificado de práctica {practica_id}")
+    pdf.setTitle(f"Certificado de práctica {internship_id}")
     pdf.setFont("Helvetica-Bold", 20)
     pdf.drawCentredString(ancho / 2, alto - 120, "CERTIFICADO DE PRÁCTICAS")
     pdf.setFont("Helvetica", 12)
@@ -111,7 +111,7 @@ def download_certificado_pdf(practica_id):
         buffer,
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=f"certificado-practica-{practica_id}.pdf",
+        download_name=f"certificado-practica-{internship_id}.pdf",
     )
 
 

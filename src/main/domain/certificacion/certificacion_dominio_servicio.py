@@ -1,18 +1,18 @@
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
-from internships.domain.practica import Practica
+from internships.api import Internship
 from shared.errors import ConflictError
 
 class CertificacionDominioServicio:
-    def generar_certificado(self, practica, intern, job_posting):
-        if practica.status != Practica.ESTADO_FINALIZADA:
+    def generar_certificado(self, internship, intern, job_posting):
+        if internship.status != Internship.STATUS_FINISHED:
             raise ConflictError("Solo se puede certificar una práctica finalizada")
-        if not any(evaluacion.esta_aprobada() for evaluacion in practica.evaluaciones):
+        if not any(evaluation.is_approved() for evaluation in internship.evaluations):
             raise ConflictError("La práctica no tiene una evaluación aprobada")
 
         contenido = self._construir_contenido(intern, job_posting)
-        codigo_qr = CodigoQR.generar(practica.id)
-        certificado = Certificado(practica_id=practica.id, codigo_qr=codigo_qr)
+        codigo_qr = CodigoQR.generar(internship.id)
+        certificado = Certificado(internship_id=internship.id, codigo_qr=codigo_qr)
         certificado.generar_pdf(contenido)
         return certificado
 

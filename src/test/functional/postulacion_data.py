@@ -115,19 +115,19 @@ def create_issued_certificate(base_url: str) -> str:
     )
     job_application_id = job_application["id"]
     company.expect("POST", f"/postulaciones/{job_application_id}/seleccionar")
-    practica = company.expect(
+    internship = company.expect(
         "POST", "/practicas", {"postulacion_id": job_application_id}, status=201
     )
-    practica_id = practica["id"]
+    internship_id = internship["id"]
     student.expect(
-        "POST", f"/practicas/{practica_id}/entregables",
+        "POST", f"/practicas/{internship_id}/entregables",
         {"archivo": "informe-final.pdf"}, status=201,
     )
     company.expect(
-        "POST", f"/practicas/{practica_id}/evaluar", {"puntaje": 90}, status=201
+        "POST", f"/practicas/{internship_id}/evaluar", {"puntaje": 90}, status=201
     )
-    company.expect("POST", f"/practicas/{practica_id}/finalizar")
+    company.expect("POST", f"/practicas/{internship_id}/finalizar")
     certificado = company.expect(
-        "POST", f"/certificados/{practica_id}/emitir", status=201
+        "POST", f"/certificados/{internship_id}/emitir", status=201
     )
     return certificado["codigo_qr"]["valor"]

@@ -3,24 +3,24 @@ from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOU
 from shared.errors import ForbiddenError, NotFoundError
 
 class CertificacionApplicationService:
-    def __init__(self, certificado_repository=None, practica_repository=None,
+    def __init__(self, certificado_repository=None, internship_repository=None,
                  job_application_repository=None, job_posting_repository=None,
                  profile_repository=None, notification_service=None):
         self.certificado_repository = certificado_repository
-        self.practica_repository = practica_repository
+        self.internship_repository = internship_repository
         self.job_application_repository = job_application_repository
         self.job_posting_repository = job_posting_repository
         self.profile_repository = profile_repository
         self.notification_service = notification_service
 
-    def issue_certificate(self, company_id, practica_id):
+    def issue_certificate(self, company_id, internship_id):
         self._require_repositories()
 
-        practica = self.practica_repository.find_by_id(practica_id)
-        if practica is None:
+        internship = self.internship_repository.find_by_id(internship_id)
+        if internship is None:
             raise NotFoundError("Práctica no encontrada")
 
-        job_application = self.job_application_repository.find_by_id(practica.job_application_id)
+        job_application = self.job_application_repository.find_by_id(internship.job_application_id)
         if job_application is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
 
@@ -30,22 +30,22 @@ class CertificacionApplicationService:
         if job_posting.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
-        intern = self.profile_repository.find_intern_by_id(practica.intern_id)
+        intern = self.profile_repository.find_intern_by_id(internship.intern_id)
         if intern is None:
             raise NotFoundError("Practicante no encontrado")
 
-        existing = self.certificado_repository.find_by_practica_id(practica_id)
+        existing = self.certificado_repository.find_by_practica_id(internship_id)
         if existing is not None:
             return existing, False
 
         certificado = CertificacionDominioServicio().generar_certificado(
-            practica, intern, job_posting
+            internship, intern, job_posting
         )
         saved = self.certificado_repository.save(certificado)
-        self._notificar_emision(intern, practica_id)
+        self._notificar_emision(intern, internship_id)
         return saved, True
 
-    def _notificar_emision(self, intern, practica_id):
+    def _notificar_emision(self, intern, internship_id):
         if self.notification_service is None:
             return
         user_id = getattr(intern, "user_id", None)
@@ -56,7 +56,7 @@ class CertificacionApplicationService:
                 recipient_user_id=user_id,
                 notification_type="CERTIFICADO_EMITIDO",
                 message="Tu certificado digital ha sido emitido",
-                metadata={"practica_id": practica_id},
+                metadata={"practica_id": internship_id},
             )
         except Exception:
             pass
@@ -75,16 +75,16 @@ class CertificacionApplicationService:
         )
         return qr_valido and documento_valido
 
-    def find_by_practica_id(self, practica_id):
+    def find_by_practica_id(self, internship_id):
         self._require_repositories()
-        return self.certificado_repository.find_by_practica_id(practica_id)
+        return self.certificado_repository.find_by_practica_id(internship_id)
 
     def _require_repositories(self):
         if any(
             repository is None
             for repository in (
                 self.certificado_repository,
-                self.practica_repository,
+                self.internship_repository,
                 self.job_application_repository,
                 self.job_posting_repository,
                 self.profile_repository,

@@ -15,7 +15,7 @@ class JobApplicationService:
         job_application_repository=None,
         job_posting_repository=None,
         profile_repository=None,
-        practica_repository=None,
+        internship_repository=None,
         intern_repository=None,
         notification_service=None,
     ):
@@ -23,7 +23,7 @@ class JobApplicationService:
         self.job_posting_repository = job_posting_repository
         self.intern_repository = intern_repository or profile_repository
         self.profile_repository = self.intern_repository
-        self.practica_repository = practica_repository
+        self.internship_repository = internship_repository
         self.notification_service = notification_service
 
     def apply(self, user_id, job_posting_id):
@@ -78,7 +78,7 @@ class JobApplicationService:
             CandidateDTO(
                 job_application,
                 self.profile_repository.find_intern_by_id(job_application.intern_id),
-                self.practica_repository.find_by_job_application_id(job_application.id),
+                self.internship_repository.find_by_job_application_id(job_application.id),
             )
             for job_application in self.job_application_repository.find_by_job_posting_id(
                 job_posting_id
@@ -103,7 +103,7 @@ class JobApplicationService:
             if (
                 other.id != job_application.id
                 and other.status == JobApplication.STATUS_SELECTED
-                and self.practica_repository.find_by_job_application_id(other.id) is not None
+                and self.internship_repository.find_by_job_application_id(other.id) is not None
             ):
                 raise ConflictError(
                     "No se puede cambiar al candidato porque la práctica seleccionada ya inició"
@@ -181,7 +181,7 @@ class JobApplicationService:
         if job_application is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_job_posting(company_id, job_application.job_posting_id)
-        if self.practica_repository.find_by_job_application_id(job_application.id) is not None:
+        if self.internship_repository.find_by_job_application_id(job_application.id) is not None:
             raise ConflictError(
                 "No se puede cambiar la decisión porque la práctica ya fue iniciada"
             )
@@ -201,6 +201,6 @@ class JobApplicationService:
             self.job_application_repository is None
             or self.job_posting_repository is None
             or self.profile_repository is None
-            or self.practica_repository is None
+            or self.internship_repository is None
         ):
             raise RuntimeError("JobApplicationService requires all of its repositories")

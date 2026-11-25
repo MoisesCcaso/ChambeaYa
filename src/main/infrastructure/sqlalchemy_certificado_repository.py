@@ -14,7 +14,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
             model = db.session.get(CertificadoModel, certificado.id)
 
         if model is None:
-            model = CertificadoModel(practica_id=certificado.practica_id)
+            model = CertificadoModel(internship_id=certificado.internship_id)
             db.session.add(model)
 
         if certificado.codigo_qr is not None:
@@ -28,7 +28,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
         if certificado.documento is not None:
             model.documento_url = (
                 certificado.documento.url
-                or f"/certificados/practica/{certificado.practica_id}/pdf"
+                or f"/certificados/practica/{certificado.internship_id}/pdf"
             )
             model.documento_hash = certificado.documento.hash_integridad
             model.documento_contenido = certificado.documento.contenido
@@ -44,8 +44,8 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
         model = CertificadoModel.query.filter_by(codigo_qr_valor=codigo_qr_valor).first()
         return self._to_certificado_domain(model)
 
-    def find_by_practica_id(self, practica_id):
-        model = CertificadoModel.query.filter_by(practica_id=practica_id).first()
+    def find_by_practica_id(self, internship_id):
+        model = CertificadoModel.query.filter_by(internship_id=internship_id).first()
         return self._to_certificado_domain(model)
 
     def _to_certificado_domain(self, model):
@@ -70,7 +70,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
 
         return Certificado(
             id=model.id,
-            practica_id=model.practica_id,
+            internship_id=model.internship_id,
             codigo_qr=codigo_qr,
             documento=documento,
         )

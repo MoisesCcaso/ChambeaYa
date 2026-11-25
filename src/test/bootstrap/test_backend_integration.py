@@ -147,70 +147,70 @@ class BackendIntegrationTest(unittest.TestCase):
             200,
         )
 
-        practica = self.request(
+        internship = self.request(
             self.company,
             "post",
             "/practicas",
             201,
             json={"postulacion_id": job_application["id"]},
         ).get_json()
-        practica_id = practica["id"]
+        internship_id = internship["id"]
 
         self.request(
             self.intern,
             "post",
-            f"/practicas/{practica_id}/entregables",
+            f"/practicas/{internship_id}/entregables",
             201,
             data={"archivo": (io.BytesIO(b"%PDF test"), "informe.pdf")},
             content_type="multipart/form-data",
         )
-        entregables = self.request(
+        deliverables = self.request(
             self.intern,
             "get",
-            f"/practicas/{practica_id}/entregables",
+            f"/practicas/{internship_id}/entregables",
             200,
         ).get_json()
-        archivo = self.request(
+        file_name = self.request(
             self.intern,
             "get",
-            entregables[0]["archivo_url"],
+            deliverables[0]["archivo_url"],
             200,
         )
-        self.assertEqual(b"%PDF test", archivo.data)
-        archivo.close()
+        self.assertEqual(b"%PDF test", file_name.data)
+        file_name.close()
 
         self.request(
             self.company,
             "post",
-            f"/practicas/{practica_id}/evaluar",
+            f"/practicas/{internship_id}/evaluar",
             201,
             json={"puntaje": 90},
         )
         self.request(
             self.company,
             "post",
-            f"/practicas/{practica_id}/finalizar",
+            f"/practicas/{internship_id}/finalizar",
             200,
         )
 
         certificado = self.request(
             self.company,
             "post",
-            f"/certificados/{practica_id}/emitir",
+            f"/certificados/{internship_id}/emitir",
             201,
         ).get_json()
         codigo = certificado["codigo_qr"]["valor"]
         certificado_consultado = self.request(
             self.intern,
             "get",
-            f"/certificados/practica/{practica_id}",
+            f"/certificados/practica/{internship_id}",
             200,
         ).get_json()
         self.assertEqual(certificado["id"], certificado_consultado["id"])
         certificado_repetido = self.request(
             self.company,
             "post",
-            f"/certificados/{practica_id}/emitir",
+            f"/certificados/{internship_id}/emitir",
             200,
         ).get_json()
         self.assertEqual(certificado["id"], certificado_repetido["id"])
@@ -254,7 +254,7 @@ class BackendIntegrationTest(unittest.TestCase):
             f"/postulaciones/{job_application['id']}/seleccionar",
             200,
         )
-        practica = self.request(
+        internship = self.request(
             self.company,
             "post",
             "/practicas",
@@ -265,7 +265,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.request(
             self.company,
             "post",
-            f"/practicas/{practica['id']}/finalizar",
+            f"/practicas/{internship['id']}/finalizar",
             409,
         )
         notificaciones = self.request(
