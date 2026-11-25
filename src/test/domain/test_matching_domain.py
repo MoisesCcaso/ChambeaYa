@@ -21,8 +21,8 @@ def crear_practicante(habilidades, id=1):
     return Practicante(id=id, habilidades=habilidades)
 
 
-def crear_convocatoria(habilidades, id=1, estado=Convocatoria.ESTADO_PUBLICADA):
-    return Convocatoria(id=id, estado=estado, habilidades_requeridas=habilidades)
+def crear_convocatoria(habilidades, id=1, status=Convocatoria.ESTADO_PUBLICADA):
+    return Convocatoria(id=id, status=status, habilidades_requeridas=habilidades)
 
 
 class SugerenciaCalculoTest(unittest.TestCase):
@@ -180,88 +180,88 @@ class MatchingDominioServicioCalcularMatchTest(unittest.TestCase):
     """MatchingDominioServicio.calcular_match."""
 
     def setUp(self):
-        self.servicio = MatchingDominioServicio()
+        self.service = MatchingDominioServicio()
 
     def test_practicante_none_devuelve_none(self):
-        self.assertIsNone(self.servicio.calcular_match(None, crear_convocatoria(["python"])))
+        self.assertIsNone(self.service.calcular_match(None, crear_convocatoria(["python"])))
 
     def test_convocatoria_none_devuelve_none(self):
-        self.assertIsNone(self.servicio.calcular_match(crear_practicante(["python"]), None))
+        self.assertIsNone(self.service.calcular_match(crear_practicante(["python"]), None))
 
     def test_ambos_none_devuelve_none(self):
-        self.assertIsNone(self.servicio.calcular_match(None, None))
+        self.assertIsNone(self.service.calcular_match(None, None))
 
     def test_devuelve_resultado_con_ids_y_score(self):
         practicante = crear_practicante(["Python", "SQL"], id=7)
         convocatoria = crear_convocatoria(["python", "sql", "git", "docker"], id=9)
 
-        resultado = self.servicio.calcular_match(practicante, convocatoria)
+        result = self.service.calcular_match(practicante, convocatoria)
 
-        self.assertIsInstance(resultado, Sugerencia)
-        self.assertEqual(50.0, resultado.puntaje_match)
-        self.assertEqual(50.0, resultado.score_compatibilidad)
-        self.assertEqual(7, resultado.practicante_id)
-        self.assertEqual(9, resultado.convocatoria_id)
-        self.assertIs(convocatoria, resultado.convocatoria)
+        self.assertIsInstance(result, Sugerencia)
+        self.assertEqual(50.0, result.puntaje_match)
+        self.assertEqual(50.0, result.score_compatibilidad)
+        self.assertEqual(7, result.practicante_id)
+        self.assertEqual(9, result.convocatoria_id)
+        self.assertIs(convocatoria, result.convocatoria)
 
     def test_la_sugerencia_asociada_refleja_el_calculo(self):
         practicante = crear_practicante(["python"], id=3)
         convocatoria = crear_convocatoria(["python", "sql"], id=4)
 
-        resultado = self.servicio.calcular_match(practicante, convocatoria)
+        result = self.service.calcular_match(practicante, convocatoria)
 
-        self.assertIsInstance(resultado, Sugerencia)
-        self.assertEqual(3, resultado.practicante_id)
-        self.assertEqual(4, resultado.convocatoria_id)
-        self.assertEqual(50.0, resultado.puntaje_match)
-        self.assertEqual(["python"], resultado.habilidades_coincidentes)
+        self.assertIsInstance(result, Sugerencia)
+        self.assertEqual(3, result.practicante_id)
+        self.assertEqual(4, result.convocatoria_id)
+        self.assertEqual(50.0, result.puntaje_match)
+        self.assertEqual(["python"], result.habilidades_coincidentes)
 
     def test_convocatoria_sin_habilidades_da_score_cero(self):
-        resultado = self.servicio.calcular_match(
+        result = self.service.calcular_match(
             crear_practicante(["python"]), crear_convocatoria([])
         )
-        self.assertEqual(0.0, resultado.score_compatibilidad)
+        self.assertEqual(0.0, result.score_compatibilidad)
 
     def test_calcular_match_no_filtra_por_estado(self):
-        convocatoria = crear_convocatoria(["python"], estado=Convocatoria.ESTADO_CERRADA)
-        resultado = self.servicio.calcular_match(crear_practicante(["python"]), convocatoria)
-        self.assertEqual(100.0, resultado.score_compatibilidad)
+        convocatoria = crear_convocatoria(["python"], status=Convocatoria.ESTADO_CERRADA)
+        result = self.service.calcular_match(crear_practicante(["python"]), convocatoria)
+        self.assertEqual(100.0, result.score_compatibilidad)
 
 
 class MatchingDominioServicioFiltrarTest(unittest.TestCase):
     """MatchingDominioServicio.filtrar_convocatorias."""
 
     def setUp(self):
-        self.servicio = MatchingDominioServicio()
+        self.service = MatchingDominioServicio()
         self.practicante = crear_practicante(["python", "sql"], id=1)
 
     def test_lista_vacia_devuelve_lista_vacia(self):
-        self.assertEqual([], self.servicio.filtrar_convocatorias(self.practicante, []))
+        self.assertEqual([], self.service.filtrar_convocatorias(self.practicante, []))
 
     def test_excluye_convocatorias_borrador_y_cerradas(self):
         convocatorias = [
-            crear_convocatoria(["python"], id=1, estado=Convocatoria.ESTADO_BORRADOR),
-            crear_convocatoria(["python"], id=2, estado=Convocatoria.ESTADO_CERRADA),
-            crear_convocatoria(["python"], id=3, estado=Convocatoria.ESTADO_PUBLICADA),
+            crear_convocatoria(["python"], id=1, status=Convocatoria.ESTADO_BORRADOR),
+            crear_convocatoria(["python"], id=2, status=Convocatoria.ESTADO_CERRADA),
+            crear_convocatoria(["python"], id=3, status=Convocatoria.ESTADO_PUBLICADA),
         ]
-        resultados = self.servicio.filtrar_convocatorias(self.practicante, convocatorias)
+        resultados = self.service.filtrar_convocatorias(self.practicante, convocatorias)
         self.assertEqual([3], [r.convocatoria_id for r in resultados])
 
     def test_excluye_convocatorias_sin_estado(self):
-        convocatorias = [crear_convocatoria(["python"], id=1, estado=None)]
-        self.assertEqual([], self.servicio.filtrar_convocatorias(self.practicante, convocatorias))
+        convocatorias = [crear_convocatoria(["python"], id=1, status=None)]
+        self.assertEqual([], self.service.filtrar_convocatorias(self.practicante, convocatorias))
 
     def test_excluye_las_que_no_alcanzan_el_umbral_por_defecto(self):
         convocatorias = [
             crear_convocatoria(["python"], id=1),                      # 100
             crear_convocatoria(["python", "java", "go"], id=2),        # 33.3
         ]
-        resultados = self.servicio.filtrar_convocatorias(self.practicante, convocatorias)
+        resultados = self.service.filtrar_convocatorias(self.practicante, convocatorias)
         self.assertEqual([1], [r.convocatoria_id for r in resultados])
 
     def test_incluye_las_que_igualan_el_umbral(self):
         convocatorias = [crear_convocatoria(["python", "java"], id=1)]  # 50 exacto
-        resultados = self.servicio.filtrar_convocatorias(self.practicante, convocatorias)
+        resultados = self.service.filtrar_convocatorias(self.practicante, convocatorias)
         self.assertEqual(1, len(resultados))
         self.assertEqual(50.0, resultados[0].score_compatibilidad)
 
@@ -270,14 +270,14 @@ class MatchingDominioServicioFiltrarTest(unittest.TestCase):
             crear_convocatoria(["python", "java", "go"], id=1),  # 33.3
             crear_convocatoria(["python"], id=2),                # 100
         ]
-        resultados = self.servicio.filtrar_convocatorias(
+        resultados = self.service.filtrar_convocatorias(
             self.practicante, convocatorias, umbral=30.0
         )
         self.assertEqual(2, len(resultados))
 
     def test_umbral_cero_incluye_publicadas_sin_coincidencias(self):
         convocatorias = [crear_convocatoria(["java"], id=1)]
-        resultados = self.servicio.filtrar_convocatorias(
+        resultados = self.service.filtrar_convocatorias(
             self.practicante, convocatorias, umbral=0.0
         )
         self.assertEqual([1], [r.convocatoria_id for r in resultados])
@@ -289,7 +289,7 @@ class MatchingDominioServicioFiltrarTest(unittest.TestCase):
             crear_convocatoria(["python", "sql", "java", "go"], id=3),     # 50
             crear_convocatoria(["python", "sql", "java"], id=4),           # 66.6
         ]
-        resultados = self.servicio.filtrar_convocatorias(self.practicante, convocatorias)
+        resultados = self.service.filtrar_convocatorias(self.practicante, convocatorias)
         scores = [r.score_compatibilidad for r in resultados]
         self.assertEqual(sorted(scores, reverse=True), scores)
         self.assertEqual(2, resultados[0].convocatoria_id)
@@ -297,16 +297,16 @@ class MatchingDominioServicioFiltrarTest(unittest.TestCase):
 
     def test_cada_resultado_es_compatible_con_el_umbral(self):
         convocatorias = [crear_convocatoria(["python"], id=i) for i in range(1, 4)]
-        for r in self.servicio.filtrar_convocatorias(self.practicante, convocatorias, 60.0):
+        for r in self.service.filtrar_convocatorias(self.practicante, convocatorias, 60.0):
             self.assertTrue(r.es_compatible(60.0))
 
     def test_practicante_none_devuelve_lista_vacia(self):
         convocatorias = [crear_convocatoria(["python"], id=1)]
-        self.assertEqual([], self.servicio.filtrar_convocatorias(None, convocatorias))
+        self.assertEqual([], self.service.filtrar_convocatorias(None, convocatorias))
 
     def test_practicante_sin_habilidades_devuelve_lista_vacia(self):
         convocatorias = [crear_convocatoria(["python"], id=1)]
-        resultados = self.servicio.filtrar_convocatorias(crear_practicante([]), convocatorias)
+        resultados = self.service.filtrar_convocatorias(crear_practicante([]), convocatorias)
         self.assertEqual([], resultados)
 
 

@@ -5,7 +5,7 @@ from flask_wtf.csrf import CSRFError
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import HTTPException
 
-from application.email_delivery_error import EmailDeliveryError
+from identity.application.email_delivery_error import EmailDeliveryError
 from shared.database import db
 from shared.errors import DomainError
 

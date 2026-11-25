@@ -1,8 +1,8 @@
 import click
 from flask import current_app
 
-from application.email_delivery_error import EmailDeliveryError
-from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
+from identity.application.email_delivery_error import EmailDeliveryError
+from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 
 
 def register_email_commands(app):

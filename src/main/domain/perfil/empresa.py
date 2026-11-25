@@ -2,13 +2,13 @@ class Empresa:
     def __init__(
         self,
         id=None,
-        usuario_id=None,
+        user_id=None,
         razon_social=None,
         ruc=None,
         verificada=False,
     ):
         self.id = id
-        self.usuario_id = usuario_id
+        self.user_id = user_id
         self.razon_social = razon_social
         self.ruc = ruc
         self.verificada = verificada

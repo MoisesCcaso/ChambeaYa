@@ -33,12 +33,12 @@ class RegisterPage(BasePage):
         self.wait_until_visible(self.FORM)
         return self
 
-    def select_type(self, tipo: str) -> "RegisterPage":
+    def select_type(self, role: str) -> "RegisterPage":
         """Selecciona el tipo de cuenta: 'practicante' o 'empresa'.
 
         El radio está oculto con opacity: 0, por eso se hace clic en su tarjeta visible.
         """
-        card = (By.CSS_SELECTOR, f'input[name="tipo"][value="{tipo}"] + span')
+        card = (By.CSS_SELECTOR, f'input[name="tipo"][value="{role}"] + span')
         self.wait_until_clickable(card).click()
         return self
 
@@ -63,10 +63,10 @@ class RegisterPage(BasePage):
         email: str,
         password: str,
         confirmation: str | None = None,
-        tipo: str = "practicante",
+        role: str = "practicante",
     ) -> None:
         """Atajo: selecciona el tipo, completa el formulario y lo envía."""
-        self.select_type(tipo)
+        self.select_type(role)
         self.fill(email, password, confirmation)
         self.submit()
 

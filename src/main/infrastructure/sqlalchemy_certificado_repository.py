@@ -18,10 +18,10 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
             db.session.add(model)
 
         if certificado.codigo_qr is not None:
-            model.codigo_qr_valor = certificado.codigo_qr.valor
+            model.codigo_qr_valor = certificado.codigo_qr.value
             model.codigo_qr_url_verificacion = (
                 certificado.codigo_qr.url_verificacion
-                or f"/certificados/verificar/{certificado.codigo_qr.valor}"
+                or f"/certificados/verificar/{certificado.codigo_qr.value}"
             )
             model.codigo_qr_hash = certificado.codigo_qr.hash_integridad
 
@@ -55,7 +55,7 @@ class SqlAlchemyCertificadoRepository(ICertificadoRepository):
         codigo_qr = None
         if model.codigo_qr_valor is not None:
             codigo_qr = CodigoQR(
-                valor=model.codigo_qr_valor,
+                value=model.codigo_qr_valor,
                 url_verificacion=model.codigo_qr_url_verificacion,
                 hash_integridad=model.codigo_qr_hash,
             )

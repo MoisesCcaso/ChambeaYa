@@ -5,8 +5,8 @@ from email.message import EmailMessage
 from html import escape
 from urllib.parse import urlencode
 
-from application.email_delivery_error import EmailDeliveryError
-from domain.auth.i_auth_email_sender import IAuthEmailSender
+from identity.application.email_delivery_error import EmailDeliveryError
+from identity.domain.i_auth_email_sender import IAuthEmailSender
 
 
 logger = logging.getLogger(__name__)

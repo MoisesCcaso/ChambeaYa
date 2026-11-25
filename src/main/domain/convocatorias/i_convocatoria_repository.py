@@ -15,7 +15,7 @@ class IConvocatoriaRepository(ABC):
         pass
 
     @abstractmethod
-    def search(self, query=None, estado=None):
+    def search(self, query=None, status=None):
         pass
 
     @abstractmethod

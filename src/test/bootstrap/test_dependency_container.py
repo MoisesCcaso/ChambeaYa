@@ -9,7 +9,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.container = DependencyContainer()
 
     def test_container_provides_repositories(self):
-        self.assertIsNotNone(self.container.get_usuario_repository())
+        self.assertIsNotNone(self.container.get_user_repository())
         self.assertIsNotNone(self.container.get_perfil_repository())
         self.assertIsNotNone(self.container.get_convocatoria_repository())
         self.assertIsNotNone(self.container.get_postulacion_repository())
@@ -19,7 +19,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_matching_repository())
 
     def test_container_provides_services(self):
-        self.assertIsNotNone(self.container.get_usuario_service())
+        self.assertIsNotNone(self.container.get_user_service())
         self.assertIsNotNone(self.container.get_convocatoria_service())
         self.assertIsNotNone(self.container.get_practica_service())
         self.assertIsNotNone(self.container.get_postulacion_service())

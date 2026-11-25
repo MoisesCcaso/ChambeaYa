@@ -8,7 +8,7 @@ import pytest
 from notifications.domain.notification import Notification
 from shared.database import db
 from notifications.infrastructure.models.notification_model import NotificationModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.user_model import UserModel
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
 
 
@@ -21,7 +21,7 @@ class TestNotificationRepository(unittest.TestCase):
         self.repo = SqlAlchemyNotificationRepository()
 
     def _create_user(self, email):
-        user = UsuarioModel(email=email, password_hash="hash", tipo="practicante")
+        user = UserModel(email=email, password_hash="hash", role="practicante")
         db.session.add(user)
         db.session.commit()
         return user.id

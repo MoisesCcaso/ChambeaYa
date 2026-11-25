@@ -43,7 +43,7 @@ class TestMatchingApplicationService(TestCase):
         )
 
     def test_suggest_convocatorias_devuelve_resultados_y_consulta_dependencias(self):
-        resultados = self.service.suggest_convocatorias(usuario_id=5, umbral=65.0)
+        resultados = self.service.suggest_convocatorias(user_id=5, umbral=65.0)
 
         self.assertIs(self.resultados, resultados)
         self.perfil_repository.find_practicante_by_user_id.assert_called_once_with(5)
@@ -54,7 +54,7 @@ class TestMatchingApplicationService(TestCase):
         self.sugerencia_repository.save.assert_not_called()
 
     def test_calculate_for_practicante_guarda_cada_sugerencia_y_devuelve_resultados(self):
-        resultados = self.service.calculate_for_practicante(usuario_id=5)
+        resultados = self.service.calculate_for_practicante(user_id=5)
 
         self.assertIs(self.resultados, resultados)
         self.perfil_repository.find_practicante_by_user_id.assert_called_once_with(5)
@@ -70,7 +70,7 @@ class TestMatchingApplicationService(TestCase):
     def test_calculate_for_practicante_sin_resultados_no_guarda_sugerencias(self):
         self.matching_servicio.filtrar_convocatorias.return_value = []
 
-        resultados = self.service.calculate_for_practicante(usuario_id=5)
+        resultados = self.service.calculate_for_practicante(user_id=5)
 
         self.assertEqual([], resultados)
         self.sugerencia_repository.save.assert_not_called()
@@ -79,7 +79,7 @@ class TestMatchingApplicationService(TestCase):
         self.perfil_repository.find_practicante_by_user_id.return_value = None
 
         with self.assertRaisesRegex(ValueError, "Practicante no encontrado"):
-            self.service.suggest_convocatorias(usuario_id=404)
+            self.service.suggest_convocatorias(user_id=404)
 
         self.perfil_repository.find_practicante_by_user_id.assert_called_once_with(404)
         self.convocatoria_repository.find_all.assert_not_called()
@@ -93,7 +93,7 @@ class TestMatchingApplicationService(TestCase):
         )
 
         with self.assertRaisesRegex(RuntimeError, "repositorio de sugerencias"):
-            service.suggest_convocatorias(usuario_id=5)
+            service.suggest_convocatorias(user_id=5)
 
         self.perfil_repository.find_practicante_by_user_id.assert_not_called()
 

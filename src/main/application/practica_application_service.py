@@ -21,7 +21,7 @@ class PracticaApplicationService:
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
-        if postulacion.estado != Postulacion.ESTADO_SELECCIONADA:
+        if postulacion.status != Postulacion.ESTADO_SELECCIONADA:
             raise ConflictError("La postulación debe estar seleccionada para iniciar la práctica")
 
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
@@ -30,27 +30,27 @@ class PracticaApplicationService:
         if convocatoria.empresa_id != empresa_id:
             raise ForbiddenError("La postulación no pertenece a esta empresa")
 
-        existente = self.practica_repository.find_by_postulacion_id(postulacion_id)
-        if existente is not None:
+        existing = self.practica_repository.find_by_postulacion_id(postulacion_id)
+        if existing is not None:
             raise ConflictError("La práctica ya fue iniciada")
 
         practica = Practica.iniciar(postulacion_id, postulacion.practicante_id)
         return self.practica_repository.save(practica)
 
-    def upload_deliverable(self, usuario_id, practica_id, archivo):
+    def upload_deliverable(self, user_id, practica_id, archivo):
         self._require_repositories()
-        practica = self._get_practica_autorizada(usuario_id, practica_id)
+        practica = self._get_practica_autorizada(user_id, practica_id)
         practica.subir_entregable(archivo)
         return self.practica_repository.save(practica)
 
-    def get_deliverables_history(self, usuario_id, practica_id):
+    def get_deliverables_history(self, user_id, practica_id):
         self._require_repositories()
-        practica = self._get_practica_visible(usuario_id, practica_id)
+        practica = self._get_practica_visible(user_id, practica_id)
         return practica.obtener_historial_entregables()
 
-    def delete_deliverable(self, usuario_id, practica_id, entregable_id):
+    def delete_deliverable(self, user_id, practica_id, entregable_id):
         self._require_repositories()
-        practica = self._get_practica_autorizada(usuario_id, practica_id)
+        practica = self._get_practica_autorizada(user_id, practica_id)
         eliminado = practica.eliminar_entregable(entregable_id)
         self.practica_repository.save(practica)
         return eliminado
@@ -83,10 +83,10 @@ class PracticaApplicationService:
             return
         try:
             practicante = self.perfil_repository.find_practicante_by_id(practicante_id)
-            usuario_id = getattr(practicante, "usuario_id", None)
-            if usuario_id:
+            user_id = getattr(practicante, "user_id", None)
+            if user_id:
                 self.notification_service.create_notification(
-                    recipient_user_id=usuario_id,
+                    recipient_user_id=user_id,
                     notification_type="EVALUACION_DISPONIBLE",
                     message="Tu práctica tiene una nueva evaluación disponible",
                     metadata={"practica_id": practica.id},
@@ -94,9 +94,9 @@ class PracticaApplicationService:
         except Exception:
             pass
 
-    def get_evaluations_history(self, usuario_id, practica_id):
+    def get_evaluations_history(self, user_id, practica_id):
         self._require_repositories()
-        practica = self._get_practica_visible(usuario_id, practica_id)
+        practica = self._get_practica_visible(user_id, practica_id)
         return practica.obtener_historial_evaluaciones()
 
     def delete_evaluation(self, empresa_id, practica_id, evaluacion_id):
@@ -119,13 +119,13 @@ class PracticaApplicationService:
         practica.finalizar()
         return self.practica_repository.save(practica)
 
-    def list_for_user(self, usuario_id):
+    def list_for_user(self, user_id):
         self._require_repositories()
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is not None:
             return self.practica_repository.find_by_practicante_id(practicante.id)
 
-        empresa = self.perfil_repository.find_empresa_by_user_id(usuario_id)
+        empresa = self.perfil_repository.find_empresa_by_user_id(user_id)
         if empresa is None:
             raise NotFoundError("Perfil no encontrado")
 
@@ -142,12 +142,12 @@ class PracticaApplicationService:
                     practicas.append(practica)
         return practicas
 
-    def get_for_user(self, usuario_id, practica_id):
+    def get_for_user(self, user_id, practica_id):
         self._require_repositories()
-        return self._get_practica_visible(usuario_id, practica_id)
+        return self._get_practica_visible(user_id, practica_id)
 
-    def _get_practica_autorizada(self, usuario_id, practica_id):
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+    def _get_practica_autorizada(self, user_id, practica_id):
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError("Perfil de practicante no encontrado")
 
@@ -160,16 +160,16 @@ class PracticaApplicationService:
 
         return practica
 
-    def _get_practica_visible(self, usuario_id, practica_id):
+    def _get_practica_visible(self, user_id, practica_id):
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
             raise NotFoundError(NOT_FOUND)
 
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is not None and practica.practicante_id == practicante.id:
             return practica
 
-        empresa = self.perfil_repository.find_empresa_by_user_id(usuario_id)
+        empresa = self.perfil_repository.find_empresa_by_user_id(user_id)
         if empresa is not None:
             self._require_empresa_owner(empresa.id, practica)
             return practica

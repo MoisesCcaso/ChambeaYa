@@ -16,7 +16,7 @@ def serialize_postulacion(postulacion):
         "id": postulacion.id,
         "convocatoria_id": postulacion.convocatoria_id,
         "practicante_id": postulacion.practicante_id,
-        "estado": postulacion.estado,
+        "estado": postulacion.status,
     }
 
 
@@ -26,7 +26,7 @@ def serialize_postulacion_con_convocatoria(postulacion, convocatoria):
         {
             "id": convocatoria.id,
             "titulo": convocatoria.titulo,
-            "estado": convocatoria.estado,
+            "estado": convocatoria.status,
         }
         if convocatoria
         else None
@@ -57,27 +57,27 @@ def get_authenticated_user_id():
 
 
 def get_authenticated_empresa():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return None
-    return container.get_perfil_repository().find_empresa_by_user_id(usuario_id)
+    return container.get_perfil_repository().find_empresa_by_user_id(user_id)
 
 
 @postulacion_bp.post("/convocatorias/<int:convocatoria_id>")
 def apply_to_convocatoria(convocatoria_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    postulacion = build_postulacion_service().apply(usuario_id, convocatoria_id)
+    postulacion = build_postulacion_service().apply(user_id, convocatoria_id)
     return jsonify(serialize_postulacion(postulacion)), 201
 
 
 @postulacion_bp.get("/me")
 def list_my_postulaciones():
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    resultados = build_postulacion_service().list_for_practicante(usuario_id)
+    resultados = build_postulacion_service().list_for_practicante(user_id)
     return jsonify([
         serialize_postulacion_con_convocatoria(r.postulacion, r.convocatoria)
         for r in resultados
@@ -102,8 +102,8 @@ def list_convocatoria_postulaciones(convocatoria_id):
 
 @postulacion_bp.post("/<int:postulacion_id>/seleccionar")
 def select_postulacion(postulacion_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa()
@@ -117,8 +117,8 @@ def select_postulacion(postulacion_id):
 
 @postulacion_bp.post("/<int:postulacion_id>/rechazar")
 def reject_postulacion(postulacion_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     empresa = get_authenticated_empresa()
@@ -133,7 +133,7 @@ def reject_postulacion(postulacion_id):
     )
     if practicante:
         container.get_notification_service().create_notification(
-            recipient_user_id=practicante.usuario_id,
+            recipient_user_id=practicante.user_id,
             notification_type="POSTULACION_RECHAZADA",
             message="Tu postulación no fue seleccionada",
             metadata={"postulacion_id": postulacion_id},
@@ -143,19 +143,19 @@ def reject_postulacion(postulacion_id):
 
 @postulacion_bp.post("/<int:postulacion_id>/cancelar")
 def cancel_postulacion(postulacion_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     data = serialize_postulacion(
-        build_postulacion_service().cancel(usuario_id, postulacion_id)
+        build_postulacion_service().cancel(user_id, postulacion_id)
     )
     return jsonify(data), 200
 
 
 @postulacion_bp.post("/<int:postulacion_id>/reconsiderar")
 def reconsider_postulacion(postulacion_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
@@ -169,7 +169,7 @@ def reconsider_postulacion(postulacion_id):
         )
         if practicante:
             container.get_notification_service().create_notification(
-                recipient_user_id=practicante.usuario_id,
+                recipient_user_id=practicante.user_id,
                 notification_type="POSTULACION_RECONSIDERADA",
                 message="La empresa volvió a considerar tu postulación",
                 metadata={"postulacion_id": postulacion_id},

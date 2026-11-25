@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 
-class IUsuarioRepository(ABC):
+class IUserRepository(ABC):
     @abstractmethod
-    def save(self, usuario):
+    def save(self, user):
         pass
 
     @abstractmethod
@@ -11,7 +11,7 @@ class IUsuarioRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, usuario_id):
+    def find_by_id(self, user_id):
         pass
 
     @abstractmethod

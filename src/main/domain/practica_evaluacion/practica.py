@@ -8,11 +8,11 @@ class Practica:
     ESTADO_FINALIZADA = "FINALIZADA"
 
     def __init__(self, id=None, postulacion_id=None, practicante_id=None,
-                 estado=None, entregables=None, evaluaciones=None):
+                 status=None, entregables=None, evaluaciones=None):
         self.id = id
         self.postulacion_id = postulacion_id
         self.practicante_id = practicante_id
-        self.estado = estado or self.ESTADO_EN_CURSO
+        self.status = status or self.ESTADO_EN_CURSO
         self.entregables = entregables or []
         self.evaluaciones = evaluaciones or []
 
@@ -23,11 +23,11 @@ class Practica:
         return cls(
             postulacion_id=postulacion_id,
             practicante_id=practicante_id,
-            estado=cls.ESTADO_EN_CURSO,
+            status=cls.ESTADO_EN_CURSO,
         )
 
     def subir_entregable(self, archivo):
-        if self.estado == self.ESTADO_FINALIZADA:
+        if self.status == self.ESTADO_FINALIZADA:
             raise ConflictError("No se pueden subir entregables a una práctica finalizada")
 
         entregable = Entregable.crear(practica_id=self.id, archivo=archivo)
@@ -35,7 +35,7 @@ class Practica:
         return entregable
 
     def registrar_evaluacion(self, puntaje):
-        if self.estado == self.ESTADO_FINALIZADA:
+        if self.status == self.ESTADO_FINALIZADA:
             raise ConflictError("No se pueden registrar evaluaciones en una práctica finalizada")
 
         evaluacion = Evaluacion.crear(practica_id=self.id, puntaje=puntaje)
@@ -43,7 +43,7 @@ class Practica:
         return evaluacion
 
     def eliminar_entregable(self, entregable_id):
-        if self.estado != self.ESTADO_EN_CURSO:
+        if self.status != self.ESTADO_EN_CURSO:
             raise ConflictError("No se pueden eliminar entregables de una práctica finalizada")
         entregable = next(
             (item for item in self.entregables if item.id == entregable_id),
@@ -55,7 +55,7 @@ class Practica:
         return entregable
 
     def eliminar_evaluacion(self, evaluacion_id):
-        if self.estado != self.ESTADO_EN_CURSO:
+        if self.status != self.ESTADO_EN_CURSO:
             raise ConflictError("No se pueden eliminar evaluaciones de una práctica finalizada")
         evaluacion = next(
             (item for item in self.evaluaciones if item.id == evaluacion_id),
@@ -67,7 +67,7 @@ class Practica:
         return evaluacion
 
     def finalizar(self):
-        if self.estado != self.ESTADO_EN_CURSO:
+        if self.status != self.ESTADO_EN_CURSO:
             raise ConflictError("La práctica ya está finalizada")
         if not self.entregables:
             raise ConflictError("No se puede finalizar una práctica sin entregables registrados")
@@ -76,7 +76,7 @@ class Practica:
                 "No se puede finalizar una práctica sin una evaluación aprobada"
             )
 
-        self.estado = self.ESTADO_FINALIZADA
+        self.status = self.ESTADO_FINALIZADA
         return self
 
     def obtener_historial_entregables(self):

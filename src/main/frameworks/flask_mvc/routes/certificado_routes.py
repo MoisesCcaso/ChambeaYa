@@ -21,12 +21,12 @@ def serialize_certificado(certificado):
         "id": certificado.id,
         "practica_id": certificado.practica_id,
         "codigo_qr": {
-            "valor": certificado.codigo_qr.valor,
+            "valor": certificado.codigo_qr.value,
             "url_verificacion": (
                 certificado.codigo_qr.url_verificacion
-                or f"/certificados/verificar/{certificado.codigo_qr.valor}"
+                or f"/certificados/verificar/{certificado.codigo_qr.value}"
             ),
-            "imagen_url": f"/certificados/{certificado.codigo_qr.valor}/qr",
+            "imagen_url": f"/certificados/{certificado.codigo_qr.value}/qr",
         } if certificado.codigo_qr else None,
         "documento": {
             "url": (
@@ -43,12 +43,12 @@ def get_authenticated_user_id():
 
 @certificado_bp.post("/<int:practica_id>/emitir")
 def issue_certificado(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     perfil_repository = container.get_perfil_repository()
-    empresa = perfil_repository.find_empresa_by_user_id(usuario_id)
+    empresa = perfil_repository.find_empresa_by_user_id(user_id)
     if empresa is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
@@ -68,12 +68,12 @@ def verify_certificado(codigo_qr_valor):
 
 @certificado_bp.get("/practica/<int:practica_id>")
 def get_certificado_by_practica(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
     practica_service = container.get_practica_service()
-    practica_service.get_for_user(usuario_id, practica_id)
+    practica_service.get_for_user(user_id, practica_id)
     certificado = build_certificacion_service().find_by_practica_id(practica_id)
     if certificado is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
@@ -82,10 +82,10 @@ def get_certificado_by_practica(practica_id):
 
 @certificado_bp.get("/practica/<int:practica_id>/pdf")
 def download_certificado_pdf(practica_id):
-    usuario_id = get_authenticated_user_id()
-    if usuario_id is None:
+    user_id = get_authenticated_user_id()
+    if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    container.get_practica_service().get_for_user(usuario_id, practica_id)
+    container.get_practica_service().get_for_user(user_id, practica_id)
     certificado = container.get_certificado_repository().find_by_practica_id(practica_id)
     if certificado is None or certificado.documento is None:
         return jsonify({"error": CERTIFICATE_NOT_FOUND}), 404
@@ -103,7 +103,7 @@ def download_certificado_pdf(practica_id):
     for line in (certificado.documento.contenido or "").splitlines() or [""]:
         text.textLine(line)
     text.textLine("")
-    text.textLine(f"Código de verificación: {certificado.codigo_qr.valor}")
+    text.textLine(f"Código de verificación: {certificado.codigo_qr.value}")
     pdf.drawText(text)
     pdf.save()
     buffer.seek(0)

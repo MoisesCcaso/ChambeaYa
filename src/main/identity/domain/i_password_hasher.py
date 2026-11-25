@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class IPasswordHasher(ABC):
-    """Puerto del dominio para hashear y verificar contraseñas."""
+    """Domain port to hash and verify passwords."""
 
     @abstractmethod
     def hash(self, password):

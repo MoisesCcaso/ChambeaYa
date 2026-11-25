@@ -18,7 +18,7 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
 
         model.titulo = convocatoria.titulo
         model.descripcion = convocatoria.descripcion
-        model.estado = convocatoria.estado
+        model.status = convocatoria.status
         model.habilidades_requeridas = self._dump_list(convocatoria.habilidades_requeridas)
         model.beneficios = self._dump_list(convocatoria.beneficios)
         model.fecha_publicacion = convocatoria.fecha_publicacion
@@ -47,10 +47,10 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
         db.session.commit()
         return True
 
-    def search(self, query=None, estado=None):
+    def search(self, query=None, status=None):
         statement = ConvocatoriaModel.query
-        if estado:
-            statement = statement.filter_by(estado=estado)
+        if status:
+            statement = statement.filter_by(status=status)
         if query:
             pattern = f"%{str(query).strip()}%"
             statement = statement.filter(
@@ -72,7 +72,7 @@ class SqlAlchemyConvocatoriaRepository(IConvocatoriaRepository):
             empresa_id=model.empresa_id,
             titulo=model.titulo,
             descripcion=model.descripcion,
-            estado=model.estado,
+            status=model.status,
             habilidades_requeridas=self._load_list(model.habilidades_requeridas),
             beneficios=self._load_list(model.beneficios),
             fecha_publicacion=model.fecha_publicacion,

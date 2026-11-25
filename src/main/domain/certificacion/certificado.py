@@ -16,7 +16,7 @@ class Certificado:
             return False
         return self.documento.verificar_integridad(contenido)
 
-    def verificar_qr(self, valor):
+    def verificar_qr(self, value):
         if self.codigo_qr is None:
             return False
-        return self.codigo_qr.verificar(valor)
+        return self.codigo_qr.verificar(value)

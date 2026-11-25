@@ -34,26 +34,26 @@ class CertificacionApplicationService:
         if practicante is None:
             raise NotFoundError("Practicante no encontrado")
 
-        existente = self.certificado_repository.find_by_practica_id(practica_id)
-        if existente is not None:
-            return existente, False
+        existing = self.certificado_repository.find_by_practica_id(practica_id)
+        if existing is not None:
+            return existing, False
 
         certificado = CertificacionDominioServicio().generar_certificado(
             practica, practicante, convocatoria
         )
-        guardado = self.certificado_repository.save(certificado)
+        saved = self.certificado_repository.save(certificado)
         self._notificar_emision(practicante, practica_id)
-        return guardado, True
+        return saved, True
 
     def _notificar_emision(self, practicante, practica_id):
         if self.notification_service is None:
             return
-        usuario_id = getattr(practicante, "usuario_id", None)
-        if not usuario_id:
+        user_id = getattr(practicante, "user_id", None)
+        if not user_id:
             return
         try:
             self.notification_service.create_notification(
-                recipient_user_id=usuario_id,
+                recipient_user_id=user_id,
                 notification_type="CERTIFICADO_EMITIDO",
                 message="Tu certificado digital ha sido emitido",
                 metadata={"practica_id": practica_id},

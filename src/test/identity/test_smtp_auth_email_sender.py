@@ -2,7 +2,7 @@ import ssl
 import unittest
 from unittest.mock import MagicMock, patch
 
-from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
+from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 
 
 class TestSmtpAuthEmailSender(unittest.TestCase):

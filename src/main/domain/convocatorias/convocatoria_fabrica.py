@@ -18,7 +18,7 @@ class ConvocatoriaFabrica:
         convocatoria.descripcion = (
             str(descripcion).strip() if descripcion is not None else None
         )
-        convocatoria.estado = Convocatoria.ESTADO_BORRADOR
+        convocatoria.status = Convocatoria.ESTADO_BORRADOR
         for habilidad in habilidades_requeridas or []:
             convocatoria.agregar_habilidad_requerida(habilidad)
         for beneficio in beneficios or []:

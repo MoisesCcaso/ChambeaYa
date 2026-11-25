@@ -12,28 +12,28 @@ class MatchingApplicationService:
         self.convocatoria_repository = convocatoria_repository
         self.matching_servicio = matching_servicio or MatchingDominioServicio()
 
-    def suggest_convocatorias(self, usuario_id, umbral=50.0):
+    def suggest_convocatorias(self, user_id, umbral=50.0):
         self._require_repositories()
 
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError("Practicante no encontrado")
 
         convocatorias = self.convocatoria_repository.find_all()
         return self.matching_servicio.filtrar_convocatorias(practicante, convocatorias, umbral)
 
-    def calculate_for_practicante(self, usuario_id):
+    def calculate_for_practicante(self, user_id):
         self._require_repositories()
 
-        practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
+        practicante = self.perfil_repository.find_practicante_by_user_id(user_id)
         if practicante is None:
             raise ForbiddenError("Practicante no encontrado")
 
         convocatorias = self.convocatoria_repository.find_all()
         resultados = self.matching_servicio.filtrar_convocatorias(practicante, convocatorias)
 
-        for resultado in resultados:
-            self.sugerencia_repository.save(getattr(resultado, "sugerencia", resultado))
+        for result in resultados:
+            self.sugerencia_repository.save(getattr(result, "sugerencia", result))
 
         return resultados
 

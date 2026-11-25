@@ -7,7 +7,7 @@ class IPracticanteRepository(ABC):
         pass
 
     @abstractmethod
-    def find_practicante_by_user_id(self, usuario_id):
+    def find_practicante_by_user_id(self, user_id):
         pass
 
     @abstractmethod

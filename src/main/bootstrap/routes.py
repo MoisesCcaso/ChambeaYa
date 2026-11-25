@@ -1,4 +1,4 @@
-from frameworks.flask_mvc.routes.auth_routes import auth_bp
+from identity.presentation.auth_routes import auth_bp
 from frameworks.flask_mvc.routes.certificado_routes import certificado_bp
 from bootstrap.health_routes import health_bp
 from frameworks.flask_mvc.routes.matching_routes import matching_bp

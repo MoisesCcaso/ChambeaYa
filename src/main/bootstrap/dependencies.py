@@ -8,10 +8,10 @@ from notifications.application.notification_application_service import Notificat
 from application.postulacion_application_service import PostulacionApplicationService
 from application.practica_application_service import PracticaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
-from application.usuario_application_service import UsuarioApplicationService
-from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
+from identity.application.user_application_service import UserApplicationService
+from identity.domain.authentication_domain_service import AuthenticationDomainService
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
+from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
@@ -19,8 +19,8 @@ from notifications.infrastructure.sqlalchemy_notification_repository import SqlA
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
-from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
+from identity.infrastructure.sqlalchemy_user_repository import SqlAlchemyUserRepository
+from identity.infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 
 class DependencyContainer:
@@ -31,8 +31,8 @@ class DependencyContainer:
         self._services = {}
 
     # Repository resolvers
-    def get_usuario_repository(self):
-        return self._repos.get("usuario") or SqlAlchemyUsuarioRepository()
+    def get_user_repository(self):
+        return self._repos.get("user") or SqlAlchemyUserRepository()
 
     def get_perfil_repository(self):
         return self._repos.get("perfil") or SqlAlchemyPerfilRepository()
@@ -56,18 +56,18 @@ class DependencyContainer:
         return self._repos.get("matching") or SqlAlchemyMatchingRepository()
 
     # Application service resolvers
-    def get_usuario_service(self):
-        if "usuario_service" in self._services:
-            return self._services["usuario_service"]
+    def get_user_service(self):
+        if "user_service" in self._services:
+            return self._services["user_service"]
         email_sender = None
         try:
             if current_app:
                 email_sender = SmtpAuthEmailSender.from_config(current_app.config)
         except Exception:
             email_sender = SmtpAuthEmailSender()
-        return UsuarioApplicationService(
-            self.get_usuario_repository(),
-            AutenticacionDominioServicio(WerkzeugPasswordHasher()),
+        return UserApplicationService(
+            self.get_user_repository(),
+            AuthenticationDomainService(WerkzeugPasswordHasher()),
             email_sender=email_sender,
         )
 
@@ -137,7 +137,7 @@ class DependencyContainer:
             return self._services["practicante_service"]
         return PracticanteApplicationService(
             self.get_perfil_repository(),
-            self.get_usuario_repository(),
+            self.get_user_repository(),
         )
 
     def get_empresa_service(self):
@@ -145,7 +145,7 @@ class DependencyContainer:
             return self._services["empresa_service"]
         return EmpresaApplicationService(
             self.get_perfil_repository(),
-            self.get_usuario_repository(),
+            self.get_user_repository(),
         )
 
     def override_repository(self, name, repository):
