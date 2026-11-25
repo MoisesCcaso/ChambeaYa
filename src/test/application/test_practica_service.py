@@ -190,7 +190,7 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
         self.job_applications.find_by_id.assert_called_once_with(POSTULACION_ID)
         self.job_postings.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
-        self.assertEqual(85, self.practica.evaluaciones[0].puntaje)
+        self.assertEqual(85, self.practica.evaluaciones[0].score)
         self.practicas.save.assert_called_once_with(self.practica)
         self.assertIs(result, self.practica)
 
@@ -260,7 +260,7 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.assertEqual([antigua, reciente], result)
 
     def test_elimina_evaluacion_como_empresa_propietaria(self):
-        evaluacion = Evaluacion(id=9, puntaje=90)
+        evaluacion = Evaluacion(id=9, score=90)
         self.practica.evaluaciones = [evaluacion]
 
         deleted = self.service.delete_evaluation(EMPRESA_ID, PRACTICA_ID, 9)
@@ -284,7 +284,7 @@ class TestPracticaApplicationService(unittest.TestCase):
     # Finalización y autorización de empresa
     def test_finaliza_practica_cumpliendo_reglas_y_la_guarda(self):
         self.practica.entregables = [Entregable(id=8)]
-        self.practica.evaluaciones = [Evaluacion(id=9, puntaje=60)]
+        self.practica.evaluaciones = [Evaluacion(id=9, score=60)]
 
         result = self.service.finish(EMPRESA_ID, PRACTICA_ID)
 

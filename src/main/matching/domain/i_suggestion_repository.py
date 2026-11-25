@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 
-class ISugerenciaRepository(ABC):
+class ISuggestionRepository(ABC):
     @abstractmethod
-    def save(self, sugerencia):
+    def save(self, suggestion):
         pass
 
     @abstractmethod

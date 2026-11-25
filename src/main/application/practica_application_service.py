@@ -55,7 +55,7 @@ class PracticaApplicationService:
         self.practica_repository.save(practica)
         return eliminado
 
-    def evaluate(self, company_id, practica_id, puntaje):
+    def evaluate(self, company_id, practica_id, score):
         self._require_repositories()
         practica = self.practica_repository.find_by_id(practica_id)
         if practica is None:
@@ -70,7 +70,7 @@ class PracticaApplicationService:
         if job_posting.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
-        practica.registrar_evaluacion(puntaje)
+        practica.registrar_evaluacion(score)
         saved = self.practica_repository.save(practica)
         self._notificar_evaluacion(saved)
         return saved

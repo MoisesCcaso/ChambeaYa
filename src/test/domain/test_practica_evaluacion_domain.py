@@ -40,33 +40,33 @@ class TestEntregable(unittest.TestCase):
 
 class TestEvaluacion(unittest.TestCase):
     def test_acepta_puntajes_validos_y_los_convierte_a_float(self):
-        for puntaje, esperado in ((0, 0.0), ("59.5", 59.5), (60, 60.0), (100, 100.0)):
-            with self.subTest(puntaje=puntaje):
-                evaluacion = Evaluacion.crear(7, puntaje)
+        for score, esperado in ((0, 0.0), ("59.5", 59.5), (60, 60.0), (100, 100.0)):
+            with self.subTest(score=score):
+                evaluacion = Evaluacion.crear(7, score)
                 self.assertEqual(evaluacion.practica_id, 7)
-                self.assertEqual(evaluacion.puntaje, esperado)
+                self.assertEqual(evaluacion.score, esperado)
                 self.assertEqual(evaluacion.fecha_evaluacion.tzinfo, timezone.utc)
 
     def test_rechaza_puntajes_fuera_del_rango(self):
-        for puntaje in (-0.01, 100.01):
-            with self.subTest(puntaje=puntaje):
+        for score in (-0.01, 100.01):
+            with self.subTest(score=score):
                 with self.assertRaisesRegex(ValueError, "entre 0 y 100"):
-                    Evaluacion.crear(7, puntaje)
+                    Evaluacion.crear(7, score)
 
     def test_rechaza_puntaje_ausente(self):
         with self.assertRaisesRegex(ValueError, "Debe indicarse un puntaje"):
             Evaluacion.crear(7, None)
 
     def test_rechaza_puntaje_no_numerico(self):
-        for puntaje in ("no-numérico", object()):
-            with self.subTest(puntaje=puntaje):
+        for score in ("no-numérico", object()):
+            with self.subTest(score=score):
                 with self.assertRaisesRegex(ValueError, "debe ser numérico"):
-                    Evaluacion.crear(7, puntaje)
+                    Evaluacion.crear(7, score)
 
     def test_aprueba_desde_sesenta_puntos(self):
-        for puntaje, esperado in ((None, False), (59.99, False), (60, True), (100, True)):
-            with self.subTest(puntaje=puntaje):
-                self.assertIs(Evaluacion(puntaje=puntaje).esta_aprobada(), esperado)
+        for score, esperado in ((None, False), (59.99, False), (60, True), (100, True)):
+            with self.subTest(score=score):
+                self.assertIs(Evaluacion(score=score).esta_aprobada(), esperado)
 
 
 class TestPractica(unittest.TestCase):
@@ -80,7 +80,7 @@ class TestPractica(unittest.TestCase):
         practica = Practica(id=7)
         evaluacion = practica.registrar_evaluacion(85)
         self.assertEqual(evaluacion.practica_id, 7)
-        self.assertEqual(evaluacion.puntaje, 85.0)
+        self.assertEqual(evaluacion.score, 85.0)
         self.assertEqual(practica.evaluaciones, [evaluacion])
 
     def test_no_se_puede_finalizar_sin_entregables(self):
@@ -109,7 +109,7 @@ class TestPractica(unittest.TestCase):
         practica = Practica(
             status=Practica.ESTADO_FINALIZADA,
             entregables=[Entregable(archivo="informe.pdf")],
-            evaluaciones=[Evaluacion(puntaje=90)],
+            evaluaciones=[Evaluacion(score=90)],
         )
         with self.assertRaisesRegex(ValueError, "ya está finalizada"):
             practica.finalizar()
@@ -130,7 +130,7 @@ class TestPractica(unittest.TestCase):
         self.assertEqual(practica.entregables, [])
 
     def test_eliminar_evaluacion_existente_en_curso(self):
-        evaluacion = Evaluacion(id=4, puntaje=80)
+        evaluacion = Evaluacion(id=4, score=80)
         practica = Practica(evaluaciones=[evaluacion])
         self.assertIs(practica.eliminar_evaluacion(4), evaluacion)
         self.assertEqual(practica.evaluaciones, [])

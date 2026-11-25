@@ -17,7 +17,7 @@ from notifications.infrastructure.models.notification_model import NotificationM
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.suggestion_model import SuggestionModel
 from identity.infrastructure.models.user_model import UserModel
 
 
@@ -181,7 +181,7 @@ def seed_demo_data(password):
             ),
             EvaluacionModel(
                 practica_id=practice.id,
-                puntaje=85.0,
+                score=85.0,
                 fecha_evaluacion=now - timedelta(days=1),
             ),
         ]
@@ -189,19 +189,19 @@ def seed_demo_data(password):
 
     db.session.add_all(
         [
-            SugerenciaModel(
+            SuggestionModel(
                 intern_id=practitioner.id,
                 job_posting_id=data_opening.id,
-                puntaje_match=100.0,
-                habilidades_coincidentes=_json_list(
+                match_score=100.0,
+                matched_skills=_json_list(
                     ["python", "sql", "análisis de datos"]
                 ),
             ),
-            SugerenciaModel(
+            SuggestionModel(
                 intern_id=practitioner.id,
                 job_posting_id=qa_opening.id,
-                puntaje_match=100.0,
-                habilidades_coincidentes=_json_list(["git", "sql"]),
+                match_score=100.0,
+                matched_skills=_json_list(["git", "sql"]),
             ),
             NotificationModel(
                 recipient_user_id=practitioner_user.id,

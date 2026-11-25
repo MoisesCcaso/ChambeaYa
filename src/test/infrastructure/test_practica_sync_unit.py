@@ -26,9 +26,9 @@ def _ensure_orm_stubs():
             self.fecha_subida = fecha_subida
 
     class DummyEvaluacionModel:
-        def __init__(self, id=None, puntaje=None, fecha_evaluacion=None):
+        def __init__(self, id=None, score=None, fecha_evaluacion=None):
             self.id = id
-            self.puntaje = puntaje
+            self.score = score
             self.fecha_evaluacion = fecha_evaluacion
 
     class DummyPracticaModel:
@@ -103,9 +103,9 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         entregable_drop = EntregableModel(archivo="drop.pdf", fecha_subida=moment)
         entregable_drop.id = 11
 
-        eval_keep = EvaluacionModel(puntaje=80, fecha_evaluacion=moment)
+        eval_keep = EvaluacionModel(score=80, fecha_evaluacion=moment)
         eval_keep.id = 20
-        eval_drop = EvaluacionModel(puntaje=50, fecha_evaluacion=moment)
+        eval_drop = EvaluacionModel(score=50, fecha_evaluacion=moment)
         eval_drop.id = 21
 
         model = SimpleNamespace(
@@ -127,8 +127,8 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
                 Entregable(id=None, practica_id=5, archivo="new.pdf", fecha_subida=moment),
             ],
             evaluaciones=[
-                Evaluacion(id=20, practica_id=5, puntaje=80, fecha_evaluacion=moment),
-                Evaluacion(id=None, practica_id=5, puntaje=95, fecha_evaluacion=moment),
+                Evaluacion(id=20, practica_id=5, score=80, fecha_evaluacion=moment),
+                Evaluacion(id=None, practica_id=5, score=95, fecha_evaluacion=moment),
             ],
         )
 
@@ -139,7 +139,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
             result = self.repo.save(practica)
 
         self.assertEqual([e.archivo for e in model.entregables], ["keep.pdf", "new.pdf"])
-        self.assertEqual([ev.puntaje for ev in model.evaluaciones], [80, 95])
+        self.assertEqual([ev.score for ev in model.evaluaciones], [80, 95])
         self.assertEqual(result.status, Practica.ESTADO_FINALIZADA)
 
 

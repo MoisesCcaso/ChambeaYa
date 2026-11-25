@@ -69,13 +69,13 @@ class SecretKeyTest(unittest.TestCase):
         entorno = {k: v for k, v in os.environ.items() if k != "SECRET_KEY"}
         try:
             with patch.dict(os.environ, entorno, clear=True), patch("dotenv.load_dotenv"):
-                primera = importlib.reload(config).DevelopmentConfig.SECRET_KEY
-                segunda = importlib.reload(config).DevelopmentConfig.SECRET_KEY
+                first_result = importlib.reload(config).DevelopmentConfig.SECRET_KEY
+                second_result = importlib.reload(config).DevelopmentConfig.SECRET_KEY
                 self.assertIsNone(config.ProductionConfig.SECRET_KEY)
         finally:
             importlib.reload(config)
-        self.assertEqual(64, len(primera))
-        self.assertNotEqual(primera, segunda)
+        self.assertEqual(64, len(first_result))
+        self.assertNotEqual(first_result, second_result)
 
 
 if __name__ == "__main__":

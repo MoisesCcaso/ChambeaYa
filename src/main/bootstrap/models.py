@@ -3,7 +3,7 @@ from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from profiles.infrastructure.models.intern_model import InternModel
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.suggestion_model import SuggestionModel
 from identity.infrastructure.models.user_model import UserModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
@@ -17,7 +17,7 @@ __all__ = [
     "CompanyModel",
     "NotificationModel",
     "InternModel",
-    "SugerenciaModel",
+    "SuggestionModel",
     "UserModel",
     "PracticaModel",
     "EntregableModel",

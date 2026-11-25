@@ -11,13 +11,13 @@ def build_matching_service():
     return container.get_matching_service()
 
 
-def serialize_resultado(result):
+def serialize_result(result):
     return {
         "practicante_id": result.intern_id,
         "convocatoria_id": result.job_posting_id,
-        "score_compatibilidad": round(result.score_compatibilidad, 2),
-        "es_compatible": result.es_compatible(),
-        "habilidades_coincidentes": result.sugerencia.habilidades_coincidentes,
+        "score_compatibilidad": round(result.compatibility_score, 2),
+        "es_compatible": result.is_compatible(),
+        "habilidades_coincidentes": result.suggestion.matched_skills,
         "convocatoria": {
             "id": result.job_posting.id,
             "titulo": result.job_posting.title,
@@ -28,28 +28,28 @@ def serialize_resultado(result):
 
 
 @matching_bp.get("/sugerencias")
-def suggest_convocatorias():
-    """GET /matching/sugerencias — Obtener convocatorias sugeridas para el practicante."""
+def suggest_job_postings():
+    """GET /matching/sugerencias — Suggested job postings for the intern."""
     user_id = session.get("usuario_id")
 
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    results = build_matching_service().suggest_convocatorias(user_id)
+    results = build_matching_service().suggest_job_postings(user_id)
 
-    return jsonify([serialize_resultado(r) for r in results]), 200
+    return jsonify([serialize_result(r) for r in results]), 200
 
 
 @matching_bp.post("/calcular")
 def calculate_match():
-    """POST /matching/calcular — Calcular y guardar matching para el practicante."""
+    """POST /matching/calcular — Calculate and store the intern's matches."""
     user_id = session.get("usuario_id")
 
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    results = build_matching_service().calculate_for_practicante(user_id)
-    data = [serialize_resultado(r) for r in results]
+    results = build_matching_service().calculate_for_intern(user_id)
+    data = [serialize_result(r) for r in results]
 
     if data:
         try:
