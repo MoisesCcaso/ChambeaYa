@@ -83,3 +83,19 @@ def test_common_script_calls_the_api_with_credentials_and_csrf_from_the_api():
     assert 'apiUrl("/auth/csrf-token")' in common
     assert "window.CHAMBEAYA_API_URL" in common
 
+
+
+def test_csrf_protection_is_enabled_in_the_client():
+    app = create_app({"TESTING": True, "SECRET_KEY": "testing-secret"})
+
+    assert "csrf" in app.extensions
+    assert app.test_client().post("/ingresar").status_code == 405
+
+
+def test_unsafe_request_to_a_client_route_without_token_is_rejected():
+    app = create_app({"TESTING": True, "SECRET_KEY": "testing-secret"})
+    app.add_url_rule("/escritura-de-prueba", "write_probe", lambda: "ok", methods=["POST"])
+
+    response = app.test_client().post("/escritura-de-prueba")
+
+    assert response.status_code == 400
