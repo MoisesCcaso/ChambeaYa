@@ -13,7 +13,7 @@ def build_matching_service():
 
 def serialize_resultado(result):
     return {
-        "practicante_id": result.practicante_id,
+        "practicante_id": result.intern_id,
         "convocatoria_id": result.convocatoria_id,
         "score_compatibilidad": round(result.score_compatibilidad, 2),
         "es_compatible": result.es_compatible(),

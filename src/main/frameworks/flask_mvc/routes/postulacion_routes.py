@@ -15,7 +15,7 @@ def serialize_postulacion(postulacion):
     return {
         "id": postulacion.id,
         "convocatoria_id": postulacion.convocatoria_id,
-        "practicante_id": postulacion.practicante_id,
+        "practicante_id": postulacion.intern_id,
         "estado": postulacion.status,
     }
 
@@ -34,18 +34,18 @@ def serialize_postulacion_con_convocatoria(postulacion, convocatoria):
     return item
 
 
-def serialize_candidato(postulacion, practicante, practica):
+def serialize_candidato(postulacion, intern, practica):
     item = serialize_postulacion(postulacion)
     item["practicante"] = (
         {
-            "id": practicante.id,
-            "nombres": practicante.nombres,
-            "apellidos": practicante.apellidos,
-            "habilidades": practicante.habilidades,
-            "score_reputacion": practicante.score_reputacion,
-            "identidad_verificada": practicante.identidad_verificada,
+            "id": intern.id,
+            "nombres": intern.first_names,
+            "apellidos": intern.last_names,
+            "habilidades": intern.skills,
+            "score_reputacion": intern.reputation_score,
+            "identidad_verificada": intern.identity_verified,
         }
-        if practicante
+        if intern
         else None
     )
     item["practica_iniciada"] = practica is not None
@@ -56,11 +56,11 @@ def get_authenticated_user_id():
     return session.get("usuario_id")
 
 
-def get_authenticated_empresa():
+def get_authenticated_company():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return None
-    return container.get_perfil_repository().find_empresa_by_user_id(user_id)
+    return container.get_profile_repository().find_company_by_user_id(user_id)
 
 
 @postulacion_bp.post("/convocatorias/<int:convocatoria_id>")
@@ -86,16 +86,16 @@ def list_my_postulaciones():
 
 @postulacion_bp.get("/convocatorias/<int:convocatoria_id>")
 def list_convocatoria_postulaciones(convocatoria_id):
-    empresa = get_authenticated_empresa()
+    company = get_authenticated_company()
     if get_authenticated_user_id() is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    if empresa is None:
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
     resultados = build_postulacion_service().list_for_convocatoria(
-        empresa.id, convocatoria_id
+        company.id, convocatoria_id
     )
     return jsonify([
-        serialize_candidato(r.postulacion, r.practicante, r.practica)
+        serialize_candidato(r.postulacion, r.intern, r.practica)
         for r in resultados
     ]), 200
 
@@ -106,11 +106,11 @@ def select_postulacion(postulacion_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
+    postulacion = build_postulacion_service().select_candidate(company.id, postulacion_id)
 
     return jsonify(serialize_postulacion(postulacion)), 200
 
@@ -121,19 +121,19 @@ def reject_postulacion(postulacion_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    postulacion = build_postulacion_service().reject_candidate(empresa.id, postulacion_id)
+    postulacion = build_postulacion_service().reject_candidate(company.id, postulacion_id)
     data = serialize_postulacion(postulacion)
 
-    practicante = container.get_perfil_repository().find_practicante_by_id(
+    intern = container.get_profile_repository().find_intern_by_id(
         data["practicante_id"]
     )
-    if practicante:
+    if intern:
         container.get_notification_service().create_notification(
-            recipient_user_id=practicante.user_id,
+            recipient_user_id=intern.user_id,
             notification_type="POSTULACION_RECHAZADA",
             message="Tu postulación no fue seleccionada",
             metadata={"postulacion_id": postulacion_id},
@@ -157,19 +157,19 @@ def reconsider_postulacion(postulacion_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa()
-    if empresa is None:
+    company = get_authenticated_company()
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
     data = serialize_postulacion(
-        build_postulacion_service().reconsider_candidate(empresa.id, postulacion_id)
+        build_postulacion_service().reconsider_candidate(company.id, postulacion_id)
     )
     try:
-        practicante = container.get_perfil_repository().find_practicante_by_id(
+        intern = container.get_profile_repository().find_intern_by_id(
             data["practicante_id"]
         )
-        if practicante:
+        if intern:
             container.get_notification_service().create_notification(
-                recipient_user_id=practicante.user_id,
+                recipient_user_id=intern.user_id,
                 notification_type="POSTULACION_RECONSIDERADA",
                 message="La empresa volvió a considerar tu postulación",
                 metadata={"postulacion_id": postulacion_id},

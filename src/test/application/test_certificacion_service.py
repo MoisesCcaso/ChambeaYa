@@ -11,7 +11,7 @@ from domain.certificacion.certificado import Certificado
 from domain.certificacion.i_certificado_repository import ICertificadoRepository
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
-from domain.perfil.i_perfil_repository import IPerfilRepository
+from profiles.domain.i_profile_repository import IProfileRepository
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from domain.practica_evaluacion.practica import Practica
@@ -26,28 +26,28 @@ class TestCertificacionService(unittest.TestCase):
         self.practicas = create_autospec(IPracticaRepository, instance=True)
         self.postulaciones = create_autospec(IPostulacionRepository, instance=True)
         self.convocatorias = create_autospec(IConvocatoriaRepository, instance=True)
-        self.perfiles = create_autospec(IPerfilRepository, instance=True)
+        self.profiles_repo = create_autospec(IProfileRepository, instance=True)
         self.service = CertificacionApplicationService(
             certificado_repository=self.certificados,
             practica_repository=self.practicas,
             postulacion_repository=self.postulaciones,
             convocatoria_repository=self.convocatorias,
-            perfil_repository=self.perfiles,
+            profile_repository=self.profiles_repo,
         )
 
         self.practica = Practica(
-            id=PRACTICA_ID, postulacion_id=20, practicante_id=30,
+            id=PRACTICA_ID, postulacion_id=20, intern_id=30,
             status=Practica.ESTADO_FINALIZADA,
             evaluaciones=[Evaluacion(practica_id=PRACTICA_ID, puntaje=90)],
         )
         self.postulacion = SimpleNamespace(id=20, convocatoria_id=40)
-        self.convocatoria = SimpleNamespace(id=40, empresa_id=EMPRESA_ID, titulo="Practicas QA")
-        self.practicante = SimpleNamespace(id=30, nombres="Ana", apellidos="Quispe")
+        self.convocatoria = SimpleNamespace(id=40, company_id=EMPRESA_ID, titulo="Practicas QA")
+        self.intern = SimpleNamespace(id=30, first_names="Ana", last_names="Quispe")
 
         self.practicas.find_by_id.return_value = self.practica
         self.postulaciones.find_by_id.return_value = self.postulacion
         self.convocatorias.find_by_id.return_value = self.convocatoria
-        self.perfiles.find_practicante_by_id.return_value = self.practicante
+        self.profiles_repo.find_intern_by_id.return_value = self.intern
         self.certificados.find_by_practica_id.return_value = None
         self.certificados.save.side_effect = lambda certificado: certificado
 
@@ -70,14 +70,14 @@ class TestCertificacionService(unittest.TestCase):
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
         self.postulaciones.find_by_id.assert_called_once_with(20)
         self.convocatorias.find_by_id.assert_called_once_with(40)
-        self.perfiles.find_practicante_by_id.assert_called_once_with(30)
+        self.profiles_repo.find_intern_by_id.assert_called_once_with(30)
         self.certificados.find_by_practica_id.assert_called_once_with(PRACTICA_ID)
         self.certificados.save.assert_called_once_with(certificado)
 
     def test_emite_certificado_y_notifica_al_practicante(self):
         mock_notif_service = unittest.mock.Mock()
         self.service.notification_service = mock_notif_service
-        self.practicante.user_id = 99
+        self.intern.user_id = 99
 
         certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
@@ -93,7 +93,7 @@ class TestCertificacionService(unittest.TestCase):
         mock_notif_service = unittest.mock.Mock()
         mock_notif_service.create_notification.side_effect = RuntimeError("SMTP Error")
         self.service.notification_service = mock_notif_service
-        self.practicante.user_id = 99
+        self.intern.user_id = 99
 
         certificado, creado = self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
@@ -122,7 +122,7 @@ class TestCertificacionService(unittest.TestCase):
         self.certificados.save.assert_not_called()
 
     def test_practicante_inexistente_lanza_error(self):
-        self.perfiles.find_practicante_by_id.return_value = None
+        self.profiles_repo.find_intern_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Practicante no encontrado"):
             self.service.issue_certificate(EMPRESA_ID, PRACTICA_ID)
 
@@ -185,7 +185,7 @@ class TestCertificacionService(unittest.TestCase):
             practica_repository=self.practicas,
             postulacion_repository=self.postulaciones,
             convocatoria_repository=self.convocatorias,
-            perfil_repository=None,
+            profile_repository=None,
         )
         with self.assertRaises(RuntimeError):
             service.find_by_practica_id(PRACTICA_ID)

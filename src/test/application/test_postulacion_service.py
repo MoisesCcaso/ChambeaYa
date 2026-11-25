@@ -11,7 +11,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
-from domain.perfil.i_practicante_repository import IPracticanteRepository
+from profiles.domain.i_intern_repository import IInternRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 
@@ -22,13 +22,13 @@ class TestPostulacionApplicationService(unittest.TestCase):
     def setUp(self):
         self.mock_postulacion_repo = create_autospec(IPostulacionRepository, instance=True)
         self.mock_convocatoria_repo = create_autospec(IConvocatoriaRepository, instance=True)
-        self.mock_perfil_repo = create_autospec(IPracticanteRepository, instance=True)
+        self.mock_perfil_repo = create_autospec(IInternRepository, instance=True)
         self.mock_practica_repo = create_autospec(IPracticaRepository, instance=True)
 
         self.service = PostulacionApplicationService(
             postulacion_repository=self.mock_postulacion_repo,
             convocatoria_repository=self.mock_convocatoria_repo,
-            practicante_repository=self.mock_perfil_repo,
+            intern_repository=self.mock_perfil_repo,
             practica_repository=self.mock_practica_repo,
         )
 
@@ -69,30 +69,30 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertEqual(NOT_FOUND_PRACTICANTE, "Perfil de practicante no encontrado")
 
     def test_apply_perfil_practicante_no_encontrado(self):
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = None
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(user_id=1, convocatoria_id=10)
         self.assertEqual(str(ctx.exception), NOT_FOUND_PRACTICANTE)
 
     def test_apply_perfil_incompleto_sin_nombres_o_apellidos(self):
-        practicante_sin_nombres = MagicMock(nombres="", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante_sin_nombres
+        practicante_sin_nombres = MagicMock(first_names="", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = practicante_sin_nombres
 
         with self.assertRaises(ValueError) as ctx:
             self.service.apply(user_id=1, convocatoria_id=10)
         self.assertIn("Completa tus nombres y apellidos antes de postular", str(ctx.exception))
 
-        practicante_sin_apellidos = MagicMock(nombres="Juan", apellidos="")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante_sin_apellidos
+        practicante_sin_apellidos = MagicMock(first_names="Juan", last_names="")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = practicante_sin_apellidos
 
         with self.assertRaises(ValueError) as ctx2:
             self.service.apply(user_id=1, convocatoria_id=10)
         self.assertIn("Completa tus nombres y apellidos antes de postular", str(ctx2.exception))
 
     def test_apply_convocatoria_no_encontrada(self):
-        practicante = MagicMock(id=5, nombres="Juan", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         self.mock_convocatoria_repo.find_by_id.return_value = None
 
         with self.assertRaises(ValueError) as ctx:
@@ -100,8 +100,8 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
 
     def test_apply_convocatoria_no_publicada_lanza_error(self):
-        practicante = MagicMock(id=5, nombres="Juan", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         convocatoria_borrador = Convocatoria(id=10, status=Convocatoria.ESTADO_BORRADOR)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria_borrador
 
@@ -110,12 +110,12 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertIn("Solo se puede postular a convocatorias publicadas", str(ctx.exception))
 
     def test_apply_postulacion_existente_no_cancelada_lanza_error(self):
-        practicante = MagicMock(id=5, nombres="Juan", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         convocatoria = Convocatoria(id=10, status=Convocatoria.ESTADO_PUBLICADA)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria
 
-        existing = Postulacion(id=1, convocatoria_id=10, practicante_id=5, status=Postulacion.STATUS_PENDING)
+        existing = Postulacion(id=1, convocatoria_id=10, intern_id=5, status=Postulacion.STATUS_PENDING)
         self.mock_postulacion_repo.find_by_convocatoria_and_practicante.return_value = existing
 
         with self.assertRaises(ValueError) as ctx:
@@ -123,12 +123,12 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertIn("Ya existe una postulación para esta convocatoria", str(ctx.exception))
 
     def test_apply_postulacion_existente_cancelada_se_reactiva_y_guarda(self):
-        practicante = MagicMock(id=5, nombres="Juan", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         convocatoria = Convocatoria(id=10, status=Convocatoria.ESTADO_PUBLICADA)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria
 
-        existente_cancelada = Postulacion(id=1, convocatoria_id=10, practicante_id=5, status=Postulacion.ESTADO_CANCELADA)
+        existente_cancelada = Postulacion(id=1, convocatoria_id=10, intern_id=5, status=Postulacion.ESTADO_CANCELADA)
         self.mock_postulacion_repo.find_by_convocatoria_and_practicante.return_value = existente_cancelada
         self.mock_postulacion_repo.save.return_value = existente_cancelada
 
@@ -138,31 +138,31 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.mock_postulacion_repo.save.assert_called_once_with(existente_cancelada)
 
     def test_apply_nueva_postulacion_exitosa(self):
-        practicante = MagicMock(id=5, nombres="Juan", apellidos="Perez")
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5, first_names="Juan", last_names="Perez")
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         convocatoria = Convocatoria(id=10, status=Convocatoria.ESTADO_PUBLICADA)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria
         self.mock_postulacion_repo.find_by_convocatoria_and_practicante.return_value = None
 
-        guardada = Postulacion(id=20, convocatoria_id=10, practicante_id=5, status=Postulacion.STATUS_PENDING)
-        self.mock_postulacion_repo.save.return_value = guardada
+        saved = Postulacion(id=20, convocatoria_id=10, intern_id=5, status=Postulacion.STATUS_PENDING)
+        self.mock_postulacion_repo.save.return_value = saved
 
         result = self.service.apply(user_id=1, convocatoria_id=10)
 
-        self.assertEqual(result, guardada)
+        self.assertEqual(result, saved)
         self.mock_postulacion_repo.save.assert_called_once()
         postulacion_creada = self.mock_postulacion_repo.save.call_args[0][0]
         self.assertEqual(postulacion_creada.convocatoria_id, 10)
-        self.assertEqual(postulacion_creada.practicante_id, 5)
+        self.assertEqual(postulacion_creada.intern_id, 5)
 
     # ------------------- Tests de listados -------------------
 
     def test_list_for_practicante(self):
-        practicante = MagicMock(id=5)
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5)
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
 
-        p1 = Postulacion(id=1, convocatoria_id=100, practicante_id=5)
-        p2 = Postulacion(id=2, convocatoria_id=101, practicante_id=5)
+        p1 = Postulacion(id=1, convocatoria_id=100, intern_id=5)
+        p2 = Postulacion(id=2, convocatoria_id=101, intern_id=5)
         self.mock_postulacion_repo.find_by_practicante_id.return_value = [p1, p2]
 
         c1 = Convocatoria(id=100, titulo="Convo 100")
@@ -176,32 +176,32 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertEqual(result[1], (p2, c2))
 
     def test_list_for_practicante_sin_perfil_lanza_error(self):
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = None
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
             self.service.list_for_practicante(user_id=2)
         self.assertIn("Perfil de practicante no encontrado", str(ctx.exception))
 
     def test_list_for_convocatoria(self):
-        convocatoria = Convocatoria(id=10, empresa_id=3)
+        convocatoria = Convocatoria(id=10, company_id=3)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria
 
-        p1 = Postulacion(id=1, convocatoria_id=10, practicante_id=50)
+        p1 = Postulacion(id=1, convocatoria_id=10, intern_id=50)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [p1]
 
-        practicante = MagicMock(id=50, nombres="Carlos")
-        self.mock_perfil_repo.find_practicante_by_id.return_value = practicante
+        intern = MagicMock(id=50, first_names="Carlos")
+        self.mock_perfil_repo.find_intern_by_id.return_value = intern
 
         practica = MagicMock(id=1000)
         self.mock_practica_repo.find_by_postulacion_id.return_value = practica
 
-        result = self.service.list_for_convocatoria(empresa_id=3, convocatoria_id=10)
+        result = self.service.list_for_convocatoria(company_id=3, convocatoria_id=10)
 
         self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], (p1, practicante, practica))
+        self.assertEqual(result[0], (p1, intern, practica))
         
     def test_list_for_practicante_devuelve_atributos_nombrados(self):
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = MagicMock(id=5)
-        p1 = Postulacion(id=1, convocatoria_id=100, practicante_id=5)
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = MagicMock(id=5)
+        p1 = Postulacion(id=1, convocatoria_id=100, intern_id=5)
         self.mock_postulacion_repo.find_by_practicante_id.return_value = [p1]
         c1 = Convocatoria(id=100, titulo="Convo 100")
         self.mock_convocatoria_repo.find_by_id.return_value = c1
@@ -212,32 +212,32 @@ class TestPostulacionApplicationService(unittest.TestCase):
         self.assertIs(result[0].convocatoria, c1)
 
     def test_list_for_convocatoria_devuelve_atributos_nombrados(self):
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=3)
-        p1 = Postulacion(id=1, convocatoria_id=10, practicante_id=50)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=3)
+        p1 = Postulacion(id=1, convocatoria_id=10, intern_id=50)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [p1]
-        practicante = MagicMock(id=50)
+        intern = MagicMock(id=50)
         practica = MagicMock(id=1000)
-        self.mock_perfil_repo.find_practicante_by_id.return_value = practicante
+        self.mock_perfil_repo.find_intern_by_id.return_value = intern
         self.mock_practica_repo.find_by_postulacion_id.return_value = practica
 
-        result = self.service.list_for_convocatoria(empresa_id=3, convocatoria_id=10)
+        result = self.service.list_for_convocatoria(company_id=3, convocatoria_id=10)
 
         self.assertIs(result[0].postulacion, p1)
-        self.assertIs(result[0].practicante, practicante)
+        self.assertIs(result[0].intern, intern)
         self.assertIs(result[0].practica, practica)    
 
     def test_require_owned_convocatoria_en_list_for_convocatoria(self):
         # Convocatoria inexistente
         self.mock_convocatoria_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
-            self.service.list_for_convocatoria(empresa_id=1, convocatoria_id=99)
+            self.service.list_for_convocatoria(company_id=1, convocatoria_id=99)
         self.assertIn("Convocatoria no encontrada", str(ctx.exception))
 
         # Convocatoria perteneciente a otra empresa
-        convocatoria_ajena = Convocatoria(id=10, empresa_id=2)
+        convocatoria_ajena = Convocatoria(id=10, company_id=2)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria_ajena
         with self.assertRaises(ValueError) as ctx2:
-            self.service.list_for_convocatoria(empresa_id=1, convocatoria_id=10)
+            self.service.list_for_convocatoria(company_id=1, convocatoria_id=10)
         self.assertIn("La convocatoria no pertenece a esta empresa", str(ctx2.exception))
 
     # ------------------- Tests de select_candidate -------------------
@@ -245,24 +245,24 @@ class TestPostulacionApplicationService(unittest.TestCase):
     def test_select_candidate_postulacion_o_convocatoria_no_encontrada(self):
         self.mock_postulacion_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
-            self.service.select_candidate(empresa_id=1, postulacion_id=99)
+            self.service.select_candidate(company_id=1, postulacion_id=99)
         self.assertIn("Postulación no encontrada", str(ctx.exception))
 
         postulacion = Postulacion(id=1, convocatoria_id=10)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion
         self.mock_convocatoria_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx2:
-            self.service.select_candidate(empresa_id=1, postulacion_id=1)
+            self.service.select_candidate(company_id=1, postulacion_id=1)
         self.assertIn("Convocatoria no encontrada", str(ctx2.exception))
 
     def test_select_candidate_convocatoria_ajena_lanza_error(self):
         postulacion = Postulacion(id=1, convocatoria_id=10)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion
-        convocatoria_otra_empresa = Convocatoria(id=10, empresa_id=2)
+        convocatoria_otra_empresa = Convocatoria(id=10, company_id=2)
         self.mock_convocatoria_repo.find_by_id.return_value = convocatoria_otra_empresa
 
         with self.assertRaises(ValueError) as ctx:
-            self.service.select_candidate(empresa_id=1, postulacion_id=1)
+            self.service.select_candidate(company_id=1, postulacion_id=1)
         self.assertIn("La convocatoria no pertenece a esta empresa", str(ctx.exception))
 
     def test_select_candidate_falla_si_otra_practica_ya_iniciada(self):
@@ -270,14 +270,14 @@ class TestPostulacionApplicationService(unittest.TestCase):
         otra_postulacion = Postulacion(id=2, convocatoria_id=10, status=Postulacion.ESTADO_SELECCIONADA)
 
         self.mock_postulacion_repo.find_by_id.return_value = postulacion_a_elegir
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_a_elegir, otra_postulacion]
 
         # Simular que otra ya tiene práctica iniciada
         self.mock_practica_repo.find_by_postulacion_id.return_value = MagicMock(id=555)
 
         with self.assertRaises(ValueError) as ctx:
-            self.service.select_candidate(empresa_id=1, postulacion_id=1)
+            self.service.select_candidate(company_id=1, postulacion_id=1)
         self.assertIn("No se puede cambiar al candidato porque la práctica seleccionada ya inició", str(ctx.exception))
 
     def test_select_candidate_exitoso_y_rechaza_otras_pendientes_o_seleccionadas(self):
@@ -286,12 +286,12 @@ class TestPostulacionApplicationService(unittest.TestCase):
         postulacion_3 = Postulacion(id=3, convocatoria_id=10, status=Postulacion.ESTADO_SELECCIONADA)
 
         self.mock_postulacion_repo.find_by_id.return_value = postulacion_1
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_1, postulacion_2, postulacion_3]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
         self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
 
-        result = self.service.select_candidate(empresa_id=1, postulacion_id=1)
+        result = self.service.select_candidate(company_id=1, postulacion_id=1)
 
         self.assertEqual(result.id, 1)
         self.assertEqual(result.status, Postulacion.ESTADO_SELECCIONADA)
@@ -306,22 +306,22 @@ class TestPostulacionApplicationService(unittest.TestCase):
     def test_select_candidate_envia_notificaciones_a_candidatos(self):
         mock_notif = unittest.mock.Mock()
         self.service.notification_service = mock_notif
-        postulacion_1 = Postulacion(id=1, convocatoria_id=10, practicante_id=101, status=Postulacion.STATUS_PENDING)
-        postulacion_2 = Postulacion(id=2, convocatoria_id=10, practicante_id=102, status=Postulacion.STATUS_PENDING)
+        postulacion_1 = Postulacion(id=1, convocatoria_id=10, intern_id=101, status=Postulacion.STATUS_PENDING)
+        postulacion_2 = Postulacion(id=2, convocatoria_id=10, intern_id=102, status=Postulacion.STATUS_PENDING)
 
         self.mock_postulacion_repo.find_by_id.return_value = postulacion_1
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion_1, postulacion_2]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
         self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
 
         practicante_1 = unittest.mock.Mock(user_id=201)
         practicante_2 = unittest.mock.Mock(user_id=202)
-        self.mock_perfil_repo.find_practicante_by_id.side_effect = lambda pid: (
+        self.mock_perfil_repo.find_intern_by_id.side_effect = lambda pid: (
             practicante_1 if pid == 101 else practicante_2
         )
 
-        result = self.service.select_candidate(empresa_id=1, postulacion_id=1)
+        result = self.service.select_candidate(company_id=1, postulacion_id=1)
 
         self.assertEqual(result.id, 1)
         self.assertEqual(mock_notif.create_notification.call_count, 2)
@@ -342,16 +342,16 @@ class TestPostulacionApplicationService(unittest.TestCase):
         mock_notif = unittest.mock.Mock()
         mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
         self.service.notification_service = mock_notif
-        postulacion = Postulacion(id=1, convocatoria_id=10, practicante_id=101, status=Postulacion.STATUS_PENDING)
+        postulacion = Postulacion(id=1, convocatoria_id=10, intern_id=101, status=Postulacion.STATUS_PENDING)
 
         self.mock_postulacion_repo.find_by_id.return_value = postulacion
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
         self.mock_postulacion_repo.find_by_convocatoria_id.return_value = [postulacion]
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
         self.mock_postulacion_repo.save_all.side_effect = lambda lista: list(lista)
-        self.mock_perfil_repo.find_practicante_by_id.return_value = unittest.mock.Mock(user_id=201)
+        self.mock_perfil_repo.find_intern_by_id.return_value = unittest.mock.Mock(user_id=201)
 
-        result = self.service.select_candidate(empresa_id=1, postulacion_id=1)
+        result = self.service.select_candidate(company_id=1, postulacion_id=1)
         self.assertEqual(result.id, 1)
 
     # ------------------- Tests de reject_candidate, cancel y reconsider_candidate -------------------
@@ -359,10 +359,10 @@ class TestPostulacionApplicationService(unittest.TestCase):
     def test_reject_candidate_exitoso(self):
         postulacion = Postulacion(id=1, convocatoria_id=10, status=Postulacion.STATUS_PENDING)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
         self.mock_postulacion_repo.save.return_value = postulacion
 
-        result = self.service.reject_candidate(empresa_id=1, postulacion_id=1)
+        result = self.service.reject_candidate(company_id=1, postulacion_id=1)
 
         self.assertEqual(result.status, Postulacion.ESTADO_RECHAZADA)
         self.mock_postulacion_repo.save.assert_called_once_with(postulacion)
@@ -370,33 +370,33 @@ class TestPostulacionApplicationService(unittest.TestCase):
     def test_reject_candidate_postulacion_no_encontrada(self):
         self.mock_postulacion_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
-            self.service.reject_candidate(empresa_id=1, postulacion_id=99)
+            self.service.reject_candidate(company_id=1, postulacion_id=99)
         self.assertIn("Postulación no encontrada", str(ctx.exception))
 
     def test_cancel_exitoso_y_errores(self):
         # Practicante no encontrado
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = None
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
             self.service.cancel(user_id=1, postulacion_id=10)
         self.assertIn("Perfil de practicante no encontrado", str(ctx.exception))
 
         # Postulación no encontrada
-        practicante = MagicMock(id=5)
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = practicante
+        intern = MagicMock(id=5)
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = intern
         self.mock_postulacion_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx2:
             self.service.cancel(user_id=1, postulacion_id=10)
         self.assertIn("Postulación no encontrada", str(ctx2.exception))
 
         # Postulación de otro practicante
-        postulacion_otra = Postulacion(id=10, practicante_id=99, status=Postulacion.STATUS_PENDING)
+        postulacion_otra = Postulacion(id=10, intern_id=99, status=Postulacion.STATUS_PENDING)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion_otra
         with self.assertRaises(ValueError) as ctx3:
             self.service.cancel(user_id=1, postulacion_id=10)
         self.assertIn("La postulación no pertenece a este practicante", str(ctx3.exception))
 
         # Cancelación exitosa
-        postulacion_propia = Postulacion(id=10, practicante_id=5, status=Postulacion.STATUS_PENDING)
+        postulacion_propia = Postulacion(id=10, intern_id=5, status=Postulacion.STATUS_PENDING)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion_propia
         self.mock_postulacion_repo.save.return_value = postulacion_propia
 
@@ -408,30 +408,30 @@ class TestPostulacionApplicationService(unittest.TestCase):
         # Postulación no encontrada
         self.mock_postulacion_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:
-            self.service.reconsider_candidate(empresa_id=1, postulacion_id=99)
+            self.service.reconsider_candidate(company_id=1, postulacion_id=99)
         self.assertIn("Postulación no encontrada", str(ctx.exception))
 
         postulacion = Postulacion(id=1, convocatoria_id=10, status=Postulacion.ESTADO_RECHAZADA)
         self.mock_postulacion_repo.find_by_id.return_value = postulacion
-        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, empresa_id=1)
+        self.mock_convocatoria_repo.find_by_id.return_value = Convocatoria(id=10, company_id=1)
 
         # Con práctica ya iniciada
         self.mock_practica_repo.find_by_postulacion_id.return_value = MagicMock(id=123)
         with self.assertRaises(ValueError) as ctx2:
-            self.service.reconsider_candidate(empresa_id=1, postulacion_id=1)
+            self.service.reconsider_candidate(company_id=1, postulacion_id=1)
         self.assertIn("No se puede cambiar la decisión porque la práctica ya fue iniciada", str(ctx2.exception))
 
         # Reconsideración exitosa
         self.mock_practica_repo.find_by_postulacion_id.return_value = None
         self.mock_postulacion_repo.save.return_value = postulacion
 
-        result = self.service.reconsider_candidate(empresa_id=1, postulacion_id=1)
+        result = self.service.reconsider_candidate(company_id=1, postulacion_id=1)
         self.assertEqual(result.status, Postulacion.STATUS_PENDING)
         self.mock_postulacion_repo.save.assert_called_once_with(postulacion)
         
     def test_apply_convocatoria_inexistente_usa_mensaje_estandar(self):
-        self.mock_perfil_repo.find_practicante_by_user_id.return_value = MagicMock(
-            id=5, nombres="Ana", apellidos="Perez"
+        self.mock_perfil_repo.find_intern_by_user_id.return_value = MagicMock(
+            id=5, first_names="Ana", last_names="Perez"
         )
         self.mock_convocatoria_repo.find_by_id.return_value = None
         with self.assertRaises(ValueError) as ctx:

@@ -17,7 +17,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
         if model is None:
             model = PracticaModel(
                 postulacion_id=practica.postulacion_id,
-                practicante_id=practica.practicante_id,
+                intern_id=practica.intern_id,
             )
             db.session.add(model)
 
@@ -61,15 +61,15 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
         model = db.session.get(PracticaModel, practica_id)
         return self._to_practica_domain(model)
 
-    def find_by_practicante_id(self, practicante_id):
-        models = PracticaModel.query.filter_by(practicante_id=practicante_id).all()
+    def find_by_practicante_id(self, intern_id):
+        models = PracticaModel.query.filter_by(intern_id=intern_id).all()
         return [self._to_practica_domain(model) for model in models]
 
     def find_by_postulacion_id(self, postulacion_id):
         model = PracticaModel.query.filter_by(postulacion_id=postulacion_id).first()
         return self._to_practica_domain(model)
 
-    def find_by_empresa_id(self, empresa_id):
+    def find_by_empresa_id(self, company_id):
         from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
         from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 
@@ -77,7 +77,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
             PracticaModel.query
             .join(PostulacionModel, PracticaModel.postulacion_id == PostulacionModel.id)
             .join(ConvocatoriaModel, PostulacionModel.convocatoria_id == ConvocatoriaModel.id)
-            .filter(ConvocatoriaModel.empresa_id == empresa_id)
+            .filter(ConvocatoriaModel.company_id == company_id)
             .all()
         )
         return [self._to_practica_domain(model) for model in models]
@@ -98,7 +98,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
         return Practica(
             id=model.id,
             postulacion_id=model.postulacion_id,
-            practicante_id=model.practicante_id,
+            intern_id=model.intern_id,
             status=model.status,
             entregables=entregables,
             evaluaciones=evaluaciones,

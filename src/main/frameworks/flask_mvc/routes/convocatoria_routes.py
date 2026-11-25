@@ -11,16 +11,16 @@ def build_convocatoria_service():
     return container.get_convocatoria_service()
 
 
-def get_authenticated_empresa(user_id):
+def get_authenticated_company(user_id):
     if user_id is None:
         return None
-    return container.get_perfil_repository().find_empresa_by_user_id(user_id)
+    return container.get_profile_repository().find_company_by_user_id(user_id)
 
 
 def serialize_convocatoria(convocatoria):
     return {
         "id": convocatoria.id,
-        "empresa_id": convocatoria.empresa_id,
+        "empresa_id": convocatoria.company_id,
         "titulo": convocatoria.titulo,
         "descripcion": convocatoria.descripcion,
         "estado": convocatoria.status,
@@ -54,10 +54,10 @@ def list_my_convocatorias():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    convocatorias = build_convocatoria_service().list_for_empresa(empresa.id)
+    convocatorias = build_convocatoria_service().list_for_empresa(company.id)
     return jsonify([serialize_convocatoria(item) for item in convocatorias]), 200
 
 
@@ -66,8 +66,8 @@ def get_convocatoria(convocatoria_id):
     data = serialize_convocatoria(build_convocatoria_service().find_by_id(convocatoria_id))
     if data["estado"] != "publicada":
         user_id = get_authenticated_user_id()
-        empresa = get_authenticated_empresa(user_id)
-        if empresa is None or empresa.id != data["empresa_id"]:
+        company = get_authenticated_company(user_id)
+        if company is None or company.id != data["empresa_id"]:
             return jsonify({"error": "Convocatoria no encontrada"}), 404
     return jsonify(data), 200
 
@@ -78,14 +78,14 @@ def create_convocatoria():
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    if not empresa.verificada:
+    if not company.verified:
         return jsonify({"error": "La empresa debe estar verificada"}), 403
 
     payload = request.get_json(silent=True) or {}
-    convocatoria = build_convocatoria_service().create_convocatoria(empresa.id, payload)
+    convocatoria = build_convocatoria_service().create_convocatoria(company.id, payload)
 
     return jsonify(serialize_convocatoria(convocatoria)), 201
 
@@ -95,11 +95,11 @@ def publish_convocatoria(convocatoria_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    convocatoria = build_convocatoria_service().publish(empresa.id, convocatoria_id)
+    convocatoria = build_convocatoria_service().publish(company.id, convocatoria_id)
 
     return jsonify(serialize_convocatoria(convocatoria)), 200
 
@@ -109,11 +109,11 @@ def update_convocatoria(convocatoria_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
     convocatoria = build_convocatoria_service().update(
-        empresa.id,
+        company.id,
         convocatoria_id,
         request.get_json(silent=True) or {},
     )
@@ -126,11 +126,11 @@ def close_convocatoria(convocatoria_id):
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    convocatoria = build_convocatoria_service().close(empresa.id, convocatoria_id)
+    convocatoria = build_convocatoria_service().close(company.id, convocatoria_id)
     return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
@@ -139,10 +139,10 @@ def reopen_convocatoria(convocatoria_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    convocatoria = build_convocatoria_service().reopen(empresa.id, convocatoria_id)
+    convocatoria = build_convocatoria_service().reopen(company.id, convocatoria_id)
     return jsonify(serialize_convocatoria(convocatoria)), 200
 
 
@@ -151,10 +151,10 @@ def duplicate_convocatoria(convocatoria_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    convocatoria = build_convocatoria_service().duplicate(empresa.id, convocatoria_id)
+    convocatoria = build_convocatoria_service().duplicate(company.id, convocatoria_id)
     return jsonify(serialize_convocatoria(convocatoria)), 201
 
 
@@ -163,8 +163,8 @@ def delete_convocatoria(convocatoria_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    empresa = get_authenticated_empresa(user_id)
-    if empresa is None:
+    company = get_authenticated_company(user_id)
+    if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    convocatoria = build_convocatoria_service().delete(empresa.id, convocatoria_id)
+    convocatoria = build_convocatoria_service().delete(company.id, convocatoria_id)
     return jsonify({"id": convocatoria.id, "mensaje": "Convocatoria eliminada"}), 200

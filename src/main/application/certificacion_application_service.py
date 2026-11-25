@@ -5,15 +5,15 @@ from shared.errors import ForbiddenError, NotFoundError
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
                  postulacion_repository=None, convocatoria_repository=None,
-                 perfil_repository=None, notification_service=None):
+                 profile_repository=None, notification_service=None):
         self.certificado_repository = certificado_repository
         self.practica_repository = practica_repository
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
-        self.perfil_repository = perfil_repository
+        self.profile_repository = profile_repository
         self.notification_service = notification_service
 
-    def issue_certificate(self, empresa_id, practica_id):
+    def issue_certificate(self, company_id, practica_id):
         self._require_repositories()
 
         practica = self.practica_repository.find_by_id(practica_id)
@@ -27,11 +27,11 @@ class CertificacionApplicationService:
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.empresa_id != empresa_id:
+        if convocatoria.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
-        practicante = self.perfil_repository.find_practicante_by_id(practica.practicante_id)
-        if practicante is None:
+        intern = self.profile_repository.find_intern_by_id(practica.intern_id)
+        if intern is None:
             raise NotFoundError("Practicante no encontrado")
 
         existing = self.certificado_repository.find_by_practica_id(practica_id)
@@ -39,16 +39,16 @@ class CertificacionApplicationService:
             return existing, False
 
         certificado = CertificacionDominioServicio().generar_certificado(
-            practica, practicante, convocatoria
+            practica, intern, convocatoria
         )
         saved = self.certificado_repository.save(certificado)
-        self._notificar_emision(practicante, practica_id)
+        self._notificar_emision(intern, practica_id)
         return saved, True
 
-    def _notificar_emision(self, practicante, practica_id):
+    def _notificar_emision(self, intern, practica_id):
         if self.notification_service is None:
             return
-        user_id = getattr(practicante, "user_id", None)
+        user_id = getattr(intern, "user_id", None)
         if not user_id:
             return
         try:
@@ -87,7 +87,7 @@ class CertificacionApplicationService:
                 self.practica_repository,
                 self.postulacion_repository,
                 self.convocatoria_repository,
-                self.perfil_repository,
+                self.profile_repository,
             )
         ):
             raise RuntimeError("CertificacionApplicationService requiere todos sus repositorios")

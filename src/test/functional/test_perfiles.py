@@ -24,10 +24,10 @@ def test_per_01_guardar_datos_validos_perfil_practicante(driver, base_url):
     nuevos_nombres = f"Andrea {uuid4().hex[:6]}"
     nuevos_apellidos = "Quispe Flores"
     profile_page.fill_student_profile(
-        nombres=nuevos_nombres,
-        apellidos=nuevos_apellidos,
+        first_names=nuevos_nombres,
+        last_names=nuevos_apellidos,
         dni="72483915",
-        carnet="202612345",
+        card="202612345",
     )
     profile_page.submit_student_profile()
 
@@ -51,14 +51,14 @@ def test_per_02_agregar_habilidad_perfil_practicante(driver, base_url):
     profile_page = ProfilePage(driver, base_url)
     profile_page.open_profile()
 
-    habilidad = "Python"
+    skill = "Python"
     # Si ya existe, la removemos primero para garantizar la prueba
-    profile_page.remove_skill_if_present(habilidad)
-    profile_page.add_skill(habilidad)
+    profile_page.remove_skill_if_present(skill)
+    profile_page.add_skill(skill)
 
     skills = profile_page.get_skills()
-    assert any(habilidad.lower() in s.lower() for s in skills), (
-        f"'{habilidad}' no aparece en skills-list: {skills}"
+    assert any(skill.lower() in s.lower() for s in skills), (
+        f"'{skill}' no aparece en skills-list: {skills}"
     )
 
 
@@ -94,14 +94,14 @@ def test_per_04_agregar_formacion_perfil_practicante(driver, base_url):
     profile_page = ProfilePage(driver, base_url)
     profile_page.open_profile()
 
-    formacion = "Ing. de Sistemas"
+    education_entry = "Ing. de Sistemas"
     # Si ya existe, la removemos primero para garantizar la prueba
-    profile_page.remove_education_if_present(formacion)
-    profile_page.add_education(formacion)
+    profile_page.remove_education_if_present(education_entry)
+    profile_page.add_education(education_entry)
 
     education = profile_page.get_education()
-    assert any(formacion.lower() in e.lower() for e in education), (
-        f"'{formacion}' no aparece en education-list: {education}"
+    assert any(education_entry.lower() in e.lower() for e in education), (
+        f"'{education_entry}' no aparece en education-list: {education}"
     )
 
 
@@ -117,7 +117,7 @@ def test_per_05_guardar_perfil_empresa_ruc_valido(driver, base_url):
     profile_page.open_profile()
 
     profile_page.fill_company_profile(
-        razon_social="Innovación Andina S.A.C.",
+        legal_name="Innovación Andina S.A.C.",
         ruc="20100070970",  # RUC válido de 11 dígitos
     )
     profile_page.submit_company_profile()
@@ -144,7 +144,7 @@ def test_per_06_ruc_invalido_genera_error_de_validacion(driver, base_url):
 
     # Caso 1: RUC de 10 dígitos → el campo pattern="[0-9]{11}" lo marca inválido
     profile_page.fill_company_profile(
-        razon_social="Empresa Test S.A.C.",
+        legal_name="Empresa Test S.A.C.",
         ruc="1234567890",  # 10 dígitos
     )
     assert not profile_page.is_company_ruc_valid(), (

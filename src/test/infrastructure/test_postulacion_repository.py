@@ -6,8 +6,8 @@ from domain.convocatorias.postulacion import Postulacion
 from bootstrap.app import create_app
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.company_model import CompanyModel
+from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 
@@ -23,9 +23,9 @@ class TestPostulacionRepository(unittest.TestCase):
         self.repository = SqlAlchemyPostulacionRepository()
 
         # Preparar entidades base para cumplir con integridad referencial (FKs)
-        self.empresa = self._crear_empresa(email="empresa_post@test.com", ruc="20111222333")
-        self.convocatoria_1 = self._crear_convocatoria(self.empresa.id, titulo="Backend Python")
-        self.convocatoria_2 = self._crear_convocatoria(self.empresa.id, titulo="Frontend React")
+        self.company = self._crear_empresa(email="empresa_post@test.com", ruc="20111222333")
+        self.convocatoria_1 = self._crear_convocatoria(self.company.id, titulo="Backend Python")
+        self.convocatoria_2 = self._crear_convocatoria(self.company.id, titulo="Frontend React")
 
         self.practicante_1 = self._crear_practicante(email="pract1@test.com", dni="71112233")
         self.practicante_2 = self._crear_practicante(email="pract2@test.com", dni="72223344")
@@ -45,19 +45,19 @@ class TestPostulacionRepository(unittest.TestCase):
         db.session.add(user)
         db.session.flush()
 
-        empresa = EmpresaModel(
+        company = CompanyModel(
             user_id=user.id,
-            razon_social="Empresa Postulaciones",
+            legal_name="Empresa Postulaciones",
             ruc=ruc,
-            verificada=True,
+            verified=True,
         )
-        db.session.add(empresa)
+        db.session.add(company)
         db.session.commit()
-        return empresa
+        return company
 
-    def _crear_convocatoria(self, empresa_id, titulo):
+    def _crear_convocatoria(self, company_id, titulo):
         convocatoria = ConvocatoriaModel(
-            empresa_id=empresa_id,
+            company_id=company_id,
             titulo=titulo,
             status="publicada",
         )
@@ -75,57 +75,57 @@ class TestPostulacionRepository(unittest.TestCase):
         db.session.add(user)
         db.session.flush()
 
-        practicante = PracticanteModel(
+        intern = InternModel(
             user_id=user.id,
-            nombres="Juan",
-            apellidos="Pérez",
+            first_names="Juan",
+            last_names="Pérez",
             dni=dni,
         )
-        db.session.add(practicante)
+        db.session.add(intern)
         db.session.commit()
-        return practicante
+        return intern
 
     def test_save_crea_nueva_postulacion_y_asigna_id(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         )
 
-        guardada = self.repository.save(postulacion)
+        saved = self.repository.save(postulacion)
 
-        self.assertIsNotNone(guardada.id)
-        self.assertEqual(guardada.convocatoria_id, self.convocatoria_1.id)
-        self.assertEqual(guardada.practicante_id, self.practicante_1.id)
-        self.assertEqual(guardada.status, Postulacion.STATUS_PENDING)
+        self.assertIsNotNone(saved.id)
+        self.assertEqual(saved.convocatoria_id, self.convocatoria_1.id)
+        self.assertEqual(saved.intern_id, self.practicante_1.id)
+        self.assertEqual(saved.status, Postulacion.STATUS_PENDING)
 
     def test_save_actualiza_estado_de_postulacion_existente(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         )
-        guardada = self.repository.save(postulacion)
+        saved = self.repository.save(postulacion)
 
-        guardada.status = Postulacion.ESTADO_SELECCIONADA
-        actualizada = self.repository.save(guardada)
+        saved.status = Postulacion.ESTADO_SELECCIONADA
+        actualizada = self.repository.save(saved)
 
-        self.assertEqual(actualizada.id, guardada.id)
+        self.assertEqual(actualizada.id, saved.id)
         self.assertEqual(actualizada.status, Postulacion.ESTADO_SELECCIONADA)
 
         # Confirmar persistencia en BD
-        recuperada = self.repository.find_by_id(guardada.id)
-        self.assertEqual(recuperada.status, Postulacion.ESTADO_SELECCIONADA)
+        reloaded = self.repository.find_by_id(saved.id)
+        self.assertEqual(reloaded.status, Postulacion.ESTADO_SELECCIONADA)
 
     def test_save_all_persiste_varias_postulaciones_en_una_transaccion(self):
         p1 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         ))
         p2 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_2.id,
+            intern_id=self.practicante_2.id,
             status=Postulacion.STATUS_PENDING,
         ))
         p1.status = Postulacion.ESTADO_SELECCIONADA
@@ -140,13 +140,13 @@ class TestPostulacionRepository(unittest.TestCase):
     def test_save_all_hace_rollback_si_falla_el_commit(self):
         p1 = self.repository.save(Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         ))
         p1.status = Postulacion.ESTADO_SELECCIONADA
         invalida = Postulacion(
             convocatoria_id=99999,
-            practicante_id=self.practicante_2.id,
+            intern_id=self.practicante_2.id,
             status=Postulacion.STATUS_PENDING,
         )
 
@@ -158,31 +158,31 @@ class TestPostulacionRepository(unittest.TestCase):
     def test_find_by_id_existente_e_inexistente(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         )
-        guardada = self.repository.save(postulacion)
+        saved = self.repository.save(postulacion)
 
-        recuperada = self.repository.find_by_id(guardada.id)
-        self.assertIsNotNone(recuperada)
-        self.assertEqual(recuperada.id, guardada.id)
-        self.assertEqual(recuperada.convocatoria_id, self.convocatoria_1.id)
-        self.assertEqual(recuperada.practicante_id, self.practicante_1.id)
+        reloaded = self.repository.find_by_id(saved.id)
+        self.assertIsNotNone(reloaded)
+        self.assertEqual(reloaded.id, saved.id)
+        self.assertEqual(reloaded.convocatoria_id, self.convocatoria_1.id)
+        self.assertEqual(reloaded.intern_id, self.practicante_1.id)
 
         self.assertIsNone(self.repository.find_by_id(99999))
 
     def test_find_by_practicante_id(self):
         p1 = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
         )
         p2 = Postulacion(
             convocatoria_id=self.convocatoria_2.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
         )
         p3 = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_2.id,
+            intern_id=self.practicante_2.id,
         )
         self.repository.save(p1)
         self.repository.save(p2)
@@ -199,11 +199,11 @@ class TestPostulacionRepository(unittest.TestCase):
     def test_find_by_convocatoria_id(self):
         p1 = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
         )
         p2 = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_2.id,
+            intern_id=self.practicante_2.id,
         )
         self.repository.save(p1)
         self.repository.save(p2)
@@ -217,7 +217,7 @@ class TestPostulacionRepository(unittest.TestCase):
     def test_find_by_convocatoria_and_practicante(self):
         postulacion = Postulacion(
             convocatoria_id=self.convocatoria_1.id,
-            practicante_id=self.practicante_1.id,
+            intern_id=self.practicante_1.id,
             status=Postulacion.STATUS_PENDING,
         )
         self.repository.save(postulacion)
@@ -227,7 +227,7 @@ class TestPostulacionRepository(unittest.TestCase):
         )
         self.assertIsNotNone(encontrada)
         self.assertEqual(encontrada.convocatoria_id, self.convocatoria_1.id)
-        self.assertEqual(encontrada.practicante_id, self.practicante_1.id)
+        self.assertEqual(encontrada.intern_id, self.practicante_1.id)
 
         inexistente = self.repository.find_by_convocatoria_and_practicante(
             self.convocatoria_2.id, self.practicante_1.id

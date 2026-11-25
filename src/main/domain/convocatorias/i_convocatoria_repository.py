@@ -19,7 +19,7 @@ class IConvocatoriaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_empresa_id(self, empresa_id):
+    def find_by_empresa_id(self, company_id):
         pass
 
     @abstractmethod

@@ -24,7 +24,7 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
         if model is None:
             model = PostulacionModel(
                 convocatoria_id=postulacion.convocatoria_id,
-                practicante_id=postulacion.practicante_id,
+                intern_id=postulacion.intern_id,
             )
             db.session.add(model)
 
@@ -35,18 +35,18 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
         model = db.session.get(PostulacionModel, postulacion_id)
         return self._to_postulacion_domain(model)
 
-    def find_by_practicante_id(self, practicante_id):
-        models = PostulacionModel.query.filter_by(practicante_id=practicante_id).all()
+    def find_by_practicante_id(self, intern_id):
+        models = PostulacionModel.query.filter_by(intern_id=intern_id).all()
         return [self._to_postulacion_domain(model) for model in models]
 
     def find_by_convocatoria_id(self, convocatoria_id):
         models = PostulacionModel.query.filter_by(convocatoria_id=convocatoria_id).all()
         return [self._to_postulacion_domain(model) for model in models]
 
-    def find_by_convocatoria_and_practicante(self, convocatoria_id, practicante_id):
+    def find_by_convocatoria_and_practicante(self, convocatoria_id, intern_id):
         model = PostulacionModel.query.filter_by(
             convocatoria_id=convocatoria_id,
-            practicante_id=practicante_id,
+            intern_id=intern_id,
         ).first()
         return self._to_postulacion_domain(model)
 
@@ -57,6 +57,6 @@ class SqlAlchemyPostulacionRepository(IPostulacionRepository):
         return Postulacion(
             id=model.id,
             convocatoria_id=model.convocatoria_id,
-            practicante_id=model.practicante_id,
+            intern_id=model.intern_id,
             status=model.status,
         )

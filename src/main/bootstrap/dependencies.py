@@ -2,12 +2,12 @@ from flask import current_app
 
 from application.certificacion_application_service import CertificacionApplicationService
 from application.convocatoria_application_service import ConvocatoriaApplicationService
-from application.empresa_application_service import EmpresaApplicationService
+from profiles.application.company_application_service import CompanyApplicationService
 from application.matching_application_service import MatchingApplicationService
 from notifications.application.notification_application_service import NotificationApplicationService
 from application.postulacion_application_service import PostulacionApplicationService
 from application.practica_application_service import PracticaApplicationService
-from application.practicante_application_service import PracticanteApplicationService
+from profiles.application.intern_application_service import InternApplicationService
 from identity.application.user_application_service import UserApplicationService
 from identity.domain.authentication_domain_service import AuthenticationDomainService
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
@@ -16,7 +16,7 @@ from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertifica
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from profiles.infrastructure.sqlalchemy_profile_repository import SqlAlchemyProfileRepository
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 from identity.infrastructure.sqlalchemy_user_repository import SqlAlchemyUserRepository
@@ -34,8 +34,8 @@ class DependencyContainer:
     def get_user_repository(self):
         return self._repos.get("user") or SqlAlchemyUserRepository()
 
-    def get_perfil_repository(self):
-        return self._repos.get("perfil") or SqlAlchemyPerfilRepository()
+    def get_profile_repository(self):
+        return self._repos.get("profile") or SqlAlchemyProfileRepository()
 
     def get_convocatoria_repository(self):
         return self._repos.get("convocatoria") or SqlAlchemyConvocatoriaRepository()
@@ -83,7 +83,7 @@ class DependencyContainer:
         notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
         return PracticaApplicationService(
             self.get_practica_repository(),
-            self.get_perfil_repository(),
+            self.get_profile_repository(),
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
             notification_service=notif_service,
@@ -97,7 +97,7 @@ class DependencyContainer:
         return PostulacionApplicationService(
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
-            self.get_perfil_repository(),
+            self.get_profile_repository(),
             self.get_practica_repository(),
             notification_service=notif_service,
         )
@@ -107,7 +107,7 @@ class DependencyContainer:
             return self._services["matching_service"]
         return MatchingApplicationService(
             self.get_matching_repository(),
-            self.get_perfil_repository(),
+            self.get_profile_repository(),
             self.get_convocatoria_repository(),
             MatchingDominioServicio(),
         )
@@ -128,23 +128,23 @@ class DependencyContainer:
             self.get_practica_repository(),
             self.get_postulacion_repository(),
             self.get_convocatoria_repository(),
-            self.get_perfil_repository(),
+            self.get_profile_repository(),
             notification_service=notif_service,
         )
 
-    def get_practicante_service(self):
-        if "practicante_service" in self._services:
-            return self._services["practicante_service"]
-        return PracticanteApplicationService(
-            self.get_perfil_repository(),
+    def get_intern_service(self):
+        if "intern_service" in self._services:
+            return self._services["intern_service"]
+        return InternApplicationService(
+            self.get_profile_repository(),
             self.get_user_repository(),
         )
 
-    def get_empresa_service(self):
-        if "empresa_service" in self._services:
-            return self._services["empresa_service"]
-        return EmpresaApplicationService(
-            self.get_perfil_repository(),
+    def get_company_service(self):
+        if "company_service" in self._services:
+            return self._services["company_service"]
+        return CompanyApplicationService(
+            self.get_profile_repository(),
             self.get_user_repository(),
         )
 

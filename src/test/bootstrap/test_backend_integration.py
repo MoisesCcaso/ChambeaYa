@@ -19,8 +19,8 @@ class BackendIntegrationTest(unittest.TestCase):
         )
         with self.app.app_context():
             db.create_all()
-        self.empresa = self.app.test_client()
-        self.practicante = self.app.test_client()
+        self.company = self.app.test_client()
+        self.intern = self.app.test_client()
 
     def tearDown(self):
         with self.app.app_context():
@@ -68,20 +68,20 @@ class BackendIntegrationTest(unittest.TestCase):
 
     def prepare_users_and_convocatoria(self):
         self.register_activate_login(
-            self.empresa,
+            self.company,
             "empresa@example.com",
             "Empresa123",
             "empresa",
         )
         self.request(
-            self.empresa,
+            self.company,
             "put",
             "/perfil/me/empresa",
             200,
             json={"razon_social": "Tech SAC", "ruc": "20131312955"},
         )
         convocatoria = self.request(
-            self.empresa,
+            self.company,
             "post",
             "/convocatorias",
             201,
@@ -93,20 +93,20 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         ).get_json()
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/convocatorias/{convocatoria['id']}/publicar",
             200,
         )
 
         self.register_activate_login(
-            self.practicante,
+            self.intern,
             "practicante@example.com",
             "Student123",
             "practicante",
         )
         self.request(
-            self.practicante,
+            self.intern,
             "put",
             "/perfil/me",
             200,
@@ -124,31 +124,31 @@ class BackendIntegrationTest(unittest.TestCase):
         convocatoria_id = convocatoria["id"]
 
         matches = self.request(
-            self.practicante, "get", "/matching/sugerencias", 200
+            self.intern, "get", "/matching/sugerencias", 200
         ).get_json()
         self.assertEqual(100.0, matches[0]["score_compatibilidad"])
 
         postulacion = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{convocatoria_id}",
             201,
         ).get_json()
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{convocatoria_id}",
             409,
         )
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{postulacion['id']}/seleccionar",
             200,
         )
 
         practica = self.request(
-            self.empresa,
+            self.company,
             "post",
             "/practicas",
             201,
@@ -157,7 +157,7 @@ class BackendIntegrationTest(unittest.TestCase):
         practica_id = practica["id"]
 
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/practicas/{practica_id}/entregables",
             201,
@@ -165,13 +165,13 @@ class BackendIntegrationTest(unittest.TestCase):
             content_type="multipart/form-data",
         )
         entregables = self.request(
-            self.practicante,
+            self.intern,
             "get",
             f"/practicas/{practica_id}/entregables",
             200,
         ).get_json()
         archivo = self.request(
-            self.practicante,
+            self.intern,
             "get",
             entregables[0]["archivo_url"],
             200,
@@ -180,42 +180,42 @@ class BackendIntegrationTest(unittest.TestCase):
         archivo.close()
 
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practica_id}/evaluar",
             201,
             json={"puntaje": 90},
         )
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practica_id}/finalizar",
             200,
         )
 
         certificado = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/certificados/{practica_id}/emitir",
             201,
         ).get_json()
         codigo = certificado["codigo_qr"]["valor"]
         certificado_consultado = self.request(
-            self.practicante,
+            self.intern,
             "get",
             f"/certificados/practica/{practica_id}",
             200,
         ).get_json()
         self.assertEqual(certificado["id"], certificado_consultado["id"])
         certificado_repetido = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/certificados/{practica_id}/emitir",
             200,
         ).get_json()
         self.assertEqual(certificado["id"], certificado_repetido["id"])
         verificacion = self.request(
-            self.practicante,
+            self.intern,
             "get",
             f"/certificados/verificar/{codigo}",
             200,
@@ -224,7 +224,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual(
             "application/pdf",
             self.request(
-                self.practicante,
+                self.intern,
                 "get",
                 certificado["documento"]["url"],
                 200,
@@ -233,7 +233,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual(
             "image/png",
             self.request(
-                self.practicante,
+                self.intern,
                 "get",
                 certificado["codigo_qr"]["imagen_url"],
                 200,
@@ -243,19 +243,19 @@ class BackendIntegrationTest(unittest.TestCase):
     def test_authorization_and_business_guards(self):
         convocatoria = self.prepare_users_and_convocatoria()
         postulacion = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{convocatoria['id']}",
             201,
         ).get_json()
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{postulacion['id']}/seleccionar",
             200,
         )
         practica = self.request(
-            self.empresa,
+            self.company,
             "post",
             "/practicas",
             201,
@@ -263,22 +263,22 @@ class BackendIntegrationTest(unittest.TestCase):
         ).get_json()
 
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practica['id']}/finalizar",
             409,
         )
         notificaciones = self.request(
-            self.practicante, "get", "/notificaciones", 200
+            self.intern, "get", "/notificaciones", 200
         ).get_json()
         self.request(
-            self.empresa,
+            self.company,
             "put",
             f"/notificaciones/{notificaciones[0]['id']}/leer",
             404,
         )
         self.request(
-            self.practicante,
+            self.intern,
             "put",
             f"/notificaciones/{notificaciones[0]['id']}/leer",
             200,
@@ -286,7 +286,7 @@ class BackendIntegrationTest(unittest.TestCase):
 
     def test_auth_validation_and_password_reset(self):
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/register",
             400,
@@ -298,7 +298,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/register",
             400,
@@ -310,7 +310,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/register",
             400,
@@ -322,7 +322,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         registered = self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/register",
             201,
@@ -334,21 +334,21 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         ).get_json()
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/activate",
             200,
             json={"token": registered["activation_token"]},
         )
         recovered = self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/recover-password",
             200,
             json={"email": "reset@example.com"},
         ).get_json()
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/reset-password",
             200,
@@ -358,7 +358,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/login",
             200,
@@ -368,7 +368,7 @@ class BackendIntegrationTest(unittest.TestCase):
     def test_activation_token_is_emailed_and_hidden_in_normal_mode(self):
         self.app.config["EXPOSE_AUTH_TOKENS"] = False
         registered = self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/register",
             201,
@@ -381,7 +381,7 @@ class BackendIntegrationTest(unittest.TestCase):
         ).get_json()
         self.assertNotIn("activation_token", registered)
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/login",
             403,
@@ -398,7 +398,7 @@ class BackendIntegrationTest(unittest.TestCase):
                 .activation_token
             )
         resent = self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/resend-activation",
             200,
@@ -414,14 +414,14 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertNotEqual(first_token, second_token)
 
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/activate",
             200,
             json={"token": second_token},
         )
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/login",
             200,
@@ -487,27 +487,27 @@ class BackendIntegrationTest(unittest.TestCase):
             "/restablecer",
             "/verificar-certificado",
         ):
-            response = self.request(self.practicante, "get", path, 200)
+            response = self.request(self.intern, "get", path, 200)
             self.assertEqual("text/html", response.mimetype)
 
-        anonymous_app = self.practicante.get("/app")
+        anonymous_app = self.intern.get("/app")
         self.assertEqual(302, anonymous_app.status_code)
         self.assertTrue(anonymous_app.location.endswith("/ingresar"))
 
-        register_view = self.request(self.practicante, "get", "/registro", 200)
+        register_view = self.request(self.intern, "get", "/registro", 200)
         self.assertIn(b'name="password_confirmation"', register_view.data)
         self.assertIn(b'id="password-requirements"', register_view.data)
-        activate_view = self.request(self.practicante, "get", "/activar", 200)
+        activate_view = self.request(self.intern, "get", "/activar", 200)
         self.assertIn(b'id="activation-email-field"', activate_view.data)
 
         registered = self.register_activate_login(
-            self.practicante,
+            self.intern,
             "vista@example.com",
             "Vista1234",
             "practicante",
         )
         self.assertIsNotNone(registered["id"])
-        app_view = self.request(self.practicante, "get", "/app", 200)
+        app_view = self.request(self.intern, "get", "/app", 200)
         self.assertIn(b'id="app-shell"', app_view.data)
         self.assertIn(b'id="confirmation-dialog"', app_view.data)
         self.assertIn(b'data-filter="cancelada"', app_view.data)
@@ -523,12 +523,12 @@ class BackendIntegrationTest(unittest.TestCase):
             "/static/img/chambeaya-logo-horizontal.png",
             "/static/img/chambeaya-logo-square.png",
         ):
-            response = self.request(self.practicante, "get", asset, 200)
+            response = self.request(self.intern, "get", asset, 200)
             self.assertGreater(len(response.data), 0)
             response.close()
 
         app_script = self.request(
-            self.practicante,
+            self.intern,
             "get",
             "/static/js/app.js",
             200,
@@ -554,7 +554,7 @@ class BackendIntegrationTest(unittest.TestCase):
     def test_demo_seed_is_repeatable_and_covers_main_views(self):
         self.app.config["DEMO_MODE"] = True
         self.app.config["DEMO_PASSWORD"] = "Demo1234"
-        login_view = self.request(self.practicante, "get", "/ingresar", 200)
+        login_view = self.request(self.intern, "get", "/ingresar", 200)
         self.assertIn(b"data-demo-login", login_view.data)
 
         runner = self.app.test_cli_runner()
@@ -565,7 +565,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertIn("no se duplicaron datos", second_seed.output)
 
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             "/auth/login",
             200,
@@ -575,7 +575,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         self.request(
-            self.empresa,
+            self.company,
             "post",
             "/auth/login",
             200,
@@ -586,41 +586,41 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
         self.assertGreaterEqual(
-            len(self.request(self.practicante, "get", "/convocatorias", 200).get_json()),
+            len(self.request(self.intern, "get", "/convocatorias", 200).get_json()),
             3,
         )
         self.assertEqual(
             2,
-            len(self.request(self.practicante, "get", "/postulaciones/me", 200).get_json()),
+            len(self.request(self.intern, "get", "/postulaciones/me", 200).get_json()),
         )
         self.assertGreaterEqual(
-            len(self.request(self.practicante, "get", "/matching/sugerencias", 200).get_json()),
+            len(self.request(self.intern, "get", "/matching/sugerencias", 200).get_json()),
             2,
         )
         self.assertEqual(
             1,
-            len(self.request(self.practicante, "get", "/practicas", 200).get_json()),
+            len(self.request(self.intern, "get", "/practicas", 200).get_json()),
         )
         self.assertGreaterEqual(
-            len(self.request(self.empresa, "get", "/convocatorias/mis", 200).get_json()),
+            len(self.request(self.company, "get", "/convocatorias/mis", 200).get_json()),
             4,
         )
 
     def test_new_company_completes_profile_before_creating_openings(self):
         self.register_activate_login(
-            self.empresa,
+            self.company,
             "empresa-nueva@example.com",
             "Empresa123",
             "empresa",
         )
 
-        missing_profile = self.request(self.empresa, "get", "/perfil/me", 404)
+        missing_profile = self.request(self.company, "get", "/perfil/me", 404)
         self.assertEqual(
             "Perfil de empresa no encontrado",
             missing_profile.get_json()["error"],
         )
         self.request(
-            self.empresa,
+            self.company,
             "post",
             "/convocatorias",
             403,
@@ -628,7 +628,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
         company = self.request(
-            self.empresa,
+            self.company,
             "put",
             "/perfil/me/empresa",
             200,
@@ -640,7 +640,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertTrue(company["verificada"])
 
         opening = self.request(
-            self.empresa,
+            self.company,
             "post",
             "/convocatorias",
             201,
@@ -655,13 +655,13 @@ class BackendIntegrationTest(unittest.TestCase):
 
     def test_profile_lists_and_identity_can_be_cleared(self):
         self.register_activate_login(
-            self.practicante,
+            self.intern,
             "perfil-editable@example.com",
             "Student123",
             "practicante",
         )
         self.request(
-            self.practicante,
+            self.intern,
             "put",
             "/perfil/me",
             200,
@@ -675,7 +675,7 @@ class BackendIntegrationTest(unittest.TestCase):
             },
         )
         updated = self.request(
-            self.practicante,
+            self.intern,
             "put",
             "/perfil/me",
             200,
@@ -699,20 +699,20 @@ class BackendIntegrationTest(unittest.TestCase):
         opening_id = opening["id"]
 
         self.request(
-            self.empresa,
+            self.company,
             "delete",
             f"/convocatorias/{opening_id}",
             409,
         )
         closed = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/convocatorias/{opening_id}/cerrar",
             200,
         ).get_json()
         self.assertEqual("cerrada", closed["estado"])
         reopened = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/convocatorias/{opening_id}/reabrir",
             200,
@@ -721,7 +721,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertIsNone(reopened["fecha_cierre"])
 
         duplicate = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/convocatorias/{opening_id}/duplicar",
             201,
@@ -730,14 +730,14 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual("Copia de Backend Python", duplicate["titulo"])
         self.assertEqual(opening["habilidades_requeridas"], duplicate["habilidades_requeridas"])
         deleted = self.request(
-            self.empresa,
+            self.company,
             "delete",
             f"/convocatorias/{duplicate['id']}",
             200,
         ).get_json()
         self.assertEqual(duplicate["id"], deleted["id"])
         self.request(
-            self.empresa,
+            self.company,
             "get",
             f"/convocatorias/{duplicate['id']}",
             404,
@@ -747,20 +747,20 @@ class BackendIntegrationTest(unittest.TestCase):
         opening = self.prepare_users_and_convocatoria()
         opening_id = opening["id"]
         first = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{opening_id}",
             201,
         ).get_json()
         cancelled = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/{first['id']}/cancelar",
             200,
         ).get_json()
         self.assertEqual("cancelada", cancelled["estado"])
         reactivated = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{opening_id}",
             201,
@@ -794,26 +794,26 @@ class BackendIntegrationTest(unittest.TestCase):
         ).get_json()
 
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{first['id']}/seleccionar",
             200,
         )
         reconsidered = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{second['id']}/reconsiderar",
             200,
         ).get_json()
         self.assertEqual("pendiente", reconsidered["estado"])
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{second['id']}/seleccionar",
             200,
         )
         candidates = self.request(
-            self.empresa,
+            self.company,
             "get",
             f"/postulaciones/convocatorias/{opening_id}",
             200,
@@ -823,14 +823,14 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual("seleccionada", states[second["id"]])
 
         self.request(
-            self.empresa,
+            self.company,
             "post",
             "/practicas",
             201,
             json={"postulacion_id": second["id"]},
         )
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{second['id']}/reconsiderar",
             409,
@@ -839,19 +839,19 @@ class BackendIntegrationTest(unittest.TestCase):
     def test_deliverables_and_evaluations_can_be_deleted_in_progress(self):
         opening = self.prepare_users_and_convocatoria()
         application = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/postulaciones/convocatorias/{opening['id']}",
             201,
         ).get_json()
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/postulaciones/{application['id']}/seleccionar",
             200,
         )
         practice = self.request(
-            self.empresa,
+            self.company,
             "post",
             "/practicas",
             201,
@@ -860,7 +860,7 @@ class BackendIntegrationTest(unittest.TestCase):
         practice_id = practice["id"]
 
         uploaded = self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/practicas/{practice_id}/entregables",
             201,
@@ -868,13 +868,13 @@ class BackendIntegrationTest(unittest.TestCase):
             content_type="multipart/form-data",
         ).get_json()
         deliverable_id = self.request(
-            self.practicante,
+            self.intern,
             "get",
             f"/practicas/{practice_id}/entregables",
             200,
         ).get_json()[0]["id"]
         evaluation = self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practice_id}/evaluar",
             201,
@@ -882,7 +882,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
         self.assertEqual("EN_CURSO", uploaded["estado"])
         evaluation_id = self.request(
-            self.empresa,
+            self.company,
             "get",
             f"/practicas/{practice_id}/evaluaciones",
             200,
@@ -890,25 +890,25 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual(201, evaluation.status_code)
 
         self.request(
-            self.empresa,
+            self.company,
             "delete",
             f"/practicas/{practice_id}/entregables/{deliverable_id}",
             403,
         )
         self.request(
-            self.practicante,
+            self.intern,
             "delete",
             f"/practicas/{practice_id}/evaluaciones/{evaluation_id}",
             403,
         )
         self.request(
-            self.practicante,
+            self.intern,
             "delete",
             f"/practicas/{practice_id}/entregables/{deliverable_id}",
             200,
         )
         self.request(
-            self.empresa,
+            self.company,
             "delete",
             f"/practicas/{practice_id}/evaluaciones/{evaluation_id}",
             200,
@@ -916,7 +916,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual(
             [],
             self.request(
-                self.practicante,
+                self.intern,
                 "get",
                 f"/practicas/{practice_id}/entregables",
                 200,
@@ -925,7 +925,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertEqual(
             [],
             self.request(
-                self.empresa,
+                self.company,
                 "get",
                 f"/practicas/{practice_id}/evaluaciones",
                 200,
@@ -933,7 +933,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
         self.request(
-            self.practicante,
+            self.intern,
             "post",
             f"/practicas/{practice_id}/entregables",
             201,
@@ -941,38 +941,38 @@ class BackendIntegrationTest(unittest.TestCase):
             content_type="multipart/form-data",
         )
         final_deliverable_id = self.request(
-            self.practicante,
+            self.intern,
             "get",
             f"/practicas/{practice_id}/entregables",
             200,
         ).get_json()[0]["id"]
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practice_id}/evaluar",
             201,
             json={"puntaje": 90},
         )
         final_evaluation_id = self.request(
-            self.empresa,
+            self.company,
             "get",
             f"/practicas/{practice_id}/evaluaciones",
             200,
         ).get_json()[0]["id"]
         self.request(
-            self.empresa,
+            self.company,
             "post",
             f"/practicas/{practice_id}/finalizar",
             200,
         )
         self.request(
-            self.practicante,
+            self.intern,
             "delete",
             f"/practicas/{practice_id}/entregables/{final_deliverable_id}",
             409,
         )
         self.request(
-            self.empresa,
+            self.company,
             "delete",
             f"/practicas/{practice_id}/evaluaciones/{final_evaluation_id}",
             409,

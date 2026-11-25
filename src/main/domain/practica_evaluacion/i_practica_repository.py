@@ -11,7 +11,7 @@ class IPracticaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_practicante_id(self, practicante_id):
+    def find_by_practicante_id(self, intern_id):
         pass
 
     @abstractmethod
@@ -19,5 +19,5 @@ class IPracticaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_empresa_id(self, empresa_id):
+    def find_by_empresa_id(self, company_id):
         pass

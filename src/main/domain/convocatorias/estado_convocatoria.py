@@ -9,7 +9,7 @@ class EstadoConvocatoria(ABC):
     La fecha de cierre pertenece solo al estado cerrado.
     """
 
-    nombre = None
+    name = None
     fecha_cierre = None
 
     def publicar(self):
@@ -23,21 +23,21 @@ class EstadoConvocatoria(ABC):
 
 
 class BorradorState(EstadoConvocatoria):
-    nombre = "borrador"
+    name = "borrador"
 
     def publicar(self):
         return PublicadaState()
 
 
 class PublicadaState(EstadoConvocatoria):
-    nombre = "publicada"
+    name = "publicada"
 
     def cerrar(self, fecha_cierre):
         return CerradaState(fecha_cierre)
 
 
 class CerradaState(EstadoConvocatoria):
-    nombre = "cerrada"
+    name = "cerrada"
 
     def __init__(self, fecha_cierre=None):
         self.fecha_cierre = fecha_cierre
@@ -49,15 +49,15 @@ class CerradaState(EstadoConvocatoria):
 class EstadoDesconocido(EstadoConvocatoria):
     """Estado no reconocido (o ausente): ninguna transicion es valida."""
 
-    def __init__(self, nombre=None):
-        self.nombre = nombre
+    def __init__(self, name=None):
+        self.name = name
 
 
-def estado_desde_nombre(nombre, fecha_cierre=None):
-    if nombre == BorradorState.nombre:
+def estado_desde_nombre(name, fecha_cierre=None):
+    if name == BorradorState.name:
         return BorradorState()
-    if nombre == PublicadaState.nombre:
+    if name == PublicadaState.name:
         return PublicadaState()
-    if nombre == CerradaState.nombre:
+    if name == CerradaState.name:
         return CerradaState(fecha_cierre)
-    return EstadoDesconocido(nombre)
+    return EstadoDesconocido(name)

@@ -8,10 +8,10 @@ from domain.certificacion.codigo_qr import CodigoQR
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_certificado_repository import (
     SqlAlchemyCertificadoRepository,
@@ -21,35 +21,35 @@ from infrastructure.sqlalchemy_certificado_repository import (
 @pytest.fixture
 def practica_id(app_context):
     """Crea con modelos reales todas las relaciones requeridas por un certificado."""
-    usuario_practicante = UserModel(
+    intern_user = UserModel(
         email="practicante-certificado@test.local",
         password_hash="hash",
         role="practicante",
         status="activo",
     )
-    practicante = PracticanteModel(user=usuario_practicante)
-    usuario_empresa = UserModel(
+    intern = InternModel(user=intern_user)
+    company_user = UserModel(
         email="empresa-certificado@test.local",
         password_hash="hash",
         role="empresa",
         status="activo",
     )
-    empresa = EmpresaModel(
-        user=usuario_empresa,
-        razon_social="Empresa Certificadora",
+    company = CompanyModel(
+        user=company_user,
+        legal_name="Empresa Certificadora",
         ruc="20987654321",
     )
     convocatoria = ConvocatoriaModel(
-        empresa=empresa,
+        company=company,
         titulo="Prácticas certificadas",
         status="publicada",
     )
-    db.session.add_all([practicante, convocatoria])
+    db.session.add_all([intern, convocatoria])
     db.session.flush()
 
     postulacion = PostulacionModel(
         convocatoria_id=convocatoria.id,
-        practicante_id=practicante.id,
+        intern_id=intern.id,
         status="seleccionada",
     )
     db.session.add(postulacion)
@@ -57,7 +57,7 @@ def practica_id(app_context):
 
     practica = PracticaModel(
         postulacion_id=postulacion.id,
-        practicante_id=practicante.id,
+        intern_id=intern.id,
         status="FINALIZADA",
     )
     db.session.add(practica)

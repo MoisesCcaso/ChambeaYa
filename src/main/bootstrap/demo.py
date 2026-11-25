@@ -10,12 +10,12 @@ from werkzeug.security import generate_password_hash
 
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel
@@ -81,30 +81,30 @@ def seed_demo_data(password):
     db.session.add_all([practitioner_user, company_user])
     db.session.flush()
 
-    practitioner = PracticanteModel(
+    practitioner = InternModel(
         user_id=practitioner_user.id,
-        nombres="Andrea",
-        apellidos="Quispe",
+        first_names="Andrea",
+        last_names="Quispe",
         dni="72483915",
-        carnet_universitario="202612345",
-        habilidades=_json_list(["Python", "Flask", "SQL", "Git", "Análisis de datos"]),
-        formacion_educativa=_json_list(
+        university_id_card="202612345",
+        skills=_json_list(["Python", "Flask", "SQL", "Git", "Análisis de datos"]),
+        education=_json_list(
             ["Ingeniería de Sistemas · Universidad Nacional de San Agustín"]
         ),
-        score_reputacion=75.0,
-        identidad_verificada=True,
+        reputation_score=75.0,
+        identity_verified=True,
     )
-    company = EmpresaModel(
+    company = CompanyModel(
         user_id=company_user.id,
-        razon_social="Innovación Andina S.A.C.",
+        legal_name="Innovación Andina S.A.C.",
         ruc="20100070970",
-        verificada=True,
+        verified=True,
     )
     db.session.add_all([practitioner, company])
     db.session.flush()
 
     backend_opening = ConvocatoriaModel(
-        empresa_id=company.id,
+        company_id=company.id,
         titulo="Practicante de desarrollo backend",
         descripcion=(
             "Apoyo en el desarrollo de servicios web, pruebas y documentación "
@@ -116,7 +116,7 @@ def seed_demo_data(password):
         fecha_publicacion=now - timedelta(days=12),
     )
     data_opening = ConvocatoriaModel(
-        empresa_id=company.id,
+        company_id=company.id,
         titulo="Practicante de análisis de datos",
         descripcion=(
             "Preparación de datos, consultas SQL y elaboración de reportes "
@@ -128,7 +128,7 @@ def seed_demo_data(password):
         fecha_publicacion=now - timedelta(days=5),
     )
     qa_opening = ConvocatoriaModel(
-        empresa_id=company.id,
+        company_id=company.id,
         titulo="Practicante de aseguramiento de calidad",
         descripcion=(
             "Ejecución de pruebas funcionales y documentación de incidencias "
@@ -140,7 +140,7 @@ def seed_demo_data(password):
         fecha_publicacion=now - timedelta(days=2),
     )
     draft_opening = ConvocatoriaModel(
-        empresa_id=company.id,
+        company_id=company.id,
         titulo="Practicante de soporte de productos digitales",
         descripcion="Borrador preparado para demostrar la edición y publicación.",
         habilidades_requeridas=_json_list(["Comunicación", "Git"]),
@@ -154,12 +154,12 @@ def seed_demo_data(password):
 
     selected_application = PostulacionModel(
         convocatoria_id=backend_opening.id,
-        practicante_id=practitioner.id,
+        intern_id=practitioner.id,
         status="seleccionada",
     )
     pending_application = PostulacionModel(
         convocatoria_id=qa_opening.id,
-        practicante_id=practitioner.id,
+        intern_id=practitioner.id,
         status="pendiente",
     )
     db.session.add_all([selected_application, pending_application])
@@ -167,7 +167,7 @@ def seed_demo_data(password):
 
     practice = PracticaModel(
         postulacion_id=selected_application.id,
-        practicante_id=practitioner.id,
+        intern_id=practitioner.id,
         status="EN_CURSO",
     )
     db.session.add(practice)
@@ -190,7 +190,7 @@ def seed_demo_data(password):
     db.session.add_all(
         [
             SugerenciaModel(
-                practicante_id=practitioner.id,
+                intern_id=practitioner.id,
                 convocatoria_id=data_opening.id,
                 puntaje_match=100.0,
                 habilidades_coincidentes=_json_list(
@@ -198,7 +198,7 @@ def seed_demo_data(password):
                 ),
             ),
             SugerenciaModel(
-                practicante_id=practitioner.id,
+                intern_id=practitioner.id,
                 convocatoria_id=qa_opening.id,
                 puntaje_match=100.0,
                 habilidades_coincidentes=_json_list(["git", "sql"]),

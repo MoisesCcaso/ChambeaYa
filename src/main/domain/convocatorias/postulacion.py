@@ -5,10 +5,10 @@ class Postulacion:
     ESTADO_RECHAZADA = "rechazada"
     ESTADO_CANCELADA = "cancelada"
 
-    def __init__(self, id=None, convocatoria_id=None, practicante_id=None, status=None):
+    def __init__(self, id=None, convocatoria_id=None, intern_id=None, status=None):
        self.id = id
        self.convocatoria_id = convocatoria_id
-       self.practicante_id = practicante_id
+       self.intern_id = intern_id
        self.status = status or self.STATUS_PENDING
 
     def rechazar(self):

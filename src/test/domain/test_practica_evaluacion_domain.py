@@ -12,16 +12,16 @@ class TestPracticaIniciar(unittest.TestCase):
     def test_inicia_practica_en_curso_y_sin_registros(self):
         practica = Practica.iniciar(11, 22)
         self.assertEqual(practica.postulacion_id, 11)
-        self.assertEqual(practica.practicante_id, 22)
+        self.assertEqual(practica.intern_id, 22)
         self.assertEqual(practica.status, Practica.ESTADO_EN_CURSO)
         self.assertEqual(practica.entregables, [])
         self.assertEqual(practica.evaluaciones, [])
 
     def test_rechaza_datos_requeridos_ausentes(self):
-        for postulacion_id, practicante_id in ((None, 22), (11, None), (None, None)):
-            with self.subTest(postulacion_id=postulacion_id, practicante_id=practicante_id):
+        for postulacion_id, intern_id in ((None, 22), (11, None), (None, None)):
+            with self.subTest(postulacion_id=postulacion_id, intern_id=intern_id):
                 with self.assertRaisesRegex(ValueError, "postulación y practicante"):
-                    Practica.iniciar(postulacion_id, practicante_id)
+                    Practica.iniciar(postulacion_id, intern_id)
 
 
 class TestEntregable(unittest.TestCase):
