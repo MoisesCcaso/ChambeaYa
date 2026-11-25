@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, jsonify, session
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
 
 
 postulacion_bp = Blueprint("postulacion", __name__, url_prefix="/postulaciones")

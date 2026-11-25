@@ -6,7 +6,7 @@ import unittest
 
 import pytest
 from domain.notificaciones.notificacion import Notificacion
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_notificacion_repository import SqlAlchemyNotificacionRepository

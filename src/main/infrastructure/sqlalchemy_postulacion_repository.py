@@ -1,6 +1,6 @@
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 
 class SqlAlchemyPostulacionRepository(IPostulacionRepository):

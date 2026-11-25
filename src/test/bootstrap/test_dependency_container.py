@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from frameworks.flask_mvc.dependencies import DependencyContainer
+from bootstrap.dependencies import DependencyContainer
 
 
 class TestDependencyContainer(unittest.TestCase):

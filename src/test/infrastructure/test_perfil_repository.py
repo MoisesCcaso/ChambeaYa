@@ -11,7 +11,7 @@ import pytest
 from domain.perfil.empresa import Empresa
 from domain.perfil.practicante import Practicante
 from domain.perfil.ruc import RUC
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 

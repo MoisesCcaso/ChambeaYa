@@ -4,8 +4,8 @@ import unittest
 from datetime import datetime, timezone
 
 from domain.convocatorias.convocatoria import Convocatoria
-from frameworks.flask_mvc.app import create_app
-from frameworks.sqlalchemy_orm.database import db
+from bootstrap.app import create_app
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository

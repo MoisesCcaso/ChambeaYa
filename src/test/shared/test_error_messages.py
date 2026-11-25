@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from application.mensajes_error import POSTULACION_NO_ENCONTRADA
+from shared.error_messages import POSTULACION_NO_ENCONTRADA
 
 APPLICATION_DIR = Path(__file__).resolve().parents[2] / "main" / "application"
 SERVICIOS = (

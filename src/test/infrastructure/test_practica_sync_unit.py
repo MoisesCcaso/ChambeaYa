@@ -14,7 +14,7 @@ from domain.practica_evaluacion.practica import Practica
 def _ensure_orm_stubs():
     """Provee dobles ligeros de los modelos ORM cuando SQLAlchemy no está instalado en el entorno."""
     try:
-        import frameworks.sqlalchemy_orm.database  # noqa: F401
+        import shared.database  # noqa: F401
         return
     except ModuleNotFoundError:
         pass
@@ -42,7 +42,7 @@ def _ensure_orm_stubs():
             self.entregables = []
             self.evaluaciones = []
 
-    db_mod = ModuleType("frameworks.sqlalchemy_orm.database")
+    db_mod = ModuleType("shared.database")
     db_mod.db = SimpleNamespace(session=MagicMock())
 
     practica_mod = ModuleType("frameworks.sqlalchemy_orm.models.practica_model")
@@ -56,7 +56,7 @@ def _ensure_orm_stubs():
 
     sys.modules.setdefault("frameworks.sqlalchemy_orm", ModuleType("frameworks.sqlalchemy_orm"))
     sys.modules.setdefault("frameworks.sqlalchemy_orm.models", ModuleType("frameworks.sqlalchemy_orm.models"))
-    sys.modules["frameworks.sqlalchemy_orm.database"] = db_mod
+    sys.modules["shared.database"] = db_mod
     sys.modules["frameworks.sqlalchemy_orm.models.practica_model"] = practica_mod
     sys.modules["frameworks.sqlalchemy_orm.models.entregable_model"] = entregable_mod
     sys.modules["frameworks.sqlalchemy_orm.models.evaluacion_model"] = evaluacion_mod
@@ -93,7 +93,7 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         self.assertEqual(model_collection[1].valor, "nuevo")
 
     def test_save_sincroniza_entregables_y_evaluaciones_mediante_sync_collection(self):
-        from frameworks.sqlalchemy_orm.database import db
+        from shared.database import db
         from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
         from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 

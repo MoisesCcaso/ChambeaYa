@@ -2,7 +2,7 @@ import json
 
 from domain.matching.i_sugerencia_repository import ISugerenciaRepository
 from domain.matching.sugerencia import Sugerencia
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 
 

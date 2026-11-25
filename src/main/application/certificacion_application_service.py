@@ -1,5 +1,5 @@
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,

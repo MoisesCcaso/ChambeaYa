@@ -6,17 +6,17 @@ from flask_wtf.csrf import CSRFError, CSRFProtect
 from sqlalchemy.exc import IntegrityError
 
 from config import config_by_name
-from frameworks.flask_mvc.demo import register_demo_commands
-from frameworks.flask_mvc.email_cli import register_email_commands
-from frameworks.flask_mvc.routes import register_routes
-from frameworks.sqlalchemy_orm import models  # noqa: F401
-from frameworks.sqlalchemy_orm.database import db, migrate
+from bootstrap.demo import register_demo_commands
+from bootstrap.email_cli import register_email_commands
+from bootstrap.routes import register_routes
+from bootstrap import models  # noqa: F401
+from shared.database import db, migrate
 
 csrf = CSRFProtect()
 
 
 def create_app(config_name=None):
-    project_root = Path(__file__).resolve().parents[4]
+    project_root = Path(__file__).resolve().parents[3]
     instance_path = project_root / "instance"
     app = Flask(
         __name__,
@@ -38,7 +38,7 @@ def create_app(config_name=None):
 
     db.init_app(app)
     csrf.init_app(app)
-    migrations_directory = Path(__file__).resolve().parents[1] / "migrations"
+    migrations_directory = Path(__file__).resolve().parent / "migrations"
     migrate.init_app(app, db, directory=str(migrations_directory))
 
     register_routes(app)

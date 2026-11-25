@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from frameworks.flask_mvc.app import create_app
-from frameworks.sqlalchemy_orm.database import db
+from bootstrap.app import create_app
+from shared.database import db
 from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
 

@@ -1,4 +1,4 @@
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 
 
 class EvaluacionModel(db.Model):

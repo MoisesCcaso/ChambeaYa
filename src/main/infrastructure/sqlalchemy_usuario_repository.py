@@ -1,7 +1,7 @@
 from domain.auth.i_usuario_repository import IUsuarioRepository
 from domain.auth.token_recuperacion import TokenRecuperacion
 from domain.auth.usuario import Usuario
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
 
 

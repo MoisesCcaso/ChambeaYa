@@ -9,8 +9,8 @@ Plataforma web para la gestión de prácticas preprofesionales, conectando estud
 ```bash
 poetry install
 cp .env.example .env            # Windows: Copy-Item .env.example .env
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app db upgrade
+poetry run flask --app bootstrap.app:create_app run --debug
 ```
 
 Abre `http://127.0.0.1:5000`. Para una demo con datos precargados, consulta el [modo demo](#92-modo-demo).
@@ -524,7 +524,7 @@ Cada modelo ORM hereda de `db.Model` y mapea directamente a una tabla SQL. Las c
 
 ```python
 # src/main/frameworks/sqlalchemy_orm/models/practicante_model.py
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 
 class PracticanteModel(db.Model):
     __tablename__ = "practicantes"
@@ -1241,8 +1241,8 @@ El proyecto requiere **Python 3.12 o superior** y **Poetry 2.4.3**, la versión 
 ```powershell
 poetry install
 Copy-Item .env.example .env
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app db upgrade
+poetry run flask --app bootstrap.app:create_app run --debug
 ```
 
 **Linux o macOS:**
@@ -1250,8 +1250,8 @@ poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
 ```bash
 poetry install
 cp .env.example .env
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-poetry run flask --app frameworks.flask_mvc.app:create_app run --debug
+poetry run flask --app bootstrap.app:create_app db upgrade
+poetry run flask --app bootstrap.app:create_app run --debug
 ```
 
 La aplicación queda disponible en `http://127.0.0.1:5000`. Para comprobarla:
@@ -1362,7 +1362,7 @@ En los modos `console` y `demo` los tokens pueden exponerse para facilitar las p
 Para comprobar la conexión después de configurar SMTP:
 
 ```bash
-poetry run flask --app frameworks.flask_mvc.app:create_app test-email --to tu_correo@gmail.com
+poetry run flask --app bootstrap.app:create_app test-email --to tu_correo@gmail.com
 ```
 
 No uses la contraseña normal de Gmail ni subas el archivo `.env` al repositorio.
@@ -1604,13 +1604,13 @@ El entorno de migraciones está en `src/main/frameworks/migrations`. Ejecuta los
 
 ```bash
 # Crear una migración después de modificar modelos
-poetry run flask --app frameworks.flask_mvc.app:create_app db migrate -m "descripcion del cambio"
+poetry run flask --app bootstrap.app:create_app db migrate -m "descripcion del cambio"
 
 # Aplicar migraciones
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
+poetry run flask --app bootstrap.app:create_app db upgrade
 
 # Revertir la última migración
-poetry run flask --app frameworks.flask_mvc.app:create_app db downgrade
+poetry run flask --app bootstrap.app:create_app db downgrade
 ```
 
 Para reiniciar la base de desarrollo, detén la aplicación, elimina únicamente `instance/chambeaya.db` y vuelve a ejecutar `db upgrade`.

@@ -8,8 +8,7 @@ import unittest
 APP_HTML_PATH = (
     Path(__file__).resolve().parents[2]
     / "main"
-    / "frameworks"
-    / "flask_mvc"
+    / "bootstrap"
     / "templates"
     / "app.html"
 )

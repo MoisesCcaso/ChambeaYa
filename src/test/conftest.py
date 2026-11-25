@@ -2,8 +2,8 @@
 
 import pytest
 
-from frameworks.flask_mvc.app import create_app
-from frameworks.sqlalchemy_orm.database import db
+from bootstrap.app import create_app
+from shared.database import db
 
 
 @pytest.fixture

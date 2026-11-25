@@ -1,8 +1,8 @@
 from flask import Blueprint, current_app, jsonify, request, session
 
 from application.email_delivery_error import EmailDeliveryError
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 

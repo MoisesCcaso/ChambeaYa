@@ -12,7 +12,7 @@ export FLASK_ENV=demo
 export SECRET_KEY=chambeaya-demo-local
 export DATABASE_URL=sqlite:///chambeaya-demo.db
 export PYTHONPATH="$root/src/main"
-app=(-m flask --app frameworks.flask_mvc.app:create_app)
+app=(-m flask --app bootstrap.app:create_app)
 
 if [ "${1:-}" != "--no-reset" ]; then
     rm -f "$root/instance/chambeaya-demo.db"

@@ -2,7 +2,7 @@ from typing import Final
 
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 from application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"

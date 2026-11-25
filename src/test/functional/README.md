@@ -32,9 +32,9 @@ demo. Dejarla abierta en una terminal aparte.
 ```bash
 export FLASK_ENV=demo SECRET_KEY=chambeaya-demo-local DATABASE_URL=sqlite:///chambeaya-demo.db DEMO_PASSWORD=Demo1234
 rm -f instance/chambeaya-demo.db          # equivalente a -Reset (opcional)
-poetry run flask --app frameworks.flask_mvc.app:create_app db upgrade
-poetry run flask --app frameworks.flask_mvc.app:create_app seed-demo
-poetry run flask --app frameworks.flask_mvc.app:create_app run --no-reload
+poetry run flask --app bootstrap.app:create_app db upgrade
+poetry run flask --app bootstrap.app:create_app seed-demo
+poetry run flask --app bootstrap.app:create_app run --no-reload
 ```
 
 En modo demo la app expone los tokens de activación y recuperación

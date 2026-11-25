@@ -1,6 +1,6 @@
 import os
 
-from frameworks.flask_mvc.app import create_app
+from bootstrap.app import create_app
 
 app = create_app()
 

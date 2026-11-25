@@ -11,8 +11,8 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
 
 
 practica_bp = Blueprint("practica", __name__, url_prefix="/practicas")

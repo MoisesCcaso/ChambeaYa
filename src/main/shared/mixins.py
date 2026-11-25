@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from frameworks.sqlalchemy_orm.database import db
+from shared.database import db
 
 
 def utc_now():

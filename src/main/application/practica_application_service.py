@@ -2,7 +2,7 @@ from typing import Final
 
 from domain.convocatorias.postulacion import Postulacion
 from domain.practica_evaluacion.practica import Practica
-from application.mensajes_error import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
+from shared.error_messages import CONVOCATORIA_NO_ENCONTRADA, POSTULACION_NO_ENCONTRADA
 
 NOT_FOUND: Final = "Práctica no encontrada"
 

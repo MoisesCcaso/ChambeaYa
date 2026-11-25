@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA
 
 
 convocatoria_bp = Blueprint("convocatoria", __name__, url_prefix="/convocatorias")

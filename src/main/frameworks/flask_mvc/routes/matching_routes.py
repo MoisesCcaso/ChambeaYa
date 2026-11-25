@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app, jsonify, session
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO
 
 
 matching_bp = Blueprint("matching", __name__, url_prefix="/matching")

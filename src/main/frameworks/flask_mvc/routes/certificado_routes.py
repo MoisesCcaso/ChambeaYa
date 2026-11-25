@@ -5,8 +5,8 @@ from flask import Blueprint, jsonify, send_file, session, url_for
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
-from frameworks.flask_mvc.dependencies import container
-from frameworks.flask_mvc.routes.mensajes import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA, CERTIFICADO_NO_ENCONTRADO
+from bootstrap.dependencies import container
+from shared.http_messages import NO_AUTENTICADO, EMPRESA_NO_ENCONTRADA, CERTIFICADO_NO_ENCONTRADO
 
 
 certificado_bp = Blueprint("certificado", __name__, url_prefix="/certificados")
