@@ -42,6 +42,19 @@ class CsrfProtectionTest(unittest.TestCase):
         )
         self.assertEqual(401, response.status_code)
 
+    def test_api_client_gets_csrf_token_as_json_and_can_post(self):
+        token_response = self.client.get("/auth/csrf-token")
+        self.assertEqual(200, token_response.status_code)
+        token = token_response.get_json()["csrf_token"]
+
+        response = self.client.post(
+            "/auth/login",
+            json={"email": "a@b.com", "password": "x"},
+            headers={"X-CSRFToken": token},
+        )
+        self.assertEqual(401, response.status_code)
+        self.assertEqual({"error": "Credenciales inválidas"}, response.get_json())
+
     def test_get_no_requiere_token(self):
         self.assertEqual(200, self.client.get("/convocatorias").status_code)
 

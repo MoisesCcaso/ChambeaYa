@@ -1,10 +1,11 @@
 from domain.convocatorias.convocatoria import Convocatoria
+from shared.errors import DomainError
 
 class ConvocatoriaFabrica:
     def crear_convocatoria(self, empresa_id, titulo, habilidades_requeridas=None, descripcion=None, beneficios=None):
 
         if not empresa_id:
-            raise ValueError("La empresa es obligatoria")
+            raise DomainError("La empresa es obligatoria")
         titulo = Convocatoria.normalizar_titulo(titulo)
         if habilidades_requeridas is not None:
             Convocatoria.validar_lista(habilidades_requeridas, "Las habilidades requeridas")

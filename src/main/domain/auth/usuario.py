@@ -1,4 +1,5 @@
 from domain.auth.token_recuperacion import TokenRecuperacion
+from shared.errors import DomainError, ForbiddenError
 
 
 class Usuario:
@@ -103,17 +104,17 @@ class Usuario:
 
     def registrar(self):
         if not self.email:
-            raise ValueError("El email es obligatorio")
+            raise DomainError("El email es obligatorio")
         if not self.password_hash:
-            raise ValueError("La contraseña es obligatoria")
+            raise DomainError("La contraseña es obligatoria")
         if self.tipo not in {self.TIPO_PRACTICANTE, self.TIPO_EMPRESA}:
-            raise ValueError("El tipo de usuario no es válido")
+            raise DomainError("El tipo de usuario no es válido")
 
         return self
 
     def login(self):
         if self.estado != self.ESTADO_ACTIVO:
-            raise ValueError("La cuenta no está activa")
+            raise ForbiddenError("La cuenta no está activa")
 
         return self
 
@@ -138,7 +139,7 @@ class Usuario:
 
     def actualizar_password(self, password_hash):
         if not password_hash:
-            raise ValueError("La contraseña es obligatoria")
+            raise DomainError("La contraseña es obligatoria")
 
         self.password_hash = password_hash
         self._token_recuperacion = None

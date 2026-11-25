@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, jsonify, request, session
+from flask_wtf.csrf import generate_csrf
 
-from application.email_delivery_error import EmailDeliveryError
 from bootstrap.dependencies import container
 from shared.http_messages import NOT_AUTHENTICATED
 
@@ -20,20 +20,21 @@ def serialize_usuario(usuario):
     }
 
 
+@auth_bp.get("/csrf-token")
+def csrf_token():
+    """Gives API clients the token to send in the X-CSRFToken header."""
+    return jsonify({"csrf_token": generate_csrf()}), 200
+
+
 @auth_bp.post("/register")
 def register():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().register_user(
-            email=payload.get("email"),
-            password=payload.get("password"),
-            password_confirmation=payload.get("password_confirmation"),
-            tipo=payload.get("tipo"),
-        )
-    except EmailDeliveryError as exc:
-        return jsonify({"error": str(exc)}), 503
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = build_usuario_service().register_user(
+        email=payload.get("email"),
+        password=payload.get("password"),
+        password_confirmation=payload.get("password_confirmation"),
+        tipo=payload.get("tipo"),
+    )
 
     data = serialize_usuario(usuario)
     if current_app.config["EXPOSE_AUTH_TOKENS"]:
@@ -44,13 +45,10 @@ def register():
 @auth_bp.post("/login")
 def login():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().authenticate(
-            email=payload.get("email"),
-            password=payload.get("password"),
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 401
+    usuario = build_usuario_service().authenticate(
+        email=payload.get("email"),
+        password=payload.get("password"),
+    )
 
     session.clear()
     session["usuario_id"] = usuario.id
@@ -60,10 +58,7 @@ def login():
 @auth_bp.post("/activate")
 def activate():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().activate_account(token=payload.get("token"))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = build_usuario_service().activate_account(token=payload.get("token"))
 
     return jsonify(serialize_usuario(usuario)), 200
 
@@ -71,12 +66,7 @@ def activate():
 @auth_bp.post("/recover-password")
 def recover_password():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().recover_password(email=payload.get("email"))
-    except EmailDeliveryError as exc:
-        return jsonify({"error": str(exc)}), 503
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = build_usuario_service().recover_password(email=payload.get("email"))
 
     data = {"status": "ok"}
     if usuario is not None and current_app.config["EXPOSE_AUTH_TOKENS"]:
@@ -87,12 +77,7 @@ def recover_password():
 @auth_bp.post("/resend-activation")
 def resend_activation():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().resend_activation(email=payload.get("email"))
-    except EmailDeliveryError as exc:
-        return jsonify({"error": str(exc)}), 503
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = build_usuario_service().resend_activation(email=payload.get("email"))
 
     data = {
         "status": "ok",
@@ -109,13 +94,10 @@ def resend_activation():
 @auth_bp.post("/reset-password")
 def reset_password():
     payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().reset_password(
-            token=payload.get("token"),
-            new_password=payload.get("new_password"),
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    usuario = build_usuario_service().reset_password(
+        token=payload.get("token"),
+        new_password=payload.get("new_password"),
+    )
 
     return jsonify(serialize_usuario(usuario)), 200
 

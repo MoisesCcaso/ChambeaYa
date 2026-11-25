@@ -33,10 +33,7 @@ def list_notificaciones():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        notificaciones = build_notificacion_service().list_notifications(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    notificaciones = build_notificacion_service().list_notifications(usuario_id)
 
     return jsonify([serialize_notificacion(n) for n in notificaciones]), 200
 
@@ -47,10 +44,7 @@ def count_no_leidas():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        cantidad = build_notificacion_service().count_unread(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    cantidad = build_notificacion_service().count_unread(usuario_id)
 
     return jsonify({"cantidad": cantidad}), 200
 
@@ -61,10 +55,7 @@ def marcar_leida(notificacion_id):
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        build_notificacion_service().mark_as_read(usuario_id, notificacion_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    build_notificacion_service().mark_as_read(usuario_id, notificacion_id)
 
     return jsonify({"mensaje": "Notificación marcada como leída"}), 200
 
@@ -75,9 +66,6 @@ def marcar_todas_leidas():
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        build_notificacion_service().mark_all_as_read(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    build_notificacion_service().mark_all_as_read(usuario_id)
 
     return jsonify({"mensaje": "Todas las notificaciones marcadas como leídas"}), 200

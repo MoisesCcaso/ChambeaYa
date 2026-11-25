@@ -68,10 +68,7 @@ def apply_to_convocatoria(convocatoria_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        postulacion = build_postulacion_service().apply(usuario_id, convocatoria_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    postulacion = build_postulacion_service().apply(usuario_id, convocatoria_id)
     return jsonify(serialize_postulacion(postulacion)), 201
 
 
@@ -80,10 +77,7 @@ def list_my_postulaciones():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        resultados = build_postulacion_service().list_for_practicante(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    resultados = build_postulacion_service().list_for_practicante(usuario_id)
     return jsonify([
         serialize_postulacion_con_convocatoria(r.postulacion, r.convocatoria)
         for r in resultados
@@ -96,13 +90,10 @@ def list_convocatoria_postulaciones(convocatoria_id):
     if get_authenticated_user_id() is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
-    try:
-        resultados = build_postulacion_service().list_for_convocatoria(
-            empresa.id, convocatoria_id
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
+    resultados = build_postulacion_service().list_for_convocatoria(
+        empresa.id, convocatoria_id
+    )
     return jsonify([
         serialize_candidato(r.postulacion, r.practicante, r.practica)
         for r in resultados
@@ -117,12 +108,9 @@ def select_postulacion(postulacion_id):
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    try:
-        postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    postulacion = build_postulacion_service().select_candidate(empresa.id, postulacion_id)
 
     return jsonify(serialize_postulacion(postulacion)), 200
 
@@ -135,12 +123,9 @@ def reject_postulacion(postulacion_id):
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    try:
-        postulacion = build_postulacion_service().reject_candidate(empresa.id, postulacion_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    postulacion = build_postulacion_service().reject_candidate(empresa.id, postulacion_id)
     data = serialize_postulacion(postulacion)
 
     practicante = container.get_perfil_repository().find_practicante_by_id(
@@ -161,12 +146,9 @@ def cancel_postulacion(postulacion_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        data = serialize_postulacion(
-            build_postulacion_service().cancel(usuario_id, postulacion_id)
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = serialize_postulacion(
+        build_postulacion_service().cancel(usuario_id, postulacion_id)
+    )
     return jsonify(data), 200
 
 
@@ -177,13 +159,10 @@ def reconsider_postulacion(postulacion_id):
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
-    try:
-        data = serialize_postulacion(
-            build_postulacion_service().reconsider_candidate(empresa.id, postulacion_id)
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
+    data = serialize_postulacion(
+        build_postulacion_service().reconsider_candidate(empresa.id, postulacion_id)
+    )
     try:
         practicante = container.get_perfil_repository().find_practicante_by_id(
             data["practicante_id"]

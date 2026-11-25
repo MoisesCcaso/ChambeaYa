@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from shared.errors import DomainError
 
 
 class Entregable:
@@ -11,7 +12,7 @@ class Entregable:
     @staticmethod
     def crear(practica_id, archivo):
         if not archivo or not str(archivo).strip():
-            raise ValueError("Debe adjuntarse un archivo para el entregable")
+            raise DomainError("Debe adjuntarse un archivo para el entregable")
 
         return Entregable(
             practica_id=practica_id,

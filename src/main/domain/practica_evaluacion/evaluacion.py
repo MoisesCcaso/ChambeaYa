@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from shared.errors import DomainError
 
 PUNTAJE_APROBACION = 60.0
 
@@ -13,13 +14,13 @@ class Evaluacion:
     @staticmethod
     def crear(practica_id, puntaje):
         if puntaje is None:
-            raise ValueError("Debe indicarse un puntaje")
+            raise DomainError("Debe indicarse un puntaje")
         try:
             puntaje = float(puntaje)
         except (TypeError, ValueError) as exc:
-            raise ValueError("El puntaje debe ser numérico") from exc
+            raise DomainError("El puntaje debe ser numérico") from exc
         if puntaje < 0 or puntaje > 100:
-            raise ValueError("El puntaje debe estar entre 0 y 100")
+            raise DomainError("El puntaje debe estar entre 0 y 100")
 
         return Evaluacion(
             practica_id=practica_id,

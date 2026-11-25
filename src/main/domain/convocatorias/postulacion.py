@@ -1,3 +1,4 @@
+from shared.errors import ConflictError
 class Postulacion:
     ESTADO_PENDIENTE = "pendiente"
     ESTADO_SELECCIONADA = "seleccionada"
@@ -12,14 +13,14 @@ class Postulacion:
 
     def rechazar(self):
         if self.estado != self.ESTADO_PENDIENTE:
-            raise ValueError("Solo una postulación pendiente puede rechazarse")
+            raise ConflictError("Solo una postulación pendiente puede rechazarse")
         self.estado = self.ESTADO_RECHAZADA
         return self
 
     def rechazar_seleccionada(self):
         """Rechaza una selección previa cuando se selecciona otro candidato."""
         if self.estado != self.ESTADO_SELECCIONADA:
-            raise ValueError(
+            raise ConflictError(
                 "Solo una postulación seleccionada puede rechazarse al elegir otro candidato"
             )
         self.estado = self.ESTADO_RECHAZADA
@@ -28,20 +29,20 @@ class Postulacion:
     def seleccionar(self):
         """Selecciona la postulación si está pendiente."""
         if self.estado != self.ESTADO_PENDIENTE:
-            raise ValueError("Solo una postulación pendiente puede seleccionarse")
+            raise ConflictError("Solo una postulación pendiente puede seleccionarse")
 
         self.estado = self.ESTADO_SELECCIONADA
         return self
 
     def cancelar(self):
         if self.estado != self.ESTADO_PENDIENTE:
-            raise ValueError("Solo una postulación pendiente puede retirarse")
+            raise ConflictError("Solo una postulación pendiente puede retirarse")
         self.estado = self.ESTADO_CANCELADA
         return self
 
     def reactivar(self):
         if self.estado != self.ESTADO_CANCELADA:
-            raise ValueError("Solo una postulación retirada puede reactivarse")
+            raise ConflictError("Solo una postulación retirada puede reactivarse")
         self.estado = self.ESTADO_PENDIENTE
         return self
 
@@ -50,7 +51,7 @@ class Postulacion:
             self.ESTADO_SELECCIONADA,
             self.ESTADO_RECHAZADA,
         ):
-            raise ValueError(
+            raise ConflictError(
                 "Solo una postulación seleccionada o rechazada puede reconsiderarse"
             )
         self.estado = self.ESTADO_PENDIENTE

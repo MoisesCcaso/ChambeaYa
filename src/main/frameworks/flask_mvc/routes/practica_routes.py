@@ -74,13 +74,10 @@ def start_practica():
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     postulacion_id = (request.get_json(silent=True) or {}).get("postulacion_id")
-    try:
-        practica = build_practica_service().start_practica(empresa.id, postulacion_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practica = build_practica_service().start_practica(empresa.id, postulacion_id)
     return jsonify(serialize_practica(practica)), 201
 
 
@@ -89,10 +86,7 @@ def list_practicas():
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        practicas = build_practica_service().list_for_user(usuario_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practicas = build_practica_service().list_for_user(usuario_id)
     return jsonify([serialize_practica(item) for item in practicas]), 200
 
 
@@ -101,10 +95,7 @@ def get_practica(practica_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        practica = build_practica_service().get_for_user(usuario_id, practica_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practica = build_practica_service().get_for_user(usuario_id, practica_id)
     return jsonify(serialize_practica(practica)), 200
 
 
@@ -116,13 +107,10 @@ def register_evaluation(practica_id):
 
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
     payload = request.get_json(silent=True) or {}
-    try:
-        practica = build_practica_service().evaluate(empresa.id, practica_id, payload.get("puntaje"))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    practica = build_practica_service().evaluate(empresa.id, practica_id, payload.get("puntaje"))
     data = serialize_practica(practica)
     return jsonify(data), 201
 
@@ -143,10 +131,7 @@ def upload_deliverable(practica_id):
             return jsonify(
                 {"error": "El entregable debe ser PDF, DOC, DOCX o ZIP"}
             ), 400
-        try:
-            service.get_for_user(usuario_id, practica_id)
-        except ValueError as exc:
-            return jsonify({"error": str(exc)}), 400
+        service.get_for_user(usuario_id, practica_id)
         nombre_guardado = f"{uuid4().hex}_{nombre_seguro}"
         ruta_guardada = Path(current_app.config["UPLOAD_FOLDER"]) / nombre_guardado
         archivo_subido.save(ruta_guardada)
@@ -156,10 +141,10 @@ def upload_deliverable(practica_id):
 
     try:
         practica = service.upload_deliverable(usuario_id, practica_id, payload.get("archivo"))
-    except ValueError as exc:
+    except ValueError:
         if ruta_guardada is not None and ruta_guardada.is_file():
             ruta_guardada.unlink()
-        return jsonify({"error": str(exc)}), 400
+        raise
 
     return jsonify(serialize_practica(practica)), 201
 
@@ -170,10 +155,7 @@ def get_deliverables_history(practica_id):
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
 
     return jsonify([serialize_entregable(e) for e in entregables]), 200
 
@@ -184,10 +166,7 @@ def get_evaluations_history(practica_id):
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    try:
-        evaluaciones = build_practica_service().get_evaluations_history(usuario_id, practica_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    evaluaciones = build_practica_service().get_evaluations_history(usuario_id, practica_id)
 
     return jsonify([serialize_evaluacion(e) for e in evaluaciones]), 200
 
@@ -199,12 +178,9 @@ def delete_deliverable(practica_id, entregable_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        data = serialize_entregable(
-            build_practica_service().delete_deliverable(usuario_id, practica_id, entregable_id)
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = serialize_entregable(
+        build_practica_service().delete_deliverable(usuario_id, practica_id, entregable_id)
+    )
 
     nombre = Path(data["archivo"]).name
     ruta = Path(current_app.config["UPLOAD_FOLDER"]) / nombre
@@ -227,13 +203,10 @@ def delete_evaluation(practica_id, evaluacion_id):
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
-    try:
-        data = serialize_evaluacion(
-            build_practica_service().delete_evaluation(empresa.id, practica_id, evaluacion_id)
-        )
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
+    data = serialize_evaluacion(
+        build_practica_service().delete_evaluation(empresa.id, practica_id, evaluacion_id)
+    )
     return jsonify(data), 200
 
 
@@ -244,10 +217,7 @@ def download_deliverable(practica_id, entregable_id):
     usuario_id = get_authenticated_user_id()
     if usuario_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    try:
-        entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    entregables = build_practica_service().get_deliverables_history(usuario_id, practica_id)
 
     entregable = next((item for item in entregables if item.id == entregable_id), None)
     if entregable is None:
@@ -270,10 +240,7 @@ def finish_practica(practica_id):
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     empresa = get_authenticated_empresa()
     if empresa is None:
-        return jsonify({"error": COMPANY_NOT_FOUND}), 400
+        return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    try:
-        data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))
     return jsonify(data), 200

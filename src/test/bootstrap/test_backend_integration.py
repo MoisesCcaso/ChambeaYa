@@ -138,7 +138,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.practicante,
             "post",
             f"/postulaciones/convocatorias/{convocatoria_id}",
-            400,
+            409,
         )
         self.request(
             self.empresa,
@@ -266,7 +266,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "post",
             f"/practicas/{practica['id']}/finalizar",
-            400,
+            409,
         )
         notificaciones = self.request(
             self.practicante, "get", "/notificaciones", 200
@@ -275,7 +275,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "put",
             f"/notificaciones/{notificaciones[0]['id']}/leer",
-            400,
+            404,
         )
         self.request(
             self.practicante,
@@ -384,7 +384,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.practicante,
             "post",
             "/auth/login",
-            401,
+            403,
             json={
                 "email": "verificacion@example.com",
                 "password": "Segura123",
@@ -623,7 +623,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "post",
             "/convocatorias",
-            400,
+            403,
             json={"titulo": "Convocatoria prematura"},
         )
 
@@ -702,7 +702,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "delete",
             f"/convocatorias/{opening_id}",
-            400,
+            409,
         )
         closed = self.request(
             self.empresa,
@@ -833,7 +833,7 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "post",
             f"/postulaciones/{second['id']}/reconsiderar",
-            400,
+            409,
         )
 
     def test_deliverables_and_evaluations_can_be_deleted_in_progress(self):
@@ -893,13 +893,13 @@ class BackendIntegrationTest(unittest.TestCase):
             self.empresa,
             "delete",
             f"/practicas/{practice_id}/entregables/{deliverable_id}",
-            400,
+            403,
         )
         self.request(
             self.practicante,
             "delete",
             f"/practicas/{practice_id}/evaluaciones/{evaluation_id}",
-            400,
+            403,
         )
         self.request(
             self.practicante,
@@ -969,13 +969,13 @@ class BackendIntegrationTest(unittest.TestCase):
             self.practicante,
             "delete",
             f"/practicas/{practice_id}/entregables/{final_deliverable_id}",
-            400,
+            409,
         )
         self.request(
             self.empresa,
             "delete",
             f"/practicas/{practice_id}/evaluaciones/{final_evaluation_id}",
-            400,
+            409,
         )
 
 

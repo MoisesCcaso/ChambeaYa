@@ -4,6 +4,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.postulacion import Postulacion
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from application.dtos import CandidatoConvocatoriaDTO, PostulacionDetalleDTO
+from shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 NOT_FOUND_PRACTICANTE: Final = "Perfil de practicante no encontrado"
 
@@ -29,15 +30,15 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError(NOT_FOUND_PRACTICANTE)
+            raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         if not practicante.nombres or not practicante.apellidos:
-            raise ValueError("Completa tus nombres y apellidos antes de postular")
+            raise ConflictError("Completa tus nombres y apellidos antes de postular")
 
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.estado != Convocatoria.ESTADO_PUBLICADA:
-            raise ValueError("Solo se puede postular a convocatorias publicadas")
+            raise ConflictError("Solo se puede postular a convocatorias publicadas")
 
         existente = self.postulacion_repository.find_by_convocatoria_and_practicante(
             convocatoria_id, practicante.id
@@ -46,7 +47,7 @@ class PostulacionApplicationService:
             if existente.estado == Postulacion.ESTADO_CANCELADA:
                 existente.reactivar()
                 return self.postulacion_repository.save(existente)
-            raise ValueError("Ya existe una postulación para esta convocatoria")
+            raise ConflictError("Ya existe una postulación para esta convocatoria")
 
         return self.postulacion_repository.save(
             Postulacion(
@@ -59,7 +60,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError(NOT_FOUND_PRACTICANTE)
+            raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         return [
             PostulacionDetalleDTO(
                 postulacion,
@@ -88,12 +89,12 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
+            raise ForbiddenError("La convocatoria no pertenece a esta empresa")
 
         otras = self.postulacion_repository.find_by_convocatoria_id(
             postulacion.convocatoria_id
@@ -104,7 +105,7 @@ class PostulacionApplicationService:
                 and otra.estado == Postulacion.ESTADO_SELECCIONADA
                 and self.practica_repository.find_by_postulacion_id(otra.id) is not None
             ):
-                raise ValueError(
+                raise ConflictError(
                     "No se puede cambiar al candidato porque la práctica seleccionada ya inició"
                 )
 
@@ -156,7 +157,7 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
         postulacion.rechazar()
         return self.postulacion_repository.save(postulacion)
@@ -165,12 +166,12 @@ class PostulacionApplicationService:
         self._require_repositories()
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError(NOT_FOUND_PRACTICANTE)
+            raise ForbiddenError(NOT_FOUND_PRACTICANTE)
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         if postulacion.practicante_id != practicante.id:
-            raise ValueError("La postulación no pertenece a este practicante")
+            raise ForbiddenError("La postulación no pertenece a este practicante")
         postulacion.cancelar()
         return self.postulacion_repository.save(postulacion)
 
@@ -178,10 +179,10 @@ class PostulacionApplicationService:
         self._require_repositories()
         postulacion = self.postulacion_repository.find_by_id(postulacion_id)
         if postulacion is None:
-            raise ValueError(JOB_APPLICATION_NOT_FOUND)
+            raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
         self._require_owned_convocatoria(empresa_id, postulacion.convocatoria_id)
         if self.practica_repository.find_by_postulacion_id(postulacion.id) is not None:
-            raise ValueError(
+            raise ConflictError(
                 "No se puede cambiar la decisión porque la práctica ya fue iniciada"
             )
         postulacion.reconsiderar()
@@ -190,9 +191,9 @@ class PostulacionApplicationService:
     def _require_owned_convocatoria(self, empresa_id, convocatoria_id):
         convocatoria = self.convocatoria_repository.find_by_id(convocatoria_id)
         if convocatoria is None:
-            raise ValueError(JOB_POSTING_NOT_FOUND)
+            raise NotFoundError(JOB_POSTING_NOT_FOUND)
         if convocatoria.empresa_id != empresa_id:
-            raise ValueError("La convocatoria no pertenece a esta empresa")
+            raise ForbiddenError("La convocatoria no pertenece a esta empresa")
         return convocatoria
 
     def _require_repositories(self):

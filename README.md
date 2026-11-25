@@ -488,34 +488,36 @@ class Practica:
 
 ### 6.1.2 Error/Exception Handling
 
-Cada capa lanza excepciones específicas. La capa de routes captura y mapea a códigos HTTP semánticos: `ValueError` → 400, `EmailDeliveryError` → 503, `IntegrityError` → 409. En el dominio se usan guard clauses con `raise ValueError` para fallar rápido ante estados inválidos.
+El dominio y la capa de aplicación lanzan **excepciones de negocio tipadas** (`src/main/shared/errors.py`); cada una lleva su código HTTP. Un único punto, `src/main/bootstrap/error_handlers.py`, las convierte en `{"error": "<mensaje>"}`. Así las rutas no repiten `try/except` y toda la API responde los errores con el mismo formato (ver [11. API REST](#11-api-rest)).
+
+| Excepción | HTTP | Uso |
+|---|---|---|
+| `DomainError` | 400 | Datos inválidos o regla de validación |
+| `AuthenticationError` | 401 | Credenciales inválidas |
+| `ForbiddenError` | 403 | Recurso ajeno o rol que no corresponde |
+| `NotFoundError` | 404 | El recurso no existe |
+| `ConflictError` | 409 | El estado actual impide la acción, o el recurso está duplicado |
+
+Todas heredan de `ValueError`, así que el código que ya captura `ValueError` sigue funcionando. Los errores de infraestructura también tienen su respuesta: `EmailDeliveryError` → 503, `IntegrityError` → 409 y, para cualquier otro error inesperado, un 500 genérico que no expone detalles internos y queda registrado en el log.
 
 ```python
-# src/main/application/email_delivery_error.py
-class EmailDeliveryError(RuntimeError):
-    """Error controlado al entregar un correo transaccional."""
+# src/main/shared/errors.py
+class DomainError(ValueError):
+    status_code = 400
 
-# src/main/frameworks/flask_mvc/routes/auth_routes.py
-@auth_bp.post("/register")
-def register():
-    payload = request.get_json(silent=True) or {}
-    try:
-        usuario = build_usuario_service().register_user(
-            email=payload.get("email"),
-            password=payload.get("password"),
-            password_confirmation=payload.get("password_confirmation"),
-            tipo=payload.get("tipo"),
-        )
-    except EmailDeliveryError as exc:
-        return jsonify({"error": str(exc)}), 503
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+class ConflictError(DomainError):
+    status_code = 409
 
-# src/main/frameworks/flask_mvc/app.py — error global
-@app.errorhandler(IntegrityError)
-def handle_integrity_error(_error):
-    db.session.rollback()
-    return jsonify({"error": "El registro ya existe o contiene datos en conflicto"}), 409
+# src/main/domain/convocatorias/estado_convocatoria.py — guard clause en el dominio
+# (patrón State: por defecto la transición no está permitida; BorradorState la redefine)
+class EstadoConvocatoria(ABC):
+    def publicar(self):
+        raise ConflictError("Solo una convocatoria en borrador puede publicarse")
+
+# src/main/bootstrap/error_handlers.py — traducción centralizada a HTTP
+@app.errorhandler(DomainError)
+def handle_domain_error(error):
+    return jsonify({"error": str(error)}), error.status_code
 ```
 
 ### 6.1.3 Persistent-Tables (Tablas Persistentes)
@@ -591,7 +593,7 @@ class MatchingDominioServicio:
 
 ### 6.1.5 Restful
 
-La API usa URLs semánticas con sustantivos en plural, verbos HTTP según su propósito (POST=crear 201, GET=consultar 200, PUT=actualizar 200) y códigos de estado para cada resultado. Los errores de validación retornan 400, no autenticado 401, no encontrado 404, conflicto 409.
+La API usa URLs semánticas con sustantivos en plural, verbos HTTP según su propósito (POST=crear 201, GET=consultar 200, PUT=actualizar 200, DELETE=eliminar 200) y un código de estado para cada resultado: 400 validación, 401 sin sesión, 403 sin permiso, 404 no encontrado y 409 conflicto. Las acciones que cambian el estado de un recurso (`/publicar`, `/cerrar`, `/seleccionar`, …) se modelan como subrecursos con `POST`.
 
 ```python
 # src/main/frameworks/flask_mvc/routes/practica_routes.py
@@ -619,12 +621,10 @@ def finish_practica(practica_id):
     data = serialize_practica(build_practica_service().finish(empresa.id, practica_id))
     return jsonify(data), 200
 
-# Códigos de error en toda la API:
-return jsonify({"error": "..."}), 400   # validación
-return jsonify({"error": "No autenticado"}), 401  # sin sesión
-return jsonify({"error": "..."}), 404   # no encontrado
-return jsonify({"error": "..."}), 409   # conflicto (registro duplicado)
-return jsonify({"error": "..."}), 503   # error de infraestructura (email)
+# Códigos de error en toda la API (ver 6.1.2 y 11. API REST):
+# 400 validación · 401 sin sesión · 403 sin permiso · 404 no encontrado
+# 405 método no permitido · 409 conflicto de estado · 413 archivo grande
+# 500 error interno · 503 fallo de correo
 ```
 
 ## 6.2 Convenciones de Codificación
@@ -1408,9 +1408,44 @@ Las vistas consumen los endpoints de la [API REST](#11-api-rest) con la sesión 
 
 # 11. API REST
 
-El backend usa Flask, SQLAlchemy y sesiones HTTP. La autenticación usa la cookie de sesión de Flask: las rutas protegidas requieren haber iniciado sesión con `POST /auth/login`. En los ejemplos con `curl`, la cookie se guarda con `-c cookies.txt` y se envía con `-b cookies.txt`.
+El backend expone una API REST en JSON (Flask). Todos los endpoints comparten las mismas convenciones de autenticación, CSRF y errores, así que la API se puede probar de punta a punta con `curl` o cualquier cliente HTTP.
 
-Las respuestas siguen los códigos descritos en [6.1.5 Restful](#615-restful): 400 validación, 401 sin sesión, 404 no encontrado, 409 conflicto y 503 error de correo.
+### Cómo probar la API
+
+1. **Sesión por cookie.** `POST /auth/login` devuelve una cookie de sesión que el cliente debe reenviar en las siguientes peticiones; con `curl` usa `-c cookies.txt -b cookies.txt`.
+2. **Token CSRF en escrituras.** Todo `POST`, `PUT` y `DELETE` exige la cabecera `X-CSRFToken`. El token se obtiene con `GET /auth/csrf-token` (respuesta `{"csrf_token": "..."}`) usando la misma cookie. Después de iniciar o cerrar sesión hay que pedir un token nuevo, porque la sesión se reinicia.
+3. **Cuerpo JSON** con `Content-Type: application/json`, salvo la subida de entregables (`multipart/form-data`, campo `archivo`).
+4. **Datos de prueba:** `scripts/demo_reset.sh` (o `demo.ps1`) levanta la app con cuentas demo (`practicante@demo.local` y `empresa@demo.local`, contraseña `DEMO_PASSWORD`). En ese modo, registro y recuperación devuelven los tokens (`activation_token`, `password_reset_token`) en la respuesta.
+
+```bash
+BASE=http://127.0.0.1:5000
+csrf() { curl -s -b cookies.txt -c cookies.txt "$BASE/auth/csrf-token" | python3 -c "import sys, json; print(json.load(sys.stdin)['csrf_token'])"; }
+
+curl -X POST "$BASE/auth/login" -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
+  -d '{"email":"empresa@demo.local","password":"Demo1234"}'
+```
+
+### Formato de errores y códigos de estado
+
+Todos los errores de la API responden con el mismo cuerpo JSON y un mensaje en español:
+
+```json
+{"error": "Convocatoria no encontrada"}
+```
+
+| Código | Cuándo | Ejemplo |
+|---|---|---|
+| 200 / 201 | Consulta o acción correcta / recurso creado | `POST /convocatorias` → 201 |
+| 400 | Datos inválidos o faltantes, token CSRF ausente | `{"error": "El título es obligatorio"}` |
+| 401 | Sin sesión o credenciales inválidas | `{"error": "No autenticado"}` |
+| 403 | Sesión válida, pero sin permiso: el recurso es de otro usuario o el rol no corresponde | `{"error": "La convocatoria no pertenece a esta empresa"}` |
+| 404 | El recurso o la ruta no existe | `{"error": "Postulación no encontrada"}` |
+| 405 | Método HTTP no permitido en la ruta | `{"error": "Método no permitido para este recurso"}` |
+| 409 | El estado actual impide la acción o el recurso ya existe | `{"error": "Solo una convocatoria en borrador puede publicarse"}` |
+| 413 | Archivo de más de 10 MB | `{"error": "El archivo excede el límite de 10 MB"}` |
+| 500 | Error inesperado; el detalle queda en el log del servidor y no se expone | `{"error": "Error interno del servidor"}` |
+| 503 | No se pudo enviar el correo (SMTP) | `{"error": "No se pudo enviar el correo..."}` |
 
 ### Salud
 
@@ -1422,6 +1457,7 @@ Las respuestas siguen los códigos descritos en [6.1.5 Restful](#615-restful): 4
 
 | Método | Ruta | Uso |
 |---|---|---|
+| GET | `/auth/csrf-token` | Obtener el token CSRF para las escrituras |
 | POST | `/auth/register` | Registrar empresa o practicante |
 | POST | `/auth/activate` | Activar la cuenta |
 | POST | `/auth/resend-activation` | Reenviar el enlace de activación |
@@ -1435,40 +1471,45 @@ Los tokens (`activation_token`, `password_reset_token`) se incluyen en la respue
 
 ```bash
 # Registro
-curl -X POST http://127.0.0.1:5000/auth/register \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/register" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"email":"practicante@example.com","password":"Secret123","password_confirmation":"Secret123","tipo":"practicante"}'
 
 # Activación
-curl -X POST http://127.0.0.1:5000/auth/activate \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/activate" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"token":"TOKEN_DE_ACTIVACION"}'
 
 # Reenviar el enlace de activación
-curl -X POST http://127.0.0.1:5000/auth/resend-activation \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/resend-activation" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"email":"practicante@example.com"}'
 
 # Inicio de sesión (guarda la cookie)
-curl -X POST http://127.0.0.1:5000/auth/login \
-  -c cookies.txt \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/login" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"email":"practicante@example.com","password":"Secret123"}'
 
 # Usuario autenticado
-curl -b cookies.txt http://127.0.0.1:5000/auth/me
+curl -b cookies.txt "$BASE/auth/me"
 
 # Cierre de sesión
-curl -X POST -b cookies.txt http://127.0.0.1:5000/auth/logout
+curl -X POST "$BASE/auth/logout" -b cookies.txt -c cookies.txt -H "X-CSRFToken: $(csrf)"
 
 # Solicitud de recuperación de contraseña
-curl -X POST http://127.0.0.1:5000/auth/recover-password \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/recover-password" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"email":"practicante@example.com"}'
 
 # Restablecimiento de contraseña
-curl -X POST http://127.0.0.1:5000/auth/reset-password \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/auth/reset-password" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"token":"TOKEN_DE_RECUPERACION","new_password":"nuevaClave123"}'
 ```
 
@@ -1486,34 +1527,34 @@ curl -X POST http://127.0.0.1:5000/auth/reset-password \
 
 ```bash
 # Perfil del usuario autenticado
-curl -b cookies.txt http://127.0.0.1:5000/perfil/me
+curl -b cookies.txt "$BASE/perfil/me"
 
 # Crear o actualizar perfil de practicante
-curl -X PUT http://127.0.0.1:5000/perfil/me \
-  -b cookies.txt \
-  -H "Content-Type: application/json" \
+curl -X PUT "$BASE/perfil/me" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"nombres":"Diego","apellidos":"Perez","habilidades":["Python"],"formacion_educativa":["Ingenieria de Sistemas"]}'
 
 # Agregar habilidad
-curl -X POST http://127.0.0.1:5000/perfil/me/habilidades \
-  -b cookies.txt \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/perfil/me/habilidades" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"habilidad":"Flask"}'
 
 # Agregar formación educativa
-curl -X POST http://127.0.0.1:5000/perfil/me/formacion \
-  -b cookies.txt \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/perfil/me/formacion" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"formacion":"UNSA"}'
 
 # Registrar y verificar identidad
-curl -X POST http://127.0.0.1:5000/perfil/me/identidad \
-  -b cookies.txt \
-  -H "Content-Type: application/json" \
+curl -X POST "$BASE/perfil/me/identidad" \
+  -b cookies.txt -c cookies.txt \
+  -H "Content-Type: application/json" -H "X-CSRFToken: $(csrf)" \
   -d '{"dni":"12345678","carnet_universitario":"20260001"}'
 
 # Consultar score de reputación
-curl -b cookies.txt http://127.0.0.1:5000/perfil/me/reputacion
+curl -b cookies.txt "$BASE/perfil/me/reputacion"
 ```
 
 ### Convocatorias y matching
@@ -1569,8 +1610,8 @@ Para finalizar se exige al menos un entregable y una evaluación aprobada (punta
 
 ```bash
 # Subir un entregable (en PowerShell usa curl.exe y ` para continuar la línea)
-curl -X POST http://127.0.0.1:5000/practicas/1/entregables \
-  -b cookies.txt \
+curl -X POST "$BASE/practicas/1/entregables" \
+  -b cookies.txt -H "X-CSRFToken: $(csrf)" \
   -F "archivo=@informe.pdf"
 ```
 

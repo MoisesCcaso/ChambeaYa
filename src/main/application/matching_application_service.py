@@ -1,4 +1,5 @@
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
+from shared.errors import ForbiddenError
 
 
 class MatchingApplicationService:
@@ -16,7 +17,7 @@ class MatchingApplicationService:
 
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Practicante no encontrado")
+            raise ForbiddenError("Practicante no encontrado")
 
         convocatorias = self.convocatoria_repository.find_all()
         return self.matching_servicio.filtrar_convocatorias(practicante, convocatorias, umbral)
@@ -26,7 +27,7 @@ class MatchingApplicationService:
 
         practicante = self.perfil_repository.find_practicante_by_user_id(usuario_id)
         if practicante is None:
-            raise ValueError("Practicante no encontrado")
+            raise ForbiddenError("Practicante no encontrado")
 
         convocatorias = self.convocatoria_repository.find_all()
         resultados = self.matching_servicio.filtrar_convocatorias(practicante, convocatorias)

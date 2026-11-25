@@ -5,6 +5,7 @@ from domain.notificaciones.i_notificacion_writer import INotificacionWriter
 from domain.notificaciones.i_notificacion_reader import INotificacionReader
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.notificacion_model import NotificacionModel
+from shared.errors import NotFoundError
 
 
 class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader):
@@ -33,7 +34,7 @@ class SqlAlchemyNotificacionRepository(INotificacionWriter, INotificacionReader)
             usuario_destino_id=usuario_id,
         ).first()
         if model is None:
-            raise ValueError("Notificación no encontrada")
+            raise NotFoundError("Notificación no encontrada")
         model.leida = True
         db.session.commit()
         return self._to_domain(model)

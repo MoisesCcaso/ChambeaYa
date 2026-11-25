@@ -1,4 +1,5 @@
 from domain.perfil.nombre_completo import NombreCompleto
+from shared.errors import DomainError
 
 
 class Practicante:
@@ -64,25 +65,25 @@ class Practicante:
 
     def reemplazar_habilidades(self, habilidades):
         if not isinstance(habilidades, list):
-            raise ValueError("Las habilidades deben ser una lista")
+            raise DomainError("Las habilidades deben ser una lista")
         self.habilidades = self._normalizar_elementos(habilidades)
         self.calcular_score()
         return self
 
     def reemplazar_formacion(self, formaciones):
         if not isinstance(formaciones, list):
-            raise ValueError("La formación educativa debe ser una lista")
+            raise DomainError("La formación educativa debe ser una lista")
         self.formacion_educativa = self._normalizar_elementos(formaciones)
         self.calcular_score()
         return self
 
     def verificar_identidad(self):
         if not self.dni and not self.carnet_universitario:
-            raise ValueError("Se requiere DNI o carnet universitario")
+            raise DomainError("Se requiere DNI o carnet universitario")
         if self.dni and (not str(self.dni).isdigit() or len(str(self.dni)) != 8):
-            raise ValueError("El DNI debe contener exactamente 8 dígitos")
+            raise DomainError("El DNI debe contener exactamente 8 dígitos")
         if self.carnet_universitario and len(str(self.carnet_universitario).strip()) < 4:
-            raise ValueError("El carnet universitario no es válido")
+            raise DomainError("El carnet universitario no es válido")
 
         self.identidad_verificada = True
         self.calcular_score()
