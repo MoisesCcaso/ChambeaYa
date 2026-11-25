@@ -1,6 +1,6 @@
 from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStrategy
 from domain.matching.sugerencia import Sugerencia
-from recruitment.domain.convocatoria import Convocatoria
+from recruitment.api import JobPosting
 
 
 class MatchingDominioServicio:
@@ -11,30 +11,30 @@ class MatchingDominioServicio:
             else HabilidadesMatchingStrategy()
         )
 
-    def calcular_match(self, intern, convocatoria):
-        if intern is None or convocatoria is None:
+    def calcular_match(self, intern, job_posting):
+        if intern is None or job_posting is None:
             return None
 
         sugerencia = Sugerencia(
             intern_id=intern.id,
-            convocatoria_id=convocatoria.id,
-            convocatoria=convocatoria,
+            job_posting_id=job_posting.id,
+            job_posting=job_posting,
             matching_strategy=self.matching_strategy,
         )
         sugerencia.calcular_compatibilidad(
             intern.skills,
-            convocatoria.habilidades_requeridas,
+            job_posting.required_skills,
         )
 
         return sugerencia
 
-    def filtrar_convocatorias(self, intern, convocatorias, umbral=50.0):
-        resultados = []
-        for convocatoria in convocatorias:
-            if convocatoria.status != Convocatoria.ESTADO_PUBLICADA:
+    def filtrar_convocatorias(self, intern, job_postings, umbral=50.0):
+        results = []
+        for job_posting in job_postings:
+            if job_posting.status != JobPosting.STATUS_PUBLISHED:
                 continue
-            sugerencia = self.calcular_match(intern, convocatoria)
+            sugerencia = self.calcular_match(intern, job_posting)
             if sugerencia is not None and sugerencia.es_compatible(umbral):
-                resultados.append(sugerencia)
+                results.append(sugerencia)
 
-        return sorted(resultados, key=lambda r: r.puntaje_match, reverse=True)
+        return sorted(results, key=lambda r: r.puntaje_match, reverse=True)

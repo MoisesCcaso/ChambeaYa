@@ -4,38 +4,38 @@ from bootstrap.dependencies import container
 from shared.http_messages import NOT_AUTHENTICATED, COMPANY_NOT_FOUND
 
 
-postulacion_bp = Blueprint("postulacion", __name__, url_prefix="/postulaciones")
+job_application_bp = Blueprint("postulacion", __name__, url_prefix="/postulaciones")
 
 
-def build_postulacion_service():
-    return container.get_postulacion_service()
+def build_job_application_service():
+    return container.get_job_application_service()
 
 
-def serialize_postulacion(postulacion):
+def serialize_job_application(job_application):
     return {
-        "id": postulacion.id,
-        "convocatoria_id": postulacion.convocatoria_id,
-        "practicante_id": postulacion.intern_id,
-        "estado": postulacion.status,
+        "id": job_application.id,
+        "convocatoria_id": job_application.job_posting_id,
+        "practicante_id": job_application.intern_id,
+        "estado": job_application.status,
     }
 
 
-def serialize_postulacion_con_convocatoria(postulacion, convocatoria):
-    item = serialize_postulacion(postulacion)
+def serialize_job_application_with_posting(job_application, job_posting):
+    item = serialize_job_application(job_application)
     item["convocatoria"] = (
         {
-            "id": convocatoria.id,
-            "titulo": convocatoria.titulo,
-            "estado": convocatoria.status,
+            "id": job_posting.id,
+            "titulo": job_posting.title,
+            "estado": job_posting.status,
         }
-        if convocatoria
+        if job_posting
         else None
     )
     return item
 
 
-def serialize_candidato(postulacion, intern, practica):
-    item = serialize_postulacion(postulacion)
+def serialize_candidate(job_application, intern, practica):
+    item = serialize_job_application(job_application)
     item["practicante"] = (
         {
             "id": intern.id,
@@ -63,45 +63,45 @@ def get_authenticated_company():
     return container.get_profile_repository().find_company_by_user_id(user_id)
 
 
-@postulacion_bp.post("/convocatorias/<int:convocatoria_id>")
-def apply_to_convocatoria(convocatoria_id):
+@job_application_bp.post("/convocatorias/<int:job_posting_id>")
+def apply_to_job_posting(job_posting_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    postulacion = build_postulacion_service().apply(user_id, convocatoria_id)
-    return jsonify(serialize_postulacion(postulacion)), 201
+    job_application = build_job_application_service().apply(user_id, job_posting_id)
+    return jsonify(serialize_job_application(job_application)), 201
 
 
-@postulacion_bp.get("/me")
-def list_my_postulaciones():
+@job_application_bp.get("/me")
+def list_my_job_applications():
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    resultados = build_postulacion_service().list_for_practicante(user_id)
+    results = build_job_application_service().list_for_intern(user_id)
     return jsonify([
-        serialize_postulacion_con_convocatoria(r.postulacion, r.convocatoria)
-        for r in resultados
+        serialize_job_application_with_posting(r.job_application, r.job_posting)
+        for r in results
     ]), 200
 
 
-@postulacion_bp.get("/convocatorias/<int:convocatoria_id>")
-def list_convocatoria_postulaciones(convocatoria_id):
+@job_application_bp.get("/convocatorias/<int:job_posting_id>")
+def list_job_posting_applications(job_posting_id):
     company = get_authenticated_company()
     if get_authenticated_user_id() is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    resultados = build_postulacion_service().list_for_convocatoria(
-        company.id, convocatoria_id
+    results = build_job_application_service().list_for_job_posting(
+        company.id, job_posting_id
     )
     return jsonify([
-        serialize_candidato(r.postulacion, r.intern, r.practica)
-        for r in resultados
+        serialize_candidate(r.job_application, r.intern, r.practica)
+        for r in results
     ]), 200
 
 
-@postulacion_bp.post("/<int:postulacion_id>/seleccionar")
-def select_postulacion(postulacion_id):
+@job_application_bp.post("/<int:job_application_id>/seleccionar")
+def select_job_application(job_application_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
@@ -110,13 +110,13 @@ def select_postulacion(postulacion_id):
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    postulacion = build_postulacion_service().select_candidate(company.id, postulacion_id)
+    job_application = build_job_application_service().select_candidate(company.id, job_application_id)
 
-    return jsonify(serialize_postulacion(postulacion)), 200
+    return jsonify(serialize_job_application(job_application)), 200
 
 
-@postulacion_bp.post("/<int:postulacion_id>/rechazar")
-def reject_postulacion(postulacion_id):
+@job_application_bp.post("/<int:job_application_id>/rechazar")
+def reject_job_application(job_application_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
@@ -125,8 +125,8 @@ def reject_postulacion(postulacion_id):
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    postulacion = build_postulacion_service().reject_candidate(company.id, postulacion_id)
-    data = serialize_postulacion(postulacion)
+    job_application = build_job_application_service().reject_candidate(company.id, job_application_id)
+    data = serialize_job_application(job_application)
 
     intern = container.get_profile_repository().find_intern_by_id(
         data["practicante_id"]
@@ -136,32 +136,32 @@ def reject_postulacion(postulacion_id):
             recipient_user_id=intern.user_id,
             notification_type="POSTULACION_RECHAZADA",
             message="Tu postulación no fue seleccionada",
-            metadata={"postulacion_id": postulacion_id},
+            metadata={"postulacion_id": job_application_id},
         )
     return jsonify(data), 200
 
 
-@postulacion_bp.post("/<int:postulacion_id>/cancelar")
-def cancel_postulacion(postulacion_id):
+@job_application_bp.post("/<int:job_application_id>/cancelar")
+def cancel_job_application(job_application_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
-    data = serialize_postulacion(
-        build_postulacion_service().cancel(user_id, postulacion_id)
+    data = serialize_job_application(
+        build_job_application_service().cancel(user_id, job_application_id)
     )
     return jsonify(data), 200
 
 
-@postulacion_bp.post("/<int:postulacion_id>/reconsiderar")
-def reconsider_postulacion(postulacion_id):
+@job_application_bp.post("/<int:job_application_id>/reconsiderar")
+def reconsider_job_application(job_application_id):
     user_id = get_authenticated_user_id()
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
     company = get_authenticated_company()
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
-    data = serialize_postulacion(
-        build_postulacion_service().reconsider_candidate(company.id, postulacion_id)
+    data = serialize_job_application(
+        build_job_application_service().reconsider_candidate(company.id, job_application_id)
     )
     try:
         intern = container.get_profile_repository().find_intern_by_id(
@@ -172,7 +172,7 @@ def reconsider_postulacion(postulacion_id):
                 recipient_user_id=intern.user_id,
                 notification_type="POSTULACION_RECONSIDERADA",
                 message="La empresa volvió a considerar tu postulación",
-                metadata={"postulacion_id": postulacion_id},
+                metadata={"postulacion_id": job_application_id},
             )
     except Exception:
         current_app.logger.exception(

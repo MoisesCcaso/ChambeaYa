@@ -1,11 +1,11 @@
 from flask import current_app
 
 from application.certificacion_application_service import CertificacionApplicationService
-from recruitment.application.convocatoria_application_service import ConvocatoriaApplicationService
+from recruitment.application.job_posting_application_service import JobPostingApplicationService
 from profiles.application.company_application_service import CompanyApplicationService
 from application.matching_application_service import MatchingApplicationService
 from notifications.application.notification_application_service import NotificationApplicationService
-from recruitment.application.postulacion_application_service import PostulacionApplicationService
+from recruitment.application.job_application_service import JobApplicationService
 from application.practica_application_service import PracticaApplicationService
 from profiles.application.intern_application_service import InternApplicationService
 from identity.application.user_application_service import UserApplicationService
@@ -13,11 +13,11 @@ from identity.domain.authentication_domain_service import AuthenticationDomainSe
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
-from recruitment.infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
+from recruitment.infrastructure.sqlalchemy_job_posting_repository import SqlAlchemyJobPostingRepository
 from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
 from profiles.infrastructure.sqlalchemy_profile_repository import SqlAlchemyProfileRepository
-from recruitment.infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
+from recruitment.infrastructure.sqlalchemy_job_application_repository import SqlAlchemyJobApplicationRepository
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 from identity.infrastructure.sqlalchemy_user_repository import SqlAlchemyUserRepository
 from identity.infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
@@ -37,11 +37,11 @@ class DependencyContainer:
     def get_profile_repository(self):
         return self._repos.get("profile") or SqlAlchemyProfileRepository()
 
-    def get_convocatoria_repository(self):
-        return self._repos.get("convocatoria") or SqlAlchemyConvocatoriaRepository()
+    def get_job_posting_repository(self):
+        return self._repos.get("job_posting") or SqlAlchemyJobPostingRepository()
 
-    def get_postulacion_repository(self):
-        return self._repos.get("postulacion") or SqlAlchemyPostulacionRepository()
+    def get_job_application_repository(self):
+        return self._repos.get("job_application") or SqlAlchemyJobApplicationRepository()
 
     def get_practica_repository(self):
         return self._repos.get("practica") or SqlAlchemyPracticaRepository()
@@ -71,10 +71,10 @@ class DependencyContainer:
             email_sender=email_sender,
         )
 
-    def get_convocatoria_service(self):
-        if "convocatoria_service" in self._services:
-            return self._services["convocatoria_service"]
-        return ConvocatoriaApplicationService(self.get_convocatoria_repository())
+    def get_job_posting_service(self):
+        if "job_posting_service" in self._services:
+            return self._services["job_posting_service"]
+        return JobPostingApplicationService(self.get_job_posting_repository())
 
     def get_practica_service(self):
         if "practica_service" in self._services:
@@ -84,19 +84,19 @@ class DependencyContainer:
         return PracticaApplicationService(
             self.get_practica_repository(),
             self.get_profile_repository(),
-            self.get_postulacion_repository(),
-            self.get_convocatoria_repository(),
+            self.get_job_application_repository(),
+            self.get_job_posting_repository(),
             notification_service=notif_service,
         )
 
-    def get_postulacion_service(self):
-        if "postulacion_service" in self._services:
-            return self._services["postulacion_service"]
+    def get_job_application_service(self):
+        if "job_application_service" in self._services:
+            return self._services["job_application_service"]
         notif_repo = self.get_notification_repository()
         notif_service = NotificationApplicationService(writer=notif_repo, reader=notif_repo)
-        return PostulacionApplicationService(
-            self.get_postulacion_repository(),
-            self.get_convocatoria_repository(),
+        return JobApplicationService(
+            self.get_job_application_repository(),
+            self.get_job_posting_repository(),
             self.get_profile_repository(),
             self.get_practica_repository(),
             notification_service=notif_service,
@@ -108,7 +108,7 @@ class DependencyContainer:
         return MatchingApplicationService(
             self.get_matching_repository(),
             self.get_profile_repository(),
-            self.get_convocatoria_repository(),
+            self.get_job_posting_repository(),
             MatchingDominioServicio(),
         )
 
@@ -126,8 +126,8 @@ class DependencyContainer:
         return CertificacionApplicationService(
             self.get_certificado_repository(),
             self.get_practica_repository(),
-            self.get_postulacion_repository(),
-            self.get_convocatoria_repository(),
+            self.get_job_application_repository(),
+            self.get_job_posting_repository(),
             self.get_profile_repository(),
             notification_service=notif_service,
         )

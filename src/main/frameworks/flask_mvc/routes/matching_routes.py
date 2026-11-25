@@ -14,16 +14,16 @@ def build_matching_service():
 def serialize_resultado(result):
     return {
         "practicante_id": result.intern_id,
-        "convocatoria_id": result.convocatoria_id,
+        "convocatoria_id": result.job_posting_id,
         "score_compatibilidad": round(result.score_compatibilidad, 2),
         "es_compatible": result.es_compatible(),
         "habilidades_coincidentes": result.sugerencia.habilidades_coincidentes,
         "convocatoria": {
-            "id": result.convocatoria.id,
-            "titulo": result.convocatoria.titulo,
-            "descripcion": result.convocatoria.descripcion,
-            "beneficios": result.convocatoria.beneficios,
-        } if result.convocatoria else None,
+            "id": result.job_posting.id,
+            "titulo": result.job_posting.title,
+            "descripcion": result.job_posting.description,
+            "beneficios": result.job_posting.benefits,
+        } if result.job_posting else None,
     }
 
 
@@ -35,9 +35,9 @@ def suggest_convocatorias():
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    resultados = build_matching_service().suggest_convocatorias(user_id)
+    results = build_matching_service().suggest_convocatorias(user_id)
 
-    return jsonify([serialize_resultado(r) for r in resultados]), 200
+    return jsonify([serialize_resultado(r) for r in results]), 200
 
 
 @matching_bp.post("/calcular")
@@ -48,8 +48,8 @@ def calculate_match():
     if user_id is None:
         return jsonify({"error": NOT_AUTHENTICATED}), 401
 
-    resultados = build_matching_service().calculate_for_practicante(user_id)
-    data = [serialize_resultado(r) for r in resultados]
+    results = build_matching_service().calculate_for_practicante(user_id)
+    data = [serialize_resultado(r) for r in results]
 
     if data:
         try:

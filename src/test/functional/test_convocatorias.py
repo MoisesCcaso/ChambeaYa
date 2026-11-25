@@ -23,15 +23,15 @@ def test_con_01_crea_convocatoria_valida_como_borrador(driver, base_url):
     page = ConvocatoriaPage(driver, base_url)
     page.open_convocatorias()
 
-    titulo = f"Practicante QA funcional {uuid4().hex[:8]}"
+    title = f"Practicante QA funcional {uuid4().hex[:8]}"
     page.create_draft(
-        titulo=titulo,
-        descripcion="Apoyo en pruebas funcionales y documentación.",
+        title=title,
+        description="Apoyo en pruebas funcionales y documentación.",
         skills="Python, Selenium, pytest",
-        beneficios="Mentoría, horario flexible",
+        benefits="Mentoría, horario flexible",
     )
 
-    assert page.convocatoria_is_borrador(titulo)
+    assert page.convocatoria_is_borrador(title)
 
 
 def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
@@ -46,8 +46,8 @@ def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
     page.open_convocatorias()
     page.start_new_convocatoria()
     page.fill_convocatoria(
-        titulo="",
-        descripcion="Convocatoria de prueba sin título.",
+        title="",
+        description="Convocatoria de prueba sin título.",
         skills="Python",
     )
     filas_antes = len(
@@ -55,9 +55,9 @@ def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
     )
     page.save_draft()
 
-    titulo = driver.find_element(*page.TITLE)
-    assert not driver.execute_script("return arguments[0].validity.valid;", titulo)
-    assert driver.execute_script("return arguments[0].validationMessage;", titulo)
+    title = driver.find_element(*page.TITLE)
+    assert not driver.execute_script("return arguments[0].validity.valid;", title)
+    assert driver.execute_script("return arguments[0].validationMessage;", title)
     assert (
         len(driver.find_element(*page.TABLE).find_elements(By.TAG_NAME, "tr"))
         == filas_antes
@@ -74,17 +74,17 @@ def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
 
     page = ConvocatoriaPage(driver, base_url)
     page.open_convocatorias()
-    titulo = f"Practicante QA publicación {uuid4().hex[:8]}"
+    title = f"Practicante QA publicación {uuid4().hex[:8]}"
     page.create_draft(
-        titulo=titulo,
-        descripcion="Convocatoria creada para probar su publicación.",
+        title=title,
+        description="Convocatoria creada para probar su publicación.",
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(titulo)
-    page.publish_convocatoria(titulo)
+    assert page.convocatoria_is_borrador(title)
+    page.publish_job_posting(title)
 
-    assert page.convocatoria_is_publicada(titulo)
+    assert page.convocatoria_is_publicada(title)
 
 
 def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
@@ -97,18 +97,18 @@ def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
 
     page = ConvocatoriaPage(driver, base_url)
     page.open_convocatorias()
-    titulo = f"Practicante QA publicación única {uuid4().hex[:8]}"
+    title = f"Practicante QA publicación única {uuid4().hex[:8]}"
     page.create_draft(
-        titulo=titulo,
-        descripcion="Convocatoria para verificar que publicar no se repita.",
+        title=title,
+        description="Convocatoria para verificar que publicar no se repita.",
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(titulo)
-    page.publish_convocatoria(titulo)
+    assert page.convocatoria_is_borrador(title)
+    page.publish_job_posting(title)
 
-    assert page.convocatoria_is_publicada(titulo)
-    assert not page.can_publish_convocatoria(titulo)
+    assert page.convocatoria_is_publicada(title)
+    assert not page.can_publish_convocatoria(title)
 
 
 def test_con_05_cierra_convocatoria_publicada(driver, base_url):
@@ -121,20 +121,20 @@ def test_con_05_cierra_convocatoria_publicada(driver, base_url):
 
     page = ConvocatoriaPage(driver, base_url)
     page.open_convocatorias()
-    titulo = f"Practicante QA cierre {uuid4().hex[:8]}"
+    title = f"Practicante QA cierre {uuid4().hex[:8]}"
     page.create_draft(
-        titulo=titulo,
-        descripcion="Convocatoria creada para probar el cierre.",
+        title=title,
+        description="Convocatoria creada para probar el cierre.",
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(titulo)
-    page.publish_convocatoria(titulo)
-    assert page.convocatoria_is_publicada(titulo)
+    assert page.convocatoria_is_borrador(title)
+    page.publish_job_posting(title)
+    assert page.convocatoria_is_publicada(title)
 
-    page.close_convocatoria(titulo)
+    page.close_job_posting(title)
 
-    assert page.convocatoria_is_cerrada(titulo)
+    assert page.convocatoria_is_cerrada(title)
 
 
 def test_con_06_muestra_candidatos_de_convocatoria(driver, base_url):

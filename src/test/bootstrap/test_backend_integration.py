@@ -80,7 +80,7 @@ class BackendIntegrationTest(unittest.TestCase):
             200,
             json={"razon_social": "Tech SAC", "ruc": "20131312955"},
         )
-        convocatoria = self.request(
+        job_posting = self.request(
             self.company,
             "post",
             "/convocatorias",
@@ -95,7 +95,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.request(
             self.company,
             "post",
-            f"/convocatorias/{convocatoria['id']}/publicar",
+            f"/convocatorias/{job_posting['id']}/publicar",
             200,
         )
 
@@ -117,33 +117,33 @@ class BackendIntegrationTest(unittest.TestCase):
                 "formacion_educativa": ["UNSA"],
             },
         )
-        return convocatoria
+        return job_posting
 
     def test_complete_business_flow(self):
-        convocatoria = self.prepare_users_and_convocatoria()
-        convocatoria_id = convocatoria["id"]
+        job_posting = self.prepare_users_and_convocatoria()
+        job_posting_id = job_posting["id"]
 
         matches = self.request(
             self.intern, "get", "/matching/sugerencias", 200
         ).get_json()
         self.assertEqual(100.0, matches[0]["score_compatibilidad"])
 
-        postulacion = self.request(
+        job_application = self.request(
             self.intern,
             "post",
-            f"/postulaciones/convocatorias/{convocatoria_id}",
+            f"/postulaciones/convocatorias/{job_posting_id}",
             201,
         ).get_json()
         self.request(
             self.intern,
             "post",
-            f"/postulaciones/convocatorias/{convocatoria_id}",
+            f"/postulaciones/convocatorias/{job_posting_id}",
             409,
         )
         self.request(
             self.company,
             "post",
-            f"/postulaciones/{postulacion['id']}/seleccionar",
+            f"/postulaciones/{job_application['id']}/seleccionar",
             200,
         )
 
@@ -152,7 +152,7 @@ class BackendIntegrationTest(unittest.TestCase):
             "post",
             "/practicas",
             201,
-            json={"postulacion_id": postulacion["id"]},
+            json={"postulacion_id": job_application["id"]},
         ).get_json()
         practica_id = practica["id"]
 
@@ -241,17 +241,17 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
     def test_authorization_and_business_guards(self):
-        convocatoria = self.prepare_users_and_convocatoria()
-        postulacion = self.request(
+        job_posting = self.prepare_users_and_convocatoria()
+        job_application = self.request(
             self.intern,
             "post",
-            f"/postulaciones/convocatorias/{convocatoria['id']}",
+            f"/postulaciones/convocatorias/{job_posting['id']}",
             201,
         ).get_json()
         self.request(
             self.company,
             "post",
-            f"/postulaciones/{postulacion['id']}/seleccionar",
+            f"/postulaciones/{job_application['id']}/seleccionar",
             200,
         )
         practica = self.request(
@@ -259,7 +259,7 @@ class BackendIntegrationTest(unittest.TestCase):
             "post",
             "/practicas",
             201,
-            json={"postulacion_id": postulacion["id"]},
+            json={"postulacion_id": job_application["id"]},
         ).get_json()
 
         self.request(

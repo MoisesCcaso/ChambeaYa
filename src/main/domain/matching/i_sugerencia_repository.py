@@ -7,5 +7,5 @@ class ISugerenciaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_practicante_id(self, intern_id):
+    def find_by_intern_id(self, intern_id):
         pass

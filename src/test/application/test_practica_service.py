@@ -6,10 +6,10 @@ from types import SimpleNamespace
 from unittest.mock import call, create_autospec
 
 from application.practica_application_service import PracticaApplicationService
-from recruitment.domain.convocatoria import Convocatoria
-from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
-from recruitment.domain.i_postulacion_repository import IPostulacionRepository
-from recruitment.domain.postulacion import Postulacion
+from recruitment.domain.job_posting import JobPosting
+from recruitment.domain.i_job_posting_repository import IJobPostingRepository
+from recruitment.domain.i_job_application_repository import IJobApplicationRepository
+from recruitment.domain.job_application import JobApplication
 from profiles.domain.i_profile_repository import IProfileRepository
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
@@ -29,81 +29,81 @@ class TestPracticaApplicationService(unittest.TestCase):
     def setUp(self):
         self.practicas = create_autospec(IPracticaRepository, instance=True)
         self.profiles_repo = create_autospec(IProfileRepository, instance=True)
-        self.postulaciones = create_autospec(IPostulacionRepository, instance=True)
-        self.convocatorias = create_autospec(IConvocatoriaRepository, instance=True)
+        self.job_applications = create_autospec(IJobApplicationRepository, instance=True)
+        self.job_postings = create_autospec(IJobPostingRepository, instance=True)
         self.service = PracticaApplicationService(
             practica_repository=self.practicas,
             profile_repository=self.profiles_repo,
-            postulacion_repository=self.postulaciones,
-            convocatoria_repository=self.convocatorias,
+            job_application_repository=self.job_applications,
+            job_posting_repository=self.job_postings,
         )
 
         self.practica = Practica(
             id=PRACTICA_ID,
-            postulacion_id=POSTULACION_ID,
+            job_application_id=POSTULACION_ID,
             intern_id=PRACTICANTE_ID,
         )
-        self.postulacion = Postulacion(
+        self.job_application = JobApplication(
             id=POSTULACION_ID,
-            convocatoria_id=CONVOCATORIA_ID,
+            job_posting_id=CONVOCATORIA_ID,
             intern_id=PRACTICANTE_ID,
-            status=Postulacion.ESTADO_SELECCIONADA,
+            status=JobApplication.STATUS_SELECTED,
         )
-        self.convocatoria = Convocatoria(
+        self.job_posting = JobPosting(
             id=CONVOCATORIA_ID,
             company_id=EMPRESA_ID,
-            status=Convocatoria.ESTADO_PUBLICADA,
+            status=JobPosting.STATUS_PUBLISHED,
         )
         self.intern = SimpleNamespace(id=PRACTICANTE_ID)
         self.company = SimpleNamespace(id=EMPRESA_ID)
 
         self.practicas.find_by_id.return_value = self.practica
-        self.practicas.find_by_postulacion_id.return_value = None
+        self.practicas.find_by_job_application_id.return_value = None
         self.practicas.save.side_effect = lambda practica: practica
         self.profiles_repo.find_intern_by_user_id.return_value = self.intern
         self.profiles_repo.find_company_by_user_id.return_value = None
-        self.postulaciones.find_by_id.return_value = self.postulacion
-        self.convocatorias.find_by_id.return_value = self.convocatoria
+        self.job_applications.find_by_id.return_value = self.job_application
+        self.job_postings.find_by_id.return_value = self.job_posting
 
     # Inicio de práctica
     def test_inicia_practica_y_guarda_con_argumentos_correctos(self):
         result = self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
 
-        self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
-        self.convocatorias.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
-        self.practicas.find_by_postulacion_id.assert_called_once_with(POSTULACION_ID)
+        self.job_applications.find_by_id.assert_called_once_with(POSTULACION_ID)
+        self.job_postings.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
+        self.practicas.find_by_job_application_id.assert_called_once_with(POSTULACION_ID)
         practica_guardada = self.practicas.save.call_args.args[0]
         self.assertIs(result, practica_guardada)
-        self.assertEqual(POSTULACION_ID, practica_guardada.postulacion_id)
+        self.assertEqual(POSTULACION_ID, practica_guardada.job_application_id)
         self.assertEqual(PRACTICANTE_ID, practica_guardada.intern_id)
         self.assertEqual(Practica.ESTADO_EN_CURSO, practica_guardada.status)
 
     def test_no_inicia_si_la_postulacion_no_existe(self):
-        self.postulaciones.find_by_id.return_value = None
+        self.job_applications.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
-        self.convocatorias.find_by_id.assert_not_called()
+        self.job_postings.find_by_id.assert_not_called()
         self.practicas.save.assert_not_called()
 
     def test_no_inicia_si_la_postulacion_no_esta_seleccionada(self):
-        self.postulacion.status = Postulacion.STATUS_PENDING
+        self.job_application.status = JobApplication.STATUS_PENDING
         with self.assertRaisesRegex(ValueError, "debe estar seleccionada"):
             self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
-        self.convocatorias.find_by_id.assert_not_called()
+        self.job_postings.find_by_id.assert_not_called()
 
     def test_no_inicia_si_la_convocatoria_no_existe(self):
-        self.convocatorias.find_by_id.return_value = None
+        self.job_postings.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
-        self.practicas.find_by_postulacion_id.assert_not_called()
+        self.practicas.find_by_job_application_id.assert_not_called()
 
     def test_no_inicia_para_una_empresa_ajena(self):
         with self.assertRaisesRegex(ValueError, "no pertenece a esta empresa"):
             self.service.start_practica(999, POSTULACION_ID)
-        self.practicas.find_by_postulacion_id.assert_not_called()
+        self.practicas.find_by_job_application_id.assert_not_called()
 
     def test_no_inicia_una_practica_duplicada(self):
-        self.practicas.find_by_postulacion_id.return_value = self.practica
+        self.practicas.find_by_job_application_id.return_value = self.practica
         with self.assertRaisesRegex(ValueError, "ya fue iniciada"):
             self.service.start_practica(EMPRESA_ID, POSTULACION_ID)
         self.practicas.save.assert_not_called()
@@ -188,8 +188,8 @@ class TestPracticaApplicationService(unittest.TestCase):
         result = self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
 
         self.practicas.find_by_id.assert_called_once_with(PRACTICA_ID)
-        self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
-        self.convocatorias.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
+        self.job_applications.find_by_id.assert_called_once_with(POSTULACION_ID)
+        self.job_postings.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
         self.assertEqual(85, self.practica.evaluaciones[0].puntaje)
         self.practicas.save.assert_called_once_with(self.practica)
         self.assertIs(result, self.practica)
@@ -224,16 +224,16 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Práctica no encontrada"):
             self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
-        self.postulaciones.find_by_id.assert_not_called()
+        self.job_applications.find_by_id.assert_not_called()
 
     def test_evaluar_rechaza_postulacion_inexistente(self):
-        self.postulaciones.find_by_id.return_value = None
+        self.job_applications.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
-        self.convocatorias.find_by_id.assert_not_called()
+        self.job_postings.find_by_id.assert_not_called()
 
     def test_evaluar_rechaza_convocatoria_inexistente(self):
-        self.convocatorias.find_by_id.return_value = None
+        self.job_postings.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.evaluate(EMPRESA_ID, PRACTICA_ID, 85)
 
@@ -263,12 +263,12 @@ class TestPracticaApplicationService(unittest.TestCase):
         evaluacion = Evaluacion(id=9, puntaje=90)
         self.practica.evaluaciones = [evaluacion]
 
-        eliminada = self.service.delete_evaluation(EMPRESA_ID, PRACTICA_ID, 9)
+        deleted = self.service.delete_evaluation(EMPRESA_ID, PRACTICA_ID, 9)
 
-        self.assertIs(evaluacion, eliminada)
+        self.assertIs(evaluacion, deleted)
         self.assertEqual([], self.practica.evaluaciones)
-        self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
-        self.convocatorias.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
+        self.job_applications.find_by_id.assert_called_once_with(POSTULACION_ID)
+        self.job_postings.find_by_id.assert_called_once_with(CONVOCATORIA_ID)
         self.practicas.save.assert_called_once_with(self.practica)
 
     def test_eliminar_evaluacion_rechaza_practica_inexistente(self):
@@ -303,13 +303,13 @@ class TestPracticaApplicationService(unittest.TestCase):
         self.practicas.save.assert_not_called()
 
     def test_operacion_de_empresa_rechaza_postulacion_inexistente(self):
-        self.postulaciones.find_by_id.return_value = None
+        self.job_applications.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Postulación no encontrada"):
             self.service.finish(EMPRESA_ID, PRACTICA_ID)
-        self.convocatorias.find_by_id.assert_not_called()
+        self.job_postings.find_by_id.assert_not_called()
 
     def test_operacion_de_empresa_rechaza_convocatoria_inexistente(self):
-        self.convocatorias.find_by_id.return_value = None
+        self.job_postings.find_by_id.return_value = None
         with self.assertRaisesRegex(ValueError, "Convocatoria no encontrada"):
             self.service.finish(EMPRESA_ID, PRACTICA_ID)
 
@@ -321,24 +321,24 @@ class TestPracticaApplicationService(unittest.TestCase):
     # Consultas y visibilidad
     def test_lista_practicas_del_practicante(self):
         esperadas = [self.practica]
-        self.practicas.find_by_practicante_id.return_value = esperadas
+        self.practicas.find_by_intern_id.return_value = esperadas
 
         result = self.service.list_for_user(USUARIO_PRACTICANTE_ID)
 
         self.assertIs(esperadas, result)
-        self.practicas.find_by_practicante_id.assert_called_once_with(PRACTICANTE_ID)
+        self.practicas.find_by_intern_id.assert_called_once_with(PRACTICANTE_ID)
         self.profiles_repo.find_company_by_user_id.assert_not_called()
 
     def test_lista_practicas_de_empresa_y_omite_postulaciones_sin_practica(self):
-        practica_2 = Practica(id=8, postulacion_id=22, intern_id=31)
+        practica_2 = Practica(id=8, job_application_id=22, intern_id=31)
         self.profiles_repo.find_intern_by_user_id.return_value = None
         self.profiles_repo.find_company_by_user_id.return_value = self.company
-        self.practicas.find_by_empresa_id.return_value = [self.practica, practica_2]
+        self.practicas.find_by_company_id.return_value = [self.practica, practica_2]
 
         result = self.service.list_for_user(USUARIO_EMPRESA_ID)
 
         self.assertEqual([self.practica, practica_2], result)
-        self.practicas.find_by_empresa_id.assert_called_once_with(EMPRESA_ID)
+        self.practicas.find_by_company_id.assert_called_once_with(EMPRESA_ID)
 
     def test_listar_rechaza_usuario_sin_perfil(self):
         self.profiles_repo.find_intern_by_user_id.return_value = None
@@ -354,7 +354,7 @@ class TestPracticaApplicationService(unittest.TestCase):
 
         self.assertIs(self.practica, result)
         self.profiles_repo.find_company_by_user_id.assert_called_once_with(USUARIO_EMPRESA_ID)
-        self.postulaciones.find_by_id.assert_called_once_with(POSTULACION_ID)
+        self.job_applications.find_by_id.assert_called_once_with(POSTULACION_ID)
 
     def test_consulta_visible_rechaza_practica_inexistente(self):
         self.practicas.find_by_id.return_value = None
@@ -370,13 +370,13 @@ class TestPracticaApplicationService(unittest.TestCase):
 
     # Configuración
     def test_requiere_todos_los_repositorios_antes_de_operar(self):
-        servicios_incompletos = (
+        incomplete_services = (
             PracticaApplicationService(),
             PracticaApplicationService(
-                self.practicas, self.profiles_repo, self.postulaciones, None
+                self.practicas, self.profiles_repo, self.job_applications, None
             ),
         )
-        for service in servicios_incompletos:
+        for service in incomplete_services:
             with self.subTest(service=service):
                 with self.assertRaisesRegex(RuntimeError, "requiere todos sus repositorios"):
                     service.get_for_user(USUARIO_PRACTICANTE_ID, PRACTICA_ID)

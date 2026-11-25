@@ -202,12 +202,12 @@ class TestProfileService(unittest.TestCase):
             id=3, user_id=20, legal_name="Anterior S.A.C.", ruc=RUC("20100070970")
         )
         self.profile_repository.find_company_by_user_id.return_value = existing
-        actualizada = self.company_service.update_company(
+        updated = self.company_service.update_company(
             20, {"razon_social": "Nueva Razón S.A.C."}
         )
-        self.assertIs(actualizada, existing)
-        self.assertEqual(actualizada.legal_name, "Nueva Razón S.A.C.")
-        self.assertTrue(actualizada.verified)
+        self.assertIs(updated, existing)
+        self.assertEqual(updated.legal_name, "Nueva Razón S.A.C.")
+        self.assertTrue(updated.verified)
 
         # Empty legal name
         with self.assertRaisesRegex(ValueError, "La razón social es obligatoria"):

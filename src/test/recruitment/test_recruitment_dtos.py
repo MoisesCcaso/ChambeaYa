@@ -1,77 +1,77 @@
-"""Pruebas unitarias para Parameter Objects (DTOs / Command Objects) en capa de aplicación (Issue #180)."""
+"""Unit tests for the recruitment Parameter Objects (DTOs / Command Objects) (Issue #180)."""
 
 import unittest
 from unittest.mock import create_autospec
 
-from recruitment.application.convocatoria_application_service import ConvocatoriaApplicationService
+from recruitment.application.job_posting_application_service import JobPostingApplicationService
 from recruitment.application.dtos import (
-    ConvocatoriaCommand,
+    JobPostingCommand,
 )
-from recruitment.domain.convocatoria import Convocatoria
-from recruitment.domain.i_convocatoria_repository import IConvocatoriaRepository
+from recruitment.domain.job_posting import JobPosting
+from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 
 
-class TestConvocatoriaCommandDTO(unittest.TestCase):
-    """Pruebas unitarias del Parameter Object ConvocatoriaCommand."""
+class TestJobPostingCommandDTO(unittest.TestCase):
+    """Unit tests for the JobPostingCommand Parameter Object."""
 
     def setUp(self):
-        self.mock_repo = create_autospec(IConvocatoriaRepository, instance=True)
-        self.service = ConvocatoriaApplicationService(convocatoria_repository=self.mock_repo)
+        self.mock_repo = create_autospec(IJobPostingRepository, instance=True)
+        self.service = JobPostingApplicationService(job_posting_repository=self.mock_repo)
 
-    def test_from_dict_construye_command_tipado(self):
-        cmd = ConvocatoriaCommand.from_dict({
+    def test_from_dict_builds_typed_command(self):
+        cmd = JobPostingCommand.from_dict({
             "titulo": "Backend Python",
             "descripcion": "Prácticas Flask",
             "habilidades_requeridas": ["Python", "SQL"],
             "beneficios": ["Remoto"],
         })
-        self.assertIsInstance(cmd, ConvocatoriaCommand)
-        self.assertEqual(cmd.titulo, "Backend Python")
-        self.assertEqual(cmd.descripcion, "Prácticas Flask")
-        self.assertEqual(cmd.habilidades_requeridas, ["Python", "SQL"])
-        self.assertEqual(cmd.beneficios, ["Remoto"])
+        self.assertIsInstance(cmd, JobPostingCommand)
+        self.assertEqual(cmd.title, "Backend Python")
+        self.assertEqual(cmd.description, "Prácticas Flask")
+        self.assertEqual(cmd.required_skills, ["Python", "SQL"])
+        self.assertEqual(cmd.benefits, ["Remoto"])
 
-    def test_from_dict_retorna_misma_instancia_si_ya_es_command(self):
-        cmd = ConvocatoriaCommand(titulo="QA")
-        self.assertIs(ConvocatoriaCommand.from_dict(cmd), cmd)
+    def test_from_dict_returns_same_instance_if_already_a_command(self):
+        cmd = JobPostingCommand(title="QA")
+        self.assertIs(JobPostingCommand.from_dict(cmd), cmd)
 
-    def test_create_convocatoria_acepta_convocatoria_command(self):
-        cmd = ConvocatoriaCommand(
-            titulo="Data Engineer",
-            descripcion="ETL pipelines",
-            habilidades_requeridas=["Python"],
-            beneficios=["Certificado"],
+    def test_create_job_posting_accepts_job_posting_command(self):
+        cmd = JobPostingCommand(
+            title="Data Engineer",
+            description="ETL pipelines",
+            required_skills=["Python"],
+            benefits=["Certificado"],
         )
         self.mock_repo.save.side_effect = lambda c: c
 
-        result = self.service.create_convocatoria(company_id=3, data=cmd)
+        result = self.service.create_job_posting(company_id=3, data=cmd)
 
-        self.assertEqual(result.titulo, "Data Engineer")
-        self.assertEqual(result.descripcion, "ETL pipelines")
-        self.assertEqual(result.habilidades_requeridas, ["Python"])
-        self.assertEqual(result.beneficios, ["Certificado"])
+        self.assertEqual(result.title, "Data Engineer")
+        self.assertEqual(result.description, "ETL pipelines")
+        self.assertEqual(result.required_skills, ["Python"])
+        self.assertEqual(result.benefits, ["Certificado"])
 
-    def test_update_convocatoria_acepta_convocatoria_command(self):
-        existing = Convocatoria(
+    def test_update_job_posting_accepts_job_posting_command(self):
+        existing = JobPosting(
             id=10,
             company_id=3,
-            titulo="Original",
-            descripcion="Desc",
-            status=Convocatoria.ESTADO_BORRADOR,
+            title="Original",
+            description="Desc",
+            status=JobPosting.STATUS_DRAFT,
         )
         self.mock_repo.find_by_id.return_value = existing
         self.mock_repo.save.side_effect = lambda c: c
 
-        cmd = ConvocatoriaCommand(
-            titulo="Actualizado con DTO",
-            descripcion="Nueva Desc",
-            habilidades_requeridas=["Flask"],
-            beneficios=["Mentoría"],
+        cmd = JobPostingCommand(
+            title="Actualizado con DTO",
+            description="Nueva Desc",
+            required_skills=["Flask"],
+            benefits=["Mentoría"],
         )
-        result = self.service.update(company_id=3, convocatoria_id=10, data=cmd)
+        result = self.service.update(company_id=3, job_posting_id=10, data=cmd)
 
-        self.assertEqual(result.titulo, "Actualizado con DTO")
-        self.assertEqual(result.habilidades_requeridas, ["Flask"])
+        self.assertEqual(result.title, "Actualizado con DTO")
+        self.assertEqual(result.required_skills, ["Flask"])
 
 
 if __name__ == "__main__":

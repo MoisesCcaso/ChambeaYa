@@ -11,7 +11,7 @@ Cubre:
 
 import unittest
 
-from recruitment.domain.convocatoria import Convocatoria
+from recruitment.domain.job_posting import JobPosting
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from domain.matching.sugerencia import Sugerencia
 from profiles.domain.intern import Intern
@@ -21,15 +21,15 @@ def crear_practicante(skills, id=1):
     return Intern(id=id, skills=skills)
 
 
-def crear_convocatoria(skills, id=1, status=Convocatoria.ESTADO_PUBLICADA):
-    return Convocatoria(id=id, status=status, habilidades_requeridas=skills)
+def create_job_posting(skills, id=1, status=JobPosting.STATUS_PUBLISHED):
+    return JobPosting(id=id, status=status, required_skills=skills)
 
 
 class SugerenciaCalculoTest(unittest.TestCase):
     """Cálculo del puntaje de compatibilidad."""
 
     def setUp(self):
-        self.sugerencia = Sugerencia(intern_id=1, convocatoria_id=2)
+        self.sugerencia = Sugerencia(intern_id=1, job_posting_id=2)
 
     def test_valores_por_defecto(self):
         s = Sugerencia()
@@ -140,25 +140,25 @@ class SugerenciaCompatibilidadTest(unittest.TestCase):
         self.assertEqual(0.0, r.puntaje_match)
         self.assertEqual(0.0, r.score_compatibilidad)
         self.assertIsNone(r.intern_id)
-        self.assertIsNone(r.convocatoria_id)
+        self.assertIsNone(r.job_posting_id)
         self.assertIs(r, r.sugerencia)
-        self.assertIsNone(r.convocatoria)
+        self.assertIsNone(r.job_posting)
 
     def test_guarda_los_valores_recibidos(self):
-        conv = Convocatoria(id=2)
+        conv = JobPosting(id=2)
         r = Sugerencia(
             intern_id=1,
-            convocatoria_id=2,
+            job_posting_id=2,
             puntaje_match=75.0,
             habilidades_coincidentes=["python"],
-            convocatoria=conv,
+            job_posting=conv,
         )
         self.assertEqual(75.0, r.puntaje_match)
         self.assertEqual(75.0, r.score_compatibilidad)
         self.assertEqual(1, r.intern_id)
-        self.assertEqual(2, r.convocatoria_id)
+        self.assertEqual(2, r.job_posting_id)
         self.assertEqual(["python"], r.habilidades_coincidentes)
-        self.assertIs(conv, r.convocatoria)
+        self.assertIs(conv, r.job_posting)
 
     def test_es_compatible_por_encima_del_umbral(self):
         self.assertTrue(Sugerencia(puntaje_match=80.0).es_compatible())
@@ -183,7 +183,7 @@ class MatchingDominioServicioCalcularMatchTest(unittest.TestCase):
         self.service = MatchingDominioServicio()
 
     def test_practicante_none_devuelve_none(self):
-        self.assertIsNone(self.service.calcular_match(None, crear_convocatoria(["python"])))
+        self.assertIsNone(self.service.calcular_match(None, create_job_posting(["python"])))
 
     def test_convocatoria_none_devuelve_none(self):
         self.assertIsNone(self.service.calcular_match(crear_practicante(["python"]), None))
@@ -193,38 +193,38 @@ class MatchingDominioServicioCalcularMatchTest(unittest.TestCase):
 
     def test_devuelve_resultado_con_ids_y_score(self):
         intern = crear_practicante(["Python", "SQL"], id=7)
-        convocatoria = crear_convocatoria(["python", "sql", "git", "docker"], id=9)
+        job_posting = create_job_posting(["python", "sql", "git", "docker"], id=9)
 
-        result = self.service.calcular_match(intern, convocatoria)
+        result = self.service.calcular_match(intern, job_posting)
 
         self.assertIsInstance(result, Sugerencia)
         self.assertEqual(50.0, result.puntaje_match)
         self.assertEqual(50.0, result.score_compatibilidad)
         self.assertEqual(7, result.intern_id)
-        self.assertEqual(9, result.convocatoria_id)
-        self.assertIs(convocatoria, result.convocatoria)
+        self.assertEqual(9, result.job_posting_id)
+        self.assertIs(job_posting, result.job_posting)
 
     def test_la_sugerencia_asociada_refleja_el_calculo(self):
         intern = crear_practicante(["python"], id=3)
-        convocatoria = crear_convocatoria(["python", "sql"], id=4)
+        job_posting = create_job_posting(["python", "sql"], id=4)
 
-        result = self.service.calcular_match(intern, convocatoria)
+        result = self.service.calcular_match(intern, job_posting)
 
         self.assertIsInstance(result, Sugerencia)
         self.assertEqual(3, result.intern_id)
-        self.assertEqual(4, result.convocatoria_id)
+        self.assertEqual(4, result.job_posting_id)
         self.assertEqual(50.0, result.puntaje_match)
         self.assertEqual(["python"], result.habilidades_coincidentes)
 
     def test_convocatoria_sin_habilidades_da_score_cero(self):
         result = self.service.calcular_match(
-            crear_practicante(["python"]), crear_convocatoria([])
+            crear_practicante(["python"]), create_job_posting([])
         )
         self.assertEqual(0.0, result.score_compatibilidad)
 
     def test_calcular_match_no_filtra_por_estado(self):
-        convocatoria = crear_convocatoria(["python"], status=Convocatoria.ESTADO_CERRADA)
-        result = self.service.calcular_match(crear_practicante(["python"]), convocatoria)
+        job_posting = create_job_posting(["python"], status=JobPosting.STATUS_CLOSED)
+        result = self.service.calcular_match(crear_practicante(["python"]), job_posting)
         self.assertEqual(100.0, result.score_compatibilidad)
 
 
@@ -239,75 +239,75 @@ class MatchingDominioServicioFiltrarTest(unittest.TestCase):
         self.assertEqual([], self.service.filtrar_convocatorias(self.intern, []))
 
     def test_excluye_convocatorias_borrador_y_cerradas(self):
-        convocatorias = [
-            crear_convocatoria(["python"], id=1, status=Convocatoria.ESTADO_BORRADOR),
-            crear_convocatoria(["python"], id=2, status=Convocatoria.ESTADO_CERRADA),
-            crear_convocatoria(["python"], id=3, status=Convocatoria.ESTADO_PUBLICADA),
+        job_postings = [
+            create_job_posting(["python"], id=1, status=JobPosting.STATUS_DRAFT),
+            create_job_posting(["python"], id=2, status=JobPosting.STATUS_CLOSED),
+            create_job_posting(["python"], id=3, status=JobPosting.STATUS_PUBLISHED),
         ]
-        resultados = self.service.filtrar_convocatorias(self.intern, convocatorias)
-        self.assertEqual([3], [r.convocatoria_id for r in resultados])
+        results = self.service.filtrar_convocatorias(self.intern, job_postings)
+        self.assertEqual([3], [r.job_posting_id for r in results])
 
     def test_excluye_convocatorias_sin_estado(self):
-        convocatorias = [crear_convocatoria(["python"], id=1, status=None)]
-        self.assertEqual([], self.service.filtrar_convocatorias(self.intern, convocatorias))
+        job_postings = [create_job_posting(["python"], id=1, status=None)]
+        self.assertEqual([], self.service.filtrar_convocatorias(self.intern, job_postings))
 
     def test_excluye_las_que_no_alcanzan_el_umbral_por_defecto(self):
-        convocatorias = [
-            crear_convocatoria(["python"], id=1),                      # 100
-            crear_convocatoria(["python", "java", "go"], id=2),        # 33.3
+        job_postings = [
+            create_job_posting(["python"], id=1),                      # 100
+            create_job_posting(["python", "java", "go"], id=2),        # 33.3
         ]
-        resultados = self.service.filtrar_convocatorias(self.intern, convocatorias)
-        self.assertEqual([1], [r.convocatoria_id for r in resultados])
+        results = self.service.filtrar_convocatorias(self.intern, job_postings)
+        self.assertEqual([1], [r.job_posting_id for r in results])
 
     def test_incluye_las_que_igualan_el_umbral(self):
-        convocatorias = [crear_convocatoria(["python", "java"], id=1)]  # 50 exacto
-        resultados = self.service.filtrar_convocatorias(self.intern, convocatorias)
-        self.assertEqual(1, len(resultados))
-        self.assertEqual(50.0, resultados[0].score_compatibilidad)
+        job_postings = [create_job_posting(["python", "java"], id=1)]  # 50 exacto
+        results = self.service.filtrar_convocatorias(self.intern, job_postings)
+        self.assertEqual(1, len(results))
+        self.assertEqual(50.0, results[0].score_compatibilidad)
 
     def test_umbral_personalizado(self):
-        convocatorias = [
-            crear_convocatoria(["python", "java", "go"], id=1),  # 33.3
-            crear_convocatoria(["python"], id=2),                # 100
+        job_postings = [
+            create_job_posting(["python", "java", "go"], id=1),  # 33.3
+            create_job_posting(["python"], id=2),                # 100
         ]
-        resultados = self.service.filtrar_convocatorias(
-            self.intern, convocatorias, umbral=30.0
+        results = self.service.filtrar_convocatorias(
+            self.intern, job_postings, umbral=30.0
         )
-        self.assertEqual(2, len(resultados))
+        self.assertEqual(2, len(results))
 
     def test_umbral_cero_incluye_publicadas_sin_coincidencias(self):
-        convocatorias = [crear_convocatoria(["java"], id=1)]
-        resultados = self.service.filtrar_convocatorias(
-            self.intern, convocatorias, umbral=0.0
+        job_postings = [create_job_posting(["java"], id=1)]
+        results = self.service.filtrar_convocatorias(
+            self.intern, job_postings, umbral=0.0
         )
-        self.assertEqual([1], [r.convocatoria_id for r in resultados])
+        self.assertEqual([1], [r.job_posting_id for r in results])
 
     def test_ordena_por_score_descendente(self):
-        convocatorias = [
-            crear_convocatoria(["python", "java"], id=1),                  # 50
-            crear_convocatoria(["python", "sql"], id=2),                   # 100
-            crear_convocatoria(["python", "sql", "java", "go"], id=3),     # 50
-            crear_convocatoria(["python", "sql", "java"], id=4),           # 66.6
+        job_postings = [
+            create_job_posting(["python", "java"], id=1),                  # 50
+            create_job_posting(["python", "sql"], id=2),                   # 100
+            create_job_posting(["python", "sql", "java", "go"], id=3),     # 50
+            create_job_posting(["python", "sql", "java"], id=4),           # 66.6
         ]
-        resultados = self.service.filtrar_convocatorias(self.intern, convocatorias)
-        scores = [r.score_compatibilidad for r in resultados]
+        results = self.service.filtrar_convocatorias(self.intern, job_postings)
+        scores = [r.score_compatibilidad for r in results]
         self.assertEqual(sorted(scores, reverse=True), scores)
-        self.assertEqual(2, resultados[0].convocatoria_id)
-        self.assertEqual(4, resultados[1].convocatoria_id)
+        self.assertEqual(2, results[0].job_posting_id)
+        self.assertEqual(4, results[1].job_posting_id)
 
     def test_cada_resultado_es_compatible_con_el_umbral(self):
-        convocatorias = [crear_convocatoria(["python"], id=i) for i in range(1, 4)]
-        for r in self.service.filtrar_convocatorias(self.intern, convocatorias, 60.0):
+        job_postings = [create_job_posting(["python"], id=i) for i in range(1, 4)]
+        for r in self.service.filtrar_convocatorias(self.intern, job_postings, 60.0):
             self.assertTrue(r.es_compatible(60.0))
 
     def test_practicante_none_devuelve_lista_vacia(self):
-        convocatorias = [crear_convocatoria(["python"], id=1)]
-        self.assertEqual([], self.service.filtrar_convocatorias(None, convocatorias))
+        job_postings = [create_job_posting(["python"], id=1)]
+        self.assertEqual([], self.service.filtrar_convocatorias(None, job_postings))
 
     def test_practicante_sin_habilidades_devuelve_lista_vacia(self):
-        convocatorias = [crear_convocatoria(["python"], id=1)]
-        resultados = self.service.filtrar_convocatorias(crear_practicante([]), convocatorias)
-        self.assertEqual([], resultados)
+        job_postings = [create_job_posting(["python"], id=1)]
+        results = self.service.filtrar_convocatorias(crear_practicante([]), job_postings)
+        self.assertEqual([], results)
 
 
 if __name__ == "__main__":

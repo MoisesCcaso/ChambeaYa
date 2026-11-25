@@ -1,17 +1,17 @@
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
 
-from recruitment.domain.convocatoria import Convocatoria
-from recruitment.domain.postulacion import Postulacion
+from recruitment.domain.job_posting import JobPosting
+from recruitment.domain.job_application import JobApplication
 
 @dataclass(frozen=True)
-class ConvocatoriaCommand:
-    """Parameter Object para creación y actualización de convocatorias (Introduce Parameter Object)."""
+class JobPostingCommand:
+    """Parameter Object to create and update job postings (Introduce Parameter Object)."""
 
-    titulo: Optional[str] = None
-    descripcion: Optional[str] = None
-    habilidades_requeridas: Optional[list] = None
-    beneficios: Optional[list] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    required_skills: Optional[list] = None
+    benefits: Optional[list] = None
 
     @classmethod
     def from_dict(cls, data):
@@ -19,23 +19,23 @@ class ConvocatoriaCommand:
             return data
         payload = data or {}
         return cls(
-            titulo=payload.get("titulo"),
-            descripcion=payload.get("descripcion"),
-            habilidades_requeridas=payload.get("habilidades_requeridas"),
-            beneficios=payload.get("beneficios"),
+            title=payload.get("titulo"),
+            description=payload.get("descripcion"),
+            required_skills=payload.get("habilidades_requeridas"),
+            benefits=payload.get("beneficios"),
         )
 
 
-class PostulacionDetalleDTO(NamedTuple):
-    """Resultado de list_for_practicante (Replace Array with Object)."""
+class JobApplicationDetailDTO(NamedTuple):
+    """Result of list_for_intern (Replace Array with Object)."""
 
-    postulacion: Postulacion
-    convocatoria: Optional[Convocatoria]
+    job_application: JobApplication
+    job_posting: Optional[JobPosting]
 
 
-class CandidatoConvocatoriaDTO(NamedTuple):
-    """Resultado de list_for_convocatoria (Replace Array with Object)."""
+class CandidateDTO(NamedTuple):
+    """Result of list_for_job_posting (Replace Array with Object)."""
 
-    postulacion: Postulacion
+    job_application: JobApplication
     intern: Optional[object]
     practica: Optional[object]
