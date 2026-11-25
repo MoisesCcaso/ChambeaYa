@@ -38,7 +38,7 @@ class TestCertificacionService(unittest.TestCase):
         self.practica = Practica(
             id=PRACTICA_ID, job_application_id=20, intern_id=30,
             status=Practica.ESTADO_FINALIZADA,
-            evaluaciones=[Evaluacion(practica_id=PRACTICA_ID, puntaje=90)],
+            evaluaciones=[Evaluacion(practica_id=PRACTICA_ID, score=90)],
         )
         self.job_application = SimpleNamespace(id=20, job_posting_id=40)
         self.job_posting = SimpleNamespace(id=40, company_id=EMPRESA_ID, title="Practicas QA")

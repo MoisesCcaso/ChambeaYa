@@ -89,7 +89,7 @@ def test_save_persiste_practica_entregable_y_evaluacion(
     practica = crear_practica(
         datos_practica,
         entregables=[Entregable(archivo="informe.pdf", fecha_subida=moment)],
-        evaluaciones=[Evaluacion(puntaje=85, fecha_evaluacion=moment)],
+        evaluaciones=[Evaluacion(score=85, fecha_evaluacion=moment)],
     )
 
     saved = repository.save(practica)
@@ -103,7 +103,7 @@ def test_save_persiste_practica_entregable_y_evaluacion(
     assert len(modelo.entregables) == 1
     assert modelo.entregables[0].archivo == "informe.pdf"
     assert len(modelo.evaluaciones) == 1
-    assert modelo.evaluaciones[0].puntaje == 85
+    assert modelo.evaluaciones[0].score == 85
 
     assert saved.id is not None
     assert saved.entregables[0].id is not None
@@ -130,7 +130,7 @@ def test_find_by_id_reconstruye_el_agregado_completo(
     assert found.intern_id == datos_practica["practicante_id"]
     assert found.status == Practica.ESTADO_EN_CURSO
     assert [item.archivo for item in found.entregables] == ["evidencia.zip"]
-    assert [item.puntaje for item in found.evaluaciones] == [72]
+    assert [item.score for item in found.evaluaciones] == [72]
 
 
 def test_consultas_por_practicante_y_postulacion(
@@ -177,7 +177,7 @@ def test_save_actualiza_estado_y_agrega_nuevos_hijos_sin_duplicar_existentes(
         "primer-informe.pdf",
         "informe-final.pdf",
     ]
-    assert [item.puntaje for item in updated.evaluaciones] == [65, 90]
+    assert [item.score for item in updated.evaluaciones] == [65, 90]
     assert PracticaModel.query.count() == 1
     assert EntregableModel.query.count() == 2
     assert EvaluacionModel.query.count() == 2
@@ -200,7 +200,7 @@ def test_save_elimina_hijos_retirados_del_agregado(
     updated = repository.save(practica)
 
     assert [item.archivo for item in updated.entregables] == ["informe-2.pdf"]
-    assert [item.puntaje for item in updated.evaluaciones] == [95]
+    assert [item.score for item in updated.evaluaciones] == [95]
     assert db.session.get(EntregableModel, entregable_eliminado_id) is None
     assert db.session.get(EvaluacionModel, evaluacion_eliminada_id) is None
 

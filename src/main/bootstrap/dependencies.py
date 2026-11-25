@@ -10,7 +10,7 @@ from application.practica_application_service import PracticaApplicationService
 from profiles.application.intern_application_service import InternApplicationService
 from identity.application.user_application_service import UserApplicationService
 from identity.domain.authentication_domain_service import AuthenticationDomainService
-from matching.domain.matching_dominio_servicio import MatchingDominioServicio
+from matching.domain.matching_domain_service import MatchingDomainService
 from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
 from infrastructure.sqlalchemy_certificado_repository import SqlAlchemyCertificadoRepository
 from recruitment.infrastructure.sqlalchemy_job_posting_repository import SqlAlchemyJobPostingRepository
@@ -109,7 +109,7 @@ class DependencyContainer:
             self.get_matching_repository(),
             self.get_profile_repository(),
             self.get_job_posting_repository(),
-            MatchingDominioServicio(),
+            MatchingDomainService(),
         )
 
     def get_notification_service(self):

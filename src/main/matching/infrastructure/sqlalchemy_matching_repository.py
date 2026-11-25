@@ -1,50 +1,50 @@
 import json
 
-from matching.domain.i_sugerencia_repository import ISugerenciaRepository
-from matching.domain.sugerencia import Sugerencia
+from matching.domain.i_suggestion_repository import ISuggestionRepository
+from matching.domain.suggestion import Suggestion
 from shared.database import db
-from matching.infrastructure.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.suggestion_model import SuggestionModel
 
 
-class SqlAlchemyMatchingRepository(ISugerenciaRepository):
-    def save(self, sugerencia):
+class SqlAlchemyMatchingRepository(ISuggestionRepository):
+    def save(self, suggestion):
         model = None
-        if sugerencia.id is not None:
-            model = db.session.get(SugerenciaModel, sugerencia.id)
+        if suggestion.id is not None:
+            model = db.session.get(SuggestionModel, suggestion.id)
 
         if model is None:
-            model = SugerenciaModel.query.filter_by(
-                intern_id=sugerencia.intern_id,
-                job_posting_id=sugerencia.job_posting_id,
+            model = SuggestionModel.query.filter_by(
+                intern_id=suggestion.intern_id,
+                job_posting_id=suggestion.job_posting_id,
             ).first()
 
         if model is None:
-            model = SugerenciaModel(
-                intern_id=sugerencia.intern_id,
-                job_posting_id=sugerencia.job_posting_id,
+            model = SuggestionModel(
+                intern_id=suggestion.intern_id,
+                job_posting_id=suggestion.job_posting_id,
             )
             db.session.add(model)
 
-        model.puntaje_match = sugerencia.puntaje_match
-        model.habilidades_coincidentes = self._dump_list(sugerencia.habilidades_coincidentes)
+        model.match_score = suggestion.match_score
+        model.matched_skills = self._dump_list(suggestion.matched_skills)
 
         db.session.commit()
         return self._to_domain(model)
 
     def find_by_intern_id(self, intern_id):
-        models = SugerenciaModel.query.filter_by(intern_id=intern_id).all()
+        models = SuggestionModel.query.filter_by(intern_id=intern_id).all()
         return [self._to_domain(model) for model in models]
 
     def _to_domain(self, model):
         if model is None:
             return None
 
-        return Sugerencia(
+        return Suggestion(
             id=model.id,
             intern_id=model.intern_id,
             job_posting_id=model.job_posting_id,
-            puntaje_match=model.puntaje_match,
-            habilidades_coincidentes=self._load_list(model.habilidades_coincidentes),
+            match_score=model.match_score,
+            matched_skills=self._load_list(model.matched_skills),
         )
 
     def _dump_list(self, values):

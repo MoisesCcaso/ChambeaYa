@@ -35,7 +35,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
             model.evaluaciones,
             practica.evaluaciones,
             lambda evaluacion: EvaluacionModel(
-                puntaje=evaluacion.puntaje,
+                score=evaluacion.score,
                 fecha_evaluacion=evaluacion.fecha_evaluacion,
             ),
         )
@@ -91,7 +91,7 @@ class SqlAlchemyPracticaRepository(IPracticaRepository):
             for e in model.entregables
         ]
         evaluaciones = [
-            Evaluacion(id=ev.id, practica_id=model.id, puntaje=ev.puntaje, fecha_evaluacion=ev.fecha_evaluacion)
+            Evaluacion(id=ev.id, practica_id=model.id, score=ev.score, fecha_evaluacion=ev.fecha_evaluacion)
             for ev in model.evaluaciones
         ]
 

@@ -5,30 +5,30 @@ PUNTAJE_APROBACION = 60.0
 
 
 class Evaluacion:
-    def __init__(self, id=None, practica_id=None, puntaje=None, fecha_evaluacion=None):
+    def __init__(self, id=None, practica_id=None, score=None, fecha_evaluacion=None):
         self.id = id
         self.practica_id = practica_id
-        self.puntaje = puntaje
+        self.score = score
         self.fecha_evaluacion = fecha_evaluacion
 
     @staticmethod
-    def crear(practica_id, puntaje):
-        if puntaje is None:
+    def crear(practica_id, score):
+        if score is None:
             raise DomainError("Debe indicarse un puntaje")
         try:
-            puntaje = float(puntaje)
+            score = float(score)
         except (TypeError, ValueError) as exc:
             raise DomainError("El puntaje debe ser numérico") from exc
-        if puntaje < 0 or puntaje > 100:
+        if score < 0 or score > 100:
             raise DomainError("El puntaje debe estar entre 0 y 100")
 
         return Evaluacion(
             practica_id=practica_id,
-            puntaje=puntaje,
+            score=score,
             fecha_evaluacion= datetime.now(timezone.utc),
         )
 
     def esta_aprobada(self):
-        if self.puntaje is None:
+        if self.score is None:
             return False
-        return self.puntaje >= PUNTAJE_APROBACION
+        return self.score >= PUNTAJE_APROBACION

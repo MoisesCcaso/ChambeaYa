@@ -34,11 +34,11 @@ class Practica:
         self.entregables.append(entregable)
         return entregable
 
-    def registrar_evaluacion(self, puntaje):
+    def registrar_evaluacion(self, score):
         if self.status == self.ESTADO_FINALIZADA:
             raise ConflictError("No se pueden registrar evaluaciones en una práctica finalizada")
 
-        evaluacion = Evaluacion.crear(practica_id=self.id, puntaje=puntaje)
+        evaluacion = Evaluacion.crear(practica_id=self.id, score=score)
         self.evaluaciones.append(evaluacion)
         return evaluacion
 

@@ -20,7 +20,7 @@ UUID4_PATH = "domain.certificacion.codigo_qr.uuid4"
 
 
 def _practica(status=Practica.ESTADO_FINALIZADA, puntajes=(80,), practica_id=7):
-    evaluaciones = [Evaluacion(practica_id=practica_id, puntaje=p) for p in puntajes]
+    evaluaciones = [Evaluacion(practica_id=practica_id, score=p) for p in puntajes]
     return Practica(id=practica_id, job_application_id=1, intern_id=2,
                     status=status, evaluaciones=evaluaciones)
 

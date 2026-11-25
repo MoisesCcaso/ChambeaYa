@@ -50,7 +50,7 @@ def serialize_evaluacion(evaluacion):
     return {
         "id": evaluacion.id,
         "practica_id": evaluacion.practica_id,
-        "puntaje": evaluacion.puntaje,
+        "puntaje": evaluacion.score,
         "fecha_evaluacion": evaluacion.fecha_evaluacion.isoformat() if evaluacion.fecha_evaluacion else None,
         "aprobada": evaluacion.esta_aprobada(),
     }
