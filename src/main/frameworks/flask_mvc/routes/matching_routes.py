@@ -53,11 +53,11 @@ def calculate_match():
 
     if data:
         try:
-            notif_service = container.get_notificacion_service()
+            notif_service = container.get_notification_service()
             notif_service.create_notification(
-                usuario_destino_id=usuario_id,
-                tipo="NUEVAS_SUGERENCIAS",
-                mensaje="Nuevas sugerencias de convocatorias disponibles",
+                recipient_user_id=usuario_id,
+                notification_type="NUEVAS_SUGERENCIAS",
+                message="Nuevas sugerencias de convocatorias disponibles",
             )
         except Exception:
             current_app.logger.exception(

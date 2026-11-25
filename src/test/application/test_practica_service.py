@@ -196,7 +196,7 @@ class TestPracticaApplicationService(unittest.TestCase):
 
     def test_evalua_practica_y_notifica_al_practicante(self):
         mock_notif = unittest.mock.Mock()
-        self.service.notificacion_service = mock_notif
+        self.service.notification_service = mock_notif
         self.practicante.usuario_id = 99
         self.perfiles.find_practicante_by_id.return_value = self.practicante
 
@@ -204,16 +204,16 @@ class TestPracticaApplicationService(unittest.TestCase):
 
         self.assertIs(resultado, self.practica)
         mock_notif.create_notification.assert_called_once_with(
-            usuario_destino_id=99,
-            tipo="EVALUACION_DISPONIBLE",
-            mensaje="Tu práctica tiene una nueva evaluación disponible",
+            recipient_user_id=99,
+            notification_type="EVALUACION_DISPONIBLE",
+            message="Tu práctica tiene una nueva evaluación disponible",
             metadata={"practica_id": PRACTICA_ID},
         )
 
     def test_evalua_practica_tolera_fallo_en_notificacion(self):
         mock_notif = unittest.mock.Mock()
         mock_notif.create_notification.side_effect = RuntimeError("Notification Error")
-        self.service.notificacion_service = mock_notif
+        self.service.notification_service = mock_notif
         self.practicante.usuario_id = 99
         self.perfiles.find_practicante_by_id.return_value = self.practicante
 

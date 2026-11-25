@@ -15,7 +15,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_postulacion_repository())
         self.assertIsNotNone(self.container.get_practica_repository())
         self.assertIsNotNone(self.container.get_certificado_repository())
-        self.assertIsNotNone(self.container.get_notificacion_repository())
+        self.assertIsNotNone(self.container.get_notification_repository())
         self.assertIsNotNone(self.container.get_matching_repository())
 
     def test_container_provides_services(self):
@@ -24,7 +24,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_practica_service())
         self.assertIsNotNone(self.container.get_postulacion_service())
         self.assertIsNotNone(self.container.get_matching_service())
-        self.assertIsNotNone(self.container.get_notificacion_service())
+        self.assertIsNotNone(self.container.get_notification_service())
         self.assertIsNotNone(self.container.get_certificacion_service())
         self.assertIsNotNone(self.container.get_practicante_service())
         self.assertIsNotNone(self.container.get_empresa_service())

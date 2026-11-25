@@ -40,6 +40,7 @@ packages = [
     { include = "infrastructure", from = "src/main" },   # repositorios, SMTP
     { include = "bootstrap", from = "src/main" },        # composition root: Flask app, wiring, web, migrations
     { include = "shared", from = "src/main" },           # shared kernel: database, mixins, messages
+    { include = "notifications", from = "src/main" },    # bounded context: notifications
     { include = "config.py", from = "src/main" },
     { include = "run.py", from = "src/main" },
 ]
@@ -60,7 +61,7 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared"]
+source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared", "notifications"]
 omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]

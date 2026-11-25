@@ -132,10 +132,10 @@ def reject_postulacion(postulacion_id):
         data["practicante_id"]
     )
     if practicante:
-        container.get_notificacion_service().create_notification(
-            usuario_destino_id=practicante.usuario_id,
-            tipo="POSTULACION_RECHAZADA",
-            mensaje="Tu postulación no fue seleccionada",
+        container.get_notification_service().create_notification(
+            recipient_user_id=practicante.usuario_id,
+            notification_type="POSTULACION_RECHAZADA",
+            message="Tu postulación no fue seleccionada",
             metadata={"postulacion_id": postulacion_id},
         )
     return jsonify(data), 200
@@ -168,10 +168,10 @@ def reconsider_postulacion(postulacion_id):
             data["practicante_id"]
         )
         if practicante:
-            container.get_notificacion_service().create_notification(
-                usuario_destino_id=practicante.usuario_id,
-                tipo="POSTULACION_RECONSIDERADA",
-                mensaje="La empresa volvió a considerar tu postulación",
+            container.get_notification_service().create_notification(
+                recipient_user_id=practicante.usuario_id,
+                notification_type="POSTULACION_RECONSIDERADA",
+                message="La empresa volvió a considerar tu postulación",
                 metadata={"postulacion_id": postulacion_id},
             )
     except Exception:

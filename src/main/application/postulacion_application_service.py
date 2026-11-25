@@ -17,14 +17,14 @@ class PostulacionApplicationService:
         perfil_repository=None,
         practica_repository=None,
         practicante_repository=None,
-        notificacion_service=None,
+        notification_service=None,
     ):
         self.postulacion_repository = postulacion_repository
         self.convocatoria_repository = convocatoria_repository
         self.practicante_repository = practicante_repository or perfil_repository
         self.perfil_repository = self.practicante_repository
         self.practica_repository = practica_repository
-        self.notificacion_service = notificacion_service
+        self.notification_service = notification_service
 
     def apply(self, usuario_id, convocatoria_id):
         self._require_repositories()
@@ -130,24 +130,24 @@ class PostulacionApplicationService:
 
 
     def _notificar_seleccion(self, seleccionada, rechazadas):
-        if self.notificacion_service is None or self.perfil_repository is None:
+        if self.notification_service is None or self.perfil_repository is None:
             return
         try:
             practicante = self.perfil_repository.find_practicante_by_id(seleccionada.practicante_id)
             if practicante and getattr(practicante, "usuario_id", None):
-                self.notificacion_service.create_notification(
-                    usuario_destino_id=practicante.usuario_id,
-                    tipo="POSTULACION_SELECCIONADA",
-                    mensaje="Has sido seleccionado para una convocatoria",
+                self.notification_service.create_notification(
+                    recipient_user_id=practicante.usuario_id,
+                    notification_type="POSTULACION_SELECCIONADA",
+                    message="Has sido seleccionado para una convocatoria",
                     metadata={"postulacion_id": seleccionada.id},
                 )
             for rechazada in rechazadas:
                 otro = self.perfil_repository.find_practicante_by_id(rechazada.practicante_id)
                 if otro and getattr(otro, "usuario_id", None):
-                    self.notificacion_service.create_notification(
-                        usuario_destino_id=otro.usuario_id,
-                        tipo="POSTULACION_RECHAZADA",
-                        mensaje="Tu postulación no fue seleccionada",
+                    self.notification_service.create_notification(
+                        recipient_user_id=otro.usuario_id,
+                        notification_type="POSTULACION_RECHAZADA",
+                        message="Tu postulación no fue seleccionada",
                         metadata={"postulacion_id": rechazada.id},
                     )
         except Exception:
