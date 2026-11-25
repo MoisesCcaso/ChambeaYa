@@ -1,12 +1,12 @@
-from identity.presentation.auth_routes import auth_bp
-from certification.presentation.certificate_routes import certificate_bp
+from identity.controllers.auth_routes import auth_bp
+from certification.controllers.certificate_routes import certificate_bp
 from bootstrap.health_routes import health_bp
-from matching.presentation.matching_routes import matching_bp
-from notifications.presentation.notification_routes import notification_bp
-from profiles.presentation.profile_routes import profile_bp
-from internships.presentation.internship_routes import internship_bp
-from recruitment.presentation.job_posting_routes import job_posting_bp
-from recruitment.presentation.job_application_routes import job_application_bp
+from matching.controllers.matching_routes import matching_bp
+from notifications.controllers.notification_routes import notification_bp
+from profiles.controllers.profile_routes import profile_bp
+from internships.controllers.internship_routes import internship_bp
+from recruitment.controllers.job_posting_routes import job_posting_bp
+from recruitment.controllers.job_application_routes import job_application_bp
 from bootstrap.web_routes import web_bp
 
 
