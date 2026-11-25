@@ -66,7 +66,9 @@ def test_static_assets_are_served(client, asset):
 
 
 def test_app_script_keeps_its_actions_and_uses_api_links(client):
-    script = client.get("/static/js/app.js").data
+    response = client.get("/static/js/app.js")
+    script = response.data
+    response.close()
     for action in (
         b"data-delete-opening", b"data-duplicate-opening", b"data-reopen-opening",
         b"data-cancel-application", b"data-reconsider-candidate",
