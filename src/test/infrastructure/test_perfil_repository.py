@@ -12,7 +12,7 @@ from domain.perfil.empresa import Empresa
 from domain.perfil.practicante import Practicante
 from domain.perfil.ruc import RUC
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 
 

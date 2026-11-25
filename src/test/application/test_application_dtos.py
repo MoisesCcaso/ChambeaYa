@@ -11,8 +11,8 @@ from application.dtos import (
 )
 from application.empresa_application_service import EmpresaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
-from domain.auth.i_usuario_repository import IUsuarioRepository
-from domain.auth.usuario import Usuario
+from identity.domain.i_usuario_repository import IUsuarioRepository
+from identity.domain.usuario import Usuario
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.perfil.i_empresa_repository import IEmpresaRepository

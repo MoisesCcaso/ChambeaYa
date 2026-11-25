@@ -10,8 +10,8 @@ from unittest.mock import create_autospec
 
 from application.empresa_application_service import EmpresaApplicationService
 from application.practicante_application_service import PracticanteApplicationService
-from domain.auth.i_usuario_repository import IUsuarioRepository
-from domain.auth.usuario import Usuario
+from identity.domain.i_usuario_repository import IUsuarioRepository
+from identity.domain.usuario import Usuario
 from domain.perfil.empresa import Empresa
 from domain.perfil.i_empresa_repository import IEmpresaRepository
 from domain.perfil.i_perfil_repository import IPerfilRepository

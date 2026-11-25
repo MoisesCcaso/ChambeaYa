@@ -12,7 +12,7 @@ from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_certificado_repository import (
     SqlAlchemyCertificadoRepository,
 )

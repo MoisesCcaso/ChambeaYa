@@ -7,7 +7,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from bootstrap.app import create_app
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 
 

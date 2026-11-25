@@ -8,7 +8,7 @@ from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
 from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 from infrastructure.sqlalchemy_postulacion_repository import SqlAlchemyPostulacionRepository
 
 

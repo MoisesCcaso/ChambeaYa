@@ -1,7 +1,7 @@
 import re
 
-from application.email_delivery_error import EmailDeliveryError
-from domain.auth.usuario import Usuario
+from identity.application.email_delivery_error import EmailDeliveryError
+from identity.domain.usuario import Usuario
 from shared.errors import AuthenticationError, ConflictError, DomainError
 
 

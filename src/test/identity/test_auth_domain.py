@@ -6,11 +6,11 @@ from unittest.mock import patch
 
 from werkzeug.security import check_password_hash
 
-from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
-from domain.auth.token_recuperacion import TokenRecuperacion
-from domain.auth.usuario import Usuario
-from domain.auth.i_password_hasher import IPasswordHasher
-from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
+from identity.domain.autenticacion_dominio_servicio import AutenticacionDominioServicio
+from identity.domain.token_recuperacion import TokenRecuperacion
+from identity.domain.usuario import Usuario
+from identity.domain.i_password_hasher import IPasswordHasher
+from identity.infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 class FakeHasher(IPasswordHasher):
     """Doble de prueba: permite probar el dominio sin werkzeug."""
@@ -188,7 +188,7 @@ class AutenticacionDominioServicioTest(unittest.TestCase):
         vigente = ahora + timedelta(minutes=1)
         vencido = ahora - timedelta(minutes=1)
 
-        with patch("domain.auth.token_recuperacion.datetime") as datetime_mock:
+        with patch("identity.domain.token_recuperacion.datetime") as datetime_mock:
             datetime_mock.now.return_value = ahora
             self.assertTrue(self.servicio.validar_token("token", vigente))
             self.assertFalse(self.servicio.validar_token("token", vencido))
@@ -198,14 +198,14 @@ class TokenRecuperacionTest(unittest.TestCase):
     def test_esta_vigente_para_expiracion_futura(self):
         ahora = datetime(2030, 1, 1, tzinfo=timezone.utc)
 
-        with patch("domain.auth.token_recuperacion.datetime") as datetime_mock:
+        with patch("identity.domain.token_recuperacion.datetime") as datetime_mock:
             datetime_mock.now.return_value = ahora
             self.assertTrue(TokenRecuperacion("token", ahora + timedelta(seconds=1)).esta_vigente())
 
     def test_esta_vigente_devuelve_false_para_token_vencido(self):
         ahora = datetime(2030, 1, 1, tzinfo=timezone.utc)
 
-        with patch("domain.auth.token_recuperacion.datetime") as datetime_mock:
+        with patch("identity.domain.token_recuperacion.datetime") as datetime_mock:
             datetime_mock.now.return_value = ahora
             self.assertFalse(TokenRecuperacion("token", ahora - timedelta(seconds=1)).esta_vigente())
 
@@ -217,7 +217,7 @@ class TokenRecuperacionTest(unittest.TestCase):
         ahora = datetime(2030, 1, 1, tzinfo=timezone.utc)
         expiracion_sin_zona = (ahora + timedelta(seconds=1)).replace(tzinfo=None)
 
-        with patch("domain.auth.token_recuperacion.datetime") as datetime_mock:
+        with patch("identity.domain.token_recuperacion.datetime") as datetime_mock:
             datetime_mock.now.return_value = ahora
             self.assertTrue(TokenRecuperacion("token", expiracion_sin_zona).esta_vigente())
 
@@ -234,7 +234,7 @@ class TokenRecuperacionTest(unittest.TestCase):
     def test_dominio_no_importa_werkzeug(self):
         from pathlib import Path
 
-        import domain.auth.autenticacion_dominio_servicio as modulo
+        import identity.domain.autenticacion_dominio_servicio as modulo
 
         self.assertNotIn("werkzeug", Path(modulo.__file__).read_text(encoding="utf-8"))
 if __name__ == "__main__":

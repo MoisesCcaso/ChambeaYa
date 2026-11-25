@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from secrets import token_urlsafe
 
-from domain.auth.token_recuperacion import TokenRecuperacion
+from identity.domain.token_recuperacion import TokenRecuperacion
 from shared.errors import DomainError
 
 

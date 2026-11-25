@@ -4,9 +4,9 @@ Código bajo prueba: infrastructure/sqlalchemy_usuario_repository.py
 """
 from datetime import datetime, timedelta, timezone
 
-from domain.auth.token_recuperacion import TokenRecuperacion
-from domain.auth.usuario import Usuario
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from identity.domain.token_recuperacion import TokenRecuperacion
+from identity.domain.usuario import Usuario
+from identity.infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
 
 
 def usuario_de_prueba(*, email="usuario@test.local", tipo=Usuario.TIPO_PRACTICANTE):

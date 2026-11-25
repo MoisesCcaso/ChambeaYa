@@ -18,7 +18,7 @@ from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 
 
 DEMO_PRACTITIONER_EMAIL = "practicante@demo.local"

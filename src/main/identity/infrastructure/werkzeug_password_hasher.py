@@ -1,6 +1,6 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from domain.auth.i_password_hasher import IPasswordHasher
+from identity.domain.i_password_hasher import IPasswordHasher
 
 
 class WerkzeugPasswordHasher(IPasswordHasher):

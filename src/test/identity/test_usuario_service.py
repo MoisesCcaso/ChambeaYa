@@ -6,14 +6,14 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import create_autospec, patch
 
-from application.email_delivery_error import EmailDeliveryError
-from application.usuario_application_service import UsuarioApplicationService
-from domain.auth.autenticacion_dominio_servicio import AutenticacionDominioServicio
-from domain.auth.i_auth_email_sender import IAuthEmailSender
-from domain.auth.i_usuario_repository import IUsuarioRepository
-from domain.auth.usuario import Usuario
+from identity.application.email_delivery_error import EmailDeliveryError
+from identity.application.usuario_application_service import UsuarioApplicationService
+from identity.domain.autenticacion_dominio_servicio import AutenticacionDominioServicio
+from identity.domain.i_auth_email_sender import IAuthEmailSender
+from identity.domain.i_usuario_repository import IUsuarioRepository
+from identity.domain.usuario import Usuario
 from werkzeug.security import check_password_hash
-from infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
+from identity.infrastructure.werkzeug_password_hasher import WerkzeugPasswordHasher
 
 
 class TestUsuarioService(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestUsuarioService(unittest.TestCase):
             email_sender=self.remitente,
         )
         self.ahora = datetime(2030, 1, 1, tzinfo=timezone.utc)
-        self._datetime_patcher = patch("domain.auth.autenticacion_dominio_servicio.datetime")
+        self._datetime_patcher = patch("identity.domain.autenticacion_dominio_servicio.datetime")
         self.datetime_mock = self._datetime_patcher.start()
         self.datetime_mock.now.return_value = self.ahora
 

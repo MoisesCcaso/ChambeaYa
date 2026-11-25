@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 from bootstrap.app import create_app
 from shared.database import db
-from infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
-from infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
+from identity.infrastructure.smtp_auth_email_sender import SmtpAuthEmailSender
+from identity.infrastructure.sqlalchemy_usuario_repository import SqlAlchemyUsuarioRepository
 
 
 class BackendIntegrationTest(unittest.TestCase):
@@ -443,7 +443,7 @@ class BackendIntegrationTest(unittest.TestCase):
             sender="ChambeaYa <mailer@example.com>",
         )
         with patch(
-            "infrastructure.smtp_auth_email_sender.smtplib.SMTP"
+            "identity.infrastructure.smtp_auth_email_sender.smtplib.SMTP"
         ) as smtp_class:
             smtp = smtp_class.return_value.__enter__.return_value
             sender.send_activation("usuario@example.com", "token-seguro")

@@ -8,7 +8,7 @@ import pytest
 from notifications.domain.notification import Notification
 from shared.database import db
 from notifications.infrastructure.models.notification_model import NotificationModel
-from frameworks.sqlalchemy_orm.models.usuario_model import UsuarioModel
+from identity.infrastructure.models.usuario_model import UsuarioModel
 from notifications.infrastructure.sqlalchemy_notification_repository import SqlAlchemyNotificationRepository
 
 
