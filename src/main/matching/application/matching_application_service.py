@@ -1,4 +1,4 @@
-from domain.matching.matching_dominio_servicio import MatchingDominioServicio
+from matching.domain.matching_dominio_servicio import MatchingDominioServicio
 from shared.errors import ForbiddenError
 
 

@@ -1,9 +1,9 @@
 import json
 
-from domain.matching.i_sugerencia_repository import ISugerenciaRepository
-from domain.matching.sugerencia import Sugerencia
+from matching.domain.i_sugerencia_repository import ISugerenciaRepository
+from matching.domain.sugerencia import Sugerencia
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.sugerencia_model import SugerenciaModel
 
 
 class SqlAlchemyMatchingRepository(ISugerenciaRepository):

@@ -44,6 +44,7 @@ packages = [
     { include = "identity", from = "src/main" },         # bounded context: identity and access
     { include = "profiles", from = "src/main" },         # bounded context: intern and company profiles
     { include = "recruitment", from = "src/main" },      # bounded context: job postings and applications
+    { include = "matching", from = "src/main" },         # bounded context: skill-based suggestions
     { include = "config.py", from = "src/main" },
     { include = "run.py", from = "src/main" },
 ]
@@ -64,7 +65,7 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared", "notifications", "identity", "profiles", "recruitment"]
+source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared", "notifications", "identity", "profiles", "recruitment", "matching"]
 omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]

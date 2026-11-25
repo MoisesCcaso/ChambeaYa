@@ -4,9 +4,9 @@ from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import Mock, call
 
-from application.matching_application_service import MatchingApplicationService
+from matching.application.matching_application_service import MatchingApplicationService
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
-from domain.matching.i_sugerencia_repository import ISugerenciaRepository
+from matching.domain.i_sugerencia_repository import ISugerenciaRepository
 from profiles.domain.i_intern_repository import IInternRepository
 
 

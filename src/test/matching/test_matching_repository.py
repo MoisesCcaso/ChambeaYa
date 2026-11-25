@@ -2,15 +2,15 @@
 
 import unittest
 
-from domain.matching.sugerencia import Sugerencia
+from matching.domain.sugerencia import Sugerencia
 from bootstrap.app import create_app
 from shared.database import db
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from profiles.infrastructure.models.intern_model import InternModel
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
+from matching.infrastructure.sqlalchemy_matching_repository import SqlAlchemyMatchingRepository
 
 
 class TestMatchingRepository(unittest.TestCase):

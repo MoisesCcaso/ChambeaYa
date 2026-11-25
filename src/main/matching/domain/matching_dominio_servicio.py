@@ -1,5 +1,5 @@
-from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStrategy
-from domain.matching.sugerencia import Sugerencia
+from matching.domain.habilidades_matching_strategy import HabilidadesMatchingStrategy
+from matching.domain.sugerencia import Sugerencia
 from recruitment.api import JobPosting
 
 

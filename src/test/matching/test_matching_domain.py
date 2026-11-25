@@ -12,8 +12,8 @@ Cubre:
 import unittest
 
 from recruitment.domain.job_posting import JobPosting
-from domain.matching.matching_dominio_servicio import MatchingDominioServicio
-from domain.matching.sugerencia import Sugerencia
+from matching.domain.matching_dominio_servicio import MatchingDominioServicio
+from matching.domain.sugerencia import Sugerencia
 from profiles.domain.intern import Intern
 
 

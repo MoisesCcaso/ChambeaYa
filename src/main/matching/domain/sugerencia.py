@@ -1,4 +1,4 @@
-from domain.matching.habilidades_matching_strategy import HabilidadesMatchingStrategy
+from matching.domain.habilidades_matching_strategy import HabilidadesMatchingStrategy
 
 
 class Sugerencia:

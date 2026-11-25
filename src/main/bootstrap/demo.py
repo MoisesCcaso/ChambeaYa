@@ -17,7 +17,7 @@ from notifications.infrastructure.models.notification_model import NotificationM
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
+from matching.infrastructure.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel
 
 

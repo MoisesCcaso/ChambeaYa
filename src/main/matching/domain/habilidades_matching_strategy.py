@@ -1,4 +1,4 @@
-from domain.matching.matching_strategy import MatchingStrategy
+from matching.domain.matching_strategy import MatchingStrategy
 
 
 class HabilidadesMatchingStrategy(MatchingStrategy):
