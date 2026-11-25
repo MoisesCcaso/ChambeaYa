@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 
 
-class IConvocatoriaRepository(ABC):
+class IJobPostingRepository(ABC):
     @abstractmethod
-    def save(self, convocatoria):
+    def save(self, job_posting):
         pass
 
     @abstractmethod
-    def find_by_id(self, convocatoria_id):
+    def find_by_id(self, job_posting_id):
         pass
 
     @abstractmethod
@@ -19,9 +19,9 @@ class IConvocatoriaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_empresa_id(self, company_id):
+    def find_by_company_id(self, company_id):
         pass
 
     @abstractmethod
-    def delete(self, convocatoria_id):
+    def delete(self, job_posting_id):
         pass

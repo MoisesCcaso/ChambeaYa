@@ -48,9 +48,9 @@ class PostulacionPage(BasePage):
             for heading in self.driver.find_elements(*self.OPPORTUNITY_TITLES)
         ]
 
-    def opportunity_is_listed(self, titulo: str) -> bool:
+    def opportunity_is_listed(self, title: str) -> bool:
         """Indica si la convocatoria aparece en la lista de oportunidades."""
-        return titulo in self.opportunity_titles()
+        return title in self.opportunity_titles()
 
     def select_opportunity(self, opening_id: int) -> "PostulacionPage":
         """Selecciona una convocatoria de la lista para ver su detalle."""
@@ -91,27 +91,27 @@ class PostulacionPage(BasePage):
         return self
 
     @staticmethod
-    def _row_xpath(titulo: str) -> str:
+    def _row_xpath(title: str) -> str:
         return (
             f'//tbody[@id="applications-table"]'
-            f'//tr[.//strong[normalize-space()="{titulo}"]]'
+            f'//tr[.//strong[normalize-space()="{title}"]]'
         )
 
-    def application_count(self, titulo: str) -> int:
+    def application_count(self, title: str) -> int:
         """Número de filas de la tabla que corresponden a la convocatoria."""
         self.wait_for(
             lambda browser: browser.find_elements(
                 By.CSS_SELECTOR, "#applications-table tr"
             )
         )
-        return len(self.driver.find_elements(By.XPATH, self._row_xpath(titulo)))
+        return len(self.driver.find_elements(By.XPATH, self._row_xpath(title)))
 
-    def application_has_status(self, titulo: str, status: str) -> bool:
+    def application_has_status(self, title: str, status: str) -> bool:
         """Indica si la postulación a la convocatoria muestra el estado indicado."""
         return self.wait_until_visible(
             (
                 By.XPATH,
-                f'{self._row_xpath(titulo)}//span[contains(@class, "status-{status}")]',
+                f'{self._row_xpath(title)}//span[contains(@class, "status-{status}")]',
             )
         ).is_displayed()
 

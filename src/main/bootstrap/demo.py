@@ -9,12 +9,12 @@ from reportlab.pdfgen import canvas
 from werkzeug.security import generate_password_hash
 
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from notifications.infrastructure.models.notification_model import NotificationModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from profiles.infrastructure.models.intern_model import InternModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
@@ -103,48 +103,48 @@ def seed_demo_data(password):
     db.session.add_all([practitioner, company])
     db.session.flush()
 
-    backend_opening = ConvocatoriaModel(
+    backend_opening = JobPostingModel(
         company_id=company.id,
-        titulo="Practicante de desarrollo backend",
-        descripcion=(
+        title="Practicante de desarrollo backend",
+        description=(
             "Apoyo en el desarrollo de servicios web, pruebas y documentación "
             "de una plataforma empresarial."
         ),
-        habilidades_requeridas=_json_list(["Python", "Flask", "SQL"]),
-        beneficios=_json_list(["Mentoría técnica", "Horario flexible", "Constancia"]),
+        required_skills=_json_list(["Python", "Flask", "SQL"]),
+        benefits=_json_list(["Mentoría técnica", "Horario flexible", "Constancia"]),
         status="publicada",
-        fecha_publicacion=now - timedelta(days=12),
+        published_at=now - timedelta(days=12),
     )
-    data_opening = ConvocatoriaModel(
+    data_opening = JobPostingModel(
         company_id=company.id,
-        titulo="Practicante de análisis de datos",
-        descripcion=(
+        title="Practicante de análisis de datos",
+        description=(
             "Preparación de datos, consultas SQL y elaboración de reportes "
             "para apoyar decisiones operativas."
         ),
-        habilidades_requeridas=_json_list(["SQL", "Python", "Análisis de datos"]),
-        beneficios=_json_list(["Capacitación", "Modalidad híbrida"]),
+        required_skills=_json_list(["SQL", "Python", "Análisis de datos"]),
+        benefits=_json_list(["Capacitación", "Modalidad híbrida"]),
         status="publicada",
-        fecha_publicacion=now - timedelta(days=5),
+        published_at=now - timedelta(days=5),
     )
-    qa_opening = ConvocatoriaModel(
+    qa_opening = JobPostingModel(
         company_id=company.id,
-        titulo="Practicante de aseguramiento de calidad",
-        descripcion=(
+        title="Practicante de aseguramiento de calidad",
+        description=(
             "Ejecución de pruebas funcionales y documentación de incidencias "
             "en aplicaciones web."
         ),
-        habilidades_requeridas=_json_list(["Git", "SQL"]),
-        beneficios=_json_list(["Mentoría", "Horario flexible"]),
+        required_skills=_json_list(["Git", "SQL"]),
+        benefits=_json_list(["Mentoría", "Horario flexible"]),
         status="publicada",
-        fecha_publicacion=now - timedelta(days=2),
+        published_at=now - timedelta(days=2),
     )
-    draft_opening = ConvocatoriaModel(
+    draft_opening = JobPostingModel(
         company_id=company.id,
-        titulo="Practicante de soporte de productos digitales",
-        descripcion="Borrador preparado para demostrar la edición y publicación.",
-        habilidades_requeridas=_json_list(["Comunicación", "Git"]),
-        beneficios=_json_list(["Capacitación"]),
+        title="Practicante de soporte de productos digitales",
+        description="Borrador preparado para demostrar la edición y publicación.",
+        required_skills=_json_list(["Comunicación", "Git"]),
+        benefits=_json_list(["Capacitación"]),
         status="borrador",
     )
     db.session.add_all(
@@ -152,13 +152,13 @@ def seed_demo_data(password):
     )
     db.session.flush()
 
-    selected_application = PostulacionModel(
-        convocatoria_id=backend_opening.id,
+    selected_application = JobApplicationModel(
+        job_posting_id=backend_opening.id,
         intern_id=practitioner.id,
         status="seleccionada",
     )
-    pending_application = PostulacionModel(
-        convocatoria_id=qa_opening.id,
+    pending_application = JobApplicationModel(
+        job_posting_id=qa_opening.id,
         intern_id=practitioner.id,
         status="pendiente",
     )
@@ -166,7 +166,7 @@ def seed_demo_data(password):
     db.session.flush()
 
     practice = PracticaModel(
-        postulacion_id=selected_application.id,
+        job_application_id=selected_application.id,
         intern_id=practitioner.id,
         status="EN_CURSO",
     )
@@ -191,7 +191,7 @@ def seed_demo_data(password):
         [
             SugerenciaModel(
                 intern_id=practitioner.id,
-                convocatoria_id=data_opening.id,
+                job_posting_id=data_opening.id,
                 puntaje_match=100.0,
                 habilidades_coincidentes=_json_list(
                     ["python", "sql", "análisis de datos"]
@@ -199,7 +199,7 @@ def seed_demo_data(password):
             ),
             SugerenciaModel(
                 intern_id=practitioner.id,
-                convocatoria_id=qa_opening.id,
+                job_posting_id=qa_opening.id,
                 puntaje_match=100.0,
                 habilidades_coincidentes=_json_list(["git", "sql"]),
             ),

@@ -33,7 +33,7 @@ def test_pos_01_lista_solo_convocatorias_publicadas(driver, base_url):
     publicada = _titulo("Practicante publicada")
     borrador = _titulo("Practicante borrador")
     postulacion_data.create_opening(base_url, publicada)
-    postulacion_data.create_opening(base_url, borrador, publicar=False)
+    postulacion_data.create_opening(base_url, borrador, publish=False)
 
     _login_practicante(driver, base_url, *DEMO_PRACTICANTE)
     page = PostulacionPage(driver, base_url).open_oportunidades()
@@ -44,8 +44,8 @@ def test_pos_01_lista_solo_convocatorias_publicadas(driver, base_url):
 
 def test_pos_02_postula_a_convocatoria_publicada(driver, base_url):
     """Un practicante con perfil completo postula y ve su postulación pendiente."""
-    titulo = _titulo("Practicante postulacion")
-    opening_id = postulacion_data.create_opening(base_url, titulo)
+    title = _titulo("Practicante postulacion")
+    opening_id = postulacion_data.create_opening(base_url, title)
     user = postulacion_data.create_student_with_profile(base_url)
 
     _login_practicante(driver, base_url, user["email"], user["password"])
@@ -55,13 +55,13 @@ def test_pos_02_postula_a_convocatoria_publicada(driver, base_url):
 
     assert "Postulación registrada correctamente" in aviso
     page.open_postulaciones()
-    assert page.application_has_status(titulo, "pendiente")
+    assert page.application_has_status(title, "pendiente")
 
 
 def test_pos_03_no_permite_postular_dos_veces(driver, base_url):
     """Tras postular, la interfaz retira el botón y el servidor rechaza el duplicado."""
-    titulo = _titulo("Practicante duplicada")
-    opening_id = postulacion_data.create_opening(base_url, titulo)
+    title = _titulo("Practicante duplicada")
+    opening_id = postulacion_data.create_opening(base_url, title)
     user = postulacion_data.create_student_with_profile(base_url)
 
     _login_practicante(driver, base_url, user["email"], user["password"])
@@ -72,7 +72,7 @@ def test_pos_03_no_permite_postular_dos_veces(driver, base_url):
     assert "status-pendiente" in page.detail_status_class()
     assert not page.apply_button_is_present(opening_id)
     page.open_postulaciones()
-    assert page.application_count(titulo) == 1
+    assert page.application_count(title) == 1
 
     api = postulacion_data.login(base_url, user["email"], user["password"])
     codigo, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")
@@ -82,13 +82,13 @@ def test_pos_03_no_permite_postular_dos_veces(driver, base_url):
 
 def test_pos_04_no_permite_postular_a_convocatoria_cerrada(driver, base_url):
     """Una convocatoria cerrada no se ofrece y el servidor rechaza postular."""
-    titulo = _titulo("Practicante cerrada")
-    opening_id = postulacion_data.create_opening(base_url, titulo, cerrar=True)
+    title = _titulo("Practicante cerrada")
+    opening_id = postulacion_data.create_opening(base_url, title, close=True)
     user = postulacion_data.create_student_with_profile(base_url)
 
     _login_practicante(driver, base_url, user["email"], user["password"])
     page = PostulacionPage(driver, base_url).open_oportunidades()
-    assert not page.opportunity_is_listed(titulo)
+    assert not page.opportunity_is_listed(title)
 
     api = postulacion_data.login(base_url, user["email"], user["password"])
     codigo, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")

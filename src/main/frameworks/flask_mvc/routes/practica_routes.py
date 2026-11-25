@@ -25,7 +25,7 @@ def build_practica_service():
 def serialize_practica(practica):
     return {
         "id": practica.id,
-        "postulacion_id": practica.postulacion_id,
+        "postulacion_id": practica.job_application_id,
         "practicante_id": practica.intern_id,
         "estado": practica.status,
     }
@@ -76,8 +76,8 @@ def start_practica():
     if company is None:
         return jsonify({"error": COMPANY_NOT_FOUND}), 403
 
-    postulacion_id = (request.get_json(silent=True) or {}).get("postulacion_id")
-    practica = build_practica_service().start_practica(company.id, postulacion_id)
+    job_application_id = (request.get_json(silent=True) or {}).get("postulacion_id")
+    practica = build_practica_service().start_practica(company.id, job_application_id)
     return jsonify(serialize_practica(practica)), 201
 
 

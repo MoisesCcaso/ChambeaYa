@@ -12,8 +12,8 @@ class CompanyModel(TimestampMixin, db.Model):
     verified = db.Column("verificada", db.Boolean, nullable=False, default=False)
 
     user = db.relationship("UserModel", back_populates="company")
-    convocatorias = db.relationship(
-        "ConvocatoriaModel",
+    job_postings = db.relationship(
+        "JobPostingModel",
         back_populates="company",
         cascade="all, delete-orphan",
     )

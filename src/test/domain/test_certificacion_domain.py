@@ -21,25 +21,25 @@ UUID4_PATH = "domain.certificacion.codigo_qr.uuid4"
 
 def _practica(status=Practica.ESTADO_FINALIZADA, puntajes=(80,), practica_id=7):
     evaluaciones = [Evaluacion(practica_id=practica_id, puntaje=p) for p in puntajes]
-    return Practica(id=practica_id, postulacion_id=1, intern_id=2,
+    return Practica(id=practica_id, job_application_id=1, intern_id=2,
                     status=status, evaluaciones=evaluaciones)
 
 
 def _datos_certificado():
     intern = SimpleNamespace(first_names="Ana", last_names="Quispe")
-    convocatoria = SimpleNamespace(titulo="Practicas de Backend")
-    return intern, convocatoria
+    job_posting = SimpleNamespace(title="Practicas de Backend")
+    return intern, job_posting
 
 
 class TestCertificacionDominioServicio(unittest.TestCase):
     def setUp(self):
         self.service = CertificacionDominioServicio()
-        self.intern, self.convocatoria = _datos_certificado()
+        self.intern, self.job_posting = _datos_certificado()
 
     def test_genera_certificado_para_practica_finalizada_y_aprobada(self):
         practica = _practica()
         certificado = self.service.generar_certificado(
-            practica, self.intern, self.convocatoria
+            practica, self.intern, self.job_posting
         )
         self.assertEqual(7, certificado.practica_id)
         self.assertIsNotNone(certificado.codigo_qr)
@@ -50,22 +50,22 @@ class TestCertificacionDominioServicio(unittest.TestCase):
     def test_rechaza_practica_en_curso(self):
         practica = _practica(status=Practica.ESTADO_EN_CURSO)
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.convocatoria)
+            self.service.generar_certificado(practica, self.intern, self.job_posting)
 
     def test_rechaza_practica_finalizada_sin_evaluacion_aprobada(self):
         practica = _practica(puntajes=(59.99,))
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.convocatoria)
+            self.service.generar_certificado(practica, self.intern, self.job_posting)
 
     def test_rechaza_practica_finalizada_sin_evaluaciones(self):
         practica = _practica(puntajes=())
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.convocatoria)
+            self.service.generar_certificado(practica, self.intern, self.job_posting)
 
     def test_acepta_si_al_menos_una_evaluacion_aprueba(self):
         practica = _practica(puntajes=(30, 60))
         certificado = self.service.generar_certificado(
-            practica, self.intern, self.convocatoria
+            practica, self.intern, self.job_posting
         )
         self.assertIsNotNone(certificado)
 

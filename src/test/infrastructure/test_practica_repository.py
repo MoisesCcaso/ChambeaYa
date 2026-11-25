@@ -8,11 +8,11 @@ from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.practica import Practica
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
@@ -40,24 +40,24 @@ def datos_practica(app_context):
         legal_name="Empresa de prueba",
         ruc="20123456789",
     )
-    convocatoria = ConvocatoriaModel(
+    job_posting = JobPostingModel(
         company=company,
-        titulo="Prácticas de desarrollo",
+        title="Prácticas de desarrollo",
         status="publicada",
     )
-    db.session.add_all([intern, convocatoria])
+    db.session.add_all([intern, job_posting])
     db.session.flush()
 
-    postulacion = PostulacionModel(
-        convocatoria_id=convocatoria.id,
+    job_application = JobApplicationModel(
+        job_posting_id=job_posting.id,
         intern_id=intern.id,
         status="seleccionada",
     )
-    db.session.add(postulacion)
+    db.session.add(job_application)
     db.session.commit()
 
     return {
-        "postulacion_id": postulacion.id,
+        "postulacion_id": job_application.id,
         "practicante_id": intern.id,
     }
 
@@ -69,7 +69,7 @@ def repository():
 
 def crear_practica(datos_practica, *, entregables=None, evaluaciones=None):
     return Practica(
-        postulacion_id=datos_practica["postulacion_id"],
+        job_application_id=datos_practica["postulacion_id"],
         intern_id=datos_practica["practicante_id"],
         entregables=entregables,
         evaluaciones=evaluaciones,
@@ -85,11 +85,11 @@ def test_save_persiste_practica_entregable_y_evaluacion(
     repository,
     datos_practica,
 ):
-    fecha = datetime(2026, 10, 28, 15, 30, tzinfo=timezone.utc)
+    moment = datetime(2026, 10, 28, 15, 30, tzinfo=timezone.utc)
     practica = crear_practica(
         datos_practica,
-        entregables=[Entregable(archivo="informe.pdf", fecha_subida=fecha)],
-        evaluaciones=[Evaluacion(puntaje=85, fecha_evaluacion=fecha)],
+        entregables=[Entregable(archivo="informe.pdf", fecha_subida=moment)],
+        evaluaciones=[Evaluacion(puntaje=85, fecha_evaluacion=moment)],
     )
 
     saved = repository.save(practica)
@@ -97,7 +97,7 @@ def test_save_persiste_practica_entregable_y_evaluacion(
 
     modelo = db.session.get(PracticaModel, saved.id)
     assert modelo is not None
-    assert modelo.postulacion_id == datos_practica["postulacion_id"]
+    assert modelo.job_application_id == datos_practica["postulacion_id"]
     assert modelo.intern_id == datos_practica["practicante_id"]
     assert modelo.status == Practica.ESTADO_EN_CURSO
     assert len(modelo.entregables) == 1
@@ -122,15 +122,15 @@ def test_find_by_id_reconstruye_el_agregado_completo(
     practica.registrar_evaluacion(72)
     saved = repository.save(practica)
 
-    encontrada = repository.find_by_id(saved.id)
+    found = repository.find_by_id(saved.id)
 
-    assert isinstance(encontrada, Practica)
-    assert encontrada.id == saved.id
-    assert encontrada.postulacion_id == datos_practica["postulacion_id"]
-    assert encontrada.intern_id == datos_practica["practicante_id"]
-    assert encontrada.status == Practica.ESTADO_EN_CURSO
-    assert [item.archivo for item in encontrada.entregables] == ["evidencia.zip"]
-    assert [item.puntaje for item in encontrada.evaluaciones] == [72]
+    assert isinstance(found, Practica)
+    assert found.id == saved.id
+    assert found.job_application_id == datos_practica["postulacion_id"]
+    assert found.intern_id == datos_practica["practicante_id"]
+    assert found.status == Practica.ESTADO_EN_CURSO
+    assert [item.archivo for item in found.entregables] == ["evidencia.zip"]
+    assert [item.puntaje for item in found.evaluaciones] == [72]
 
 
 def test_consultas_por_practicante_y_postulacion(
@@ -140,10 +140,10 @@ def test_consultas_por_practicante_y_postulacion(
 ):
     saved = repository.save(crear_practica(datos_practica))
 
-    por_practicante = repository.find_by_practicante_id(
+    por_practicante = repository.find_by_intern_id(
         datos_practica["practicante_id"]
     )
-    por_postulacion = repository.find_by_postulacion_id(
+    por_postulacion = repository.find_by_job_application_id(
         datos_practica["postulacion_id"]
     )
 
@@ -153,8 +153,8 @@ def test_consultas_por_practicante_y_postulacion(
 
 def test_consultas_inexistentes_devuelven_resultados_vacios(app_context, repository):
     assert repository.find_by_id(9999) is None
-    assert repository.find_by_postulacion_id(9999) is None
-    assert repository.find_by_practicante_id(9999) == []
+    assert repository.find_by_job_application_id(9999) is None
+    assert repository.find_by_intern_id(9999) == []
 
 
 def test_save_actualiza_estado_y_agrega_nuevos_hijos_sin_duplicar_existentes(
@@ -170,14 +170,14 @@ def test_save_actualiza_estado_y_agrega_nuevos_hijos_sin_duplicar_existentes(
     practica.subir_entregable("informe-final.pdf")
     practica.registrar_evaluacion(90)
     practica.status = Practica.ESTADO_FINALIZADA
-    actualizada = repository.save(practica)
+    updated = repository.save(practica)
 
-    assert actualizada.status == Practica.ESTADO_FINALIZADA
-    assert [item.archivo for item in actualizada.entregables] == [
+    assert updated.status == Practica.ESTADO_FINALIZADA
+    assert [item.archivo for item in updated.entregables] == [
         "primer-informe.pdf",
         "informe-final.pdf",
     ]
-    assert [item.puntaje for item in actualizada.evaluaciones] == [65, 90]
+    assert [item.puntaje for item in updated.evaluaciones] == [65, 90]
     assert PracticaModel.query.count() == 1
     assert EntregableModel.query.count() == 2
     assert EvaluacionModel.query.count() == 2
@@ -197,10 +197,10 @@ def test_save_elimina_hijos_retirados_del_agregado(
 
     entregable_eliminado_id = practica.entregables.pop(0).id
     evaluacion_eliminada_id = practica.evaluaciones.pop(0).id
-    actualizada = repository.save(practica)
+    updated = repository.save(practica)
 
-    assert [item.archivo for item in actualizada.entregables] == ["informe-2.pdf"]
-    assert [item.puntaje for item in actualizada.evaluaciones] == [95]
+    assert [item.archivo for item in updated.entregables] == ["informe-2.pdf"]
+    assert [item.puntaje for item in updated.evaluaciones] == [95]
     assert db.session.get(EntregableModel, entregable_eliminado_id) is None
     assert db.session.get(EvaluacionModel, evaluacion_eliminada_id) is None
 
@@ -210,15 +210,15 @@ def test_find_by_empresa_id_retorna_practicas_asociadas_via_join(
     repository,
     datos_practica,
 ):
-    postulacion = db.session.get(PostulacionModel, datos_practica["postulacion_id"])
-    convocatoria = db.session.get(ConvocatoriaModel, postulacion.convocatoria_id)
-    company_id = convocatoria.company_id
+    job_application = db.session.get(JobApplicationModel, datos_practica["postulacion_id"])
+    job_posting = db.session.get(JobPostingModel, job_application.job_posting_id)
+    company_id = job_posting.company_id
 
     practica = crear_practica(datos_practica)
     saved = repository.save(practica)
 
-    result = repository.find_by_empresa_id(company_id)
+    result = repository.find_by_company_id(company_id)
     assert len(result) == 1
     assert result[0].id == saved.id
 
-    assert repository.find_by_empresa_id(99999) == []
+    assert repository.find_by_company_id(99999) == []

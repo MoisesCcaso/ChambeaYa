@@ -1,55 +1,55 @@
 from shared.errors import ConflictError
-class Postulacion:
+class JobApplication:
     STATUS_PENDING = "pendiente"
-    ESTADO_SELECCIONADA = "seleccionada"
-    ESTADO_RECHAZADA = "rechazada"
-    ESTADO_CANCELADA = "cancelada"
+    STATUS_SELECTED = "seleccionada"
+    STATUS_REJECTED = "rechazada"
+    STATUS_CANCELLED = "cancelada"
 
-    def __init__(self, id=None, convocatoria_id=None, intern_id=None, status=None):
+    def __init__(self, id=None, job_posting_id=None, intern_id=None, status=None):
        self.id = id
-       self.convocatoria_id = convocatoria_id
+       self.job_posting_id = job_posting_id
        self.intern_id = intern_id
        self.status = status or self.STATUS_PENDING
 
-    def rechazar(self):
+    def reject(self):
         if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede rechazarse")
-        self.status = self.ESTADO_RECHAZADA
+        self.status = self.STATUS_REJECTED
         return self
 
-    def rechazar_seleccionada(self):
-        """Rechaza una selección previa cuando se selecciona otro candidato."""
-        if self.status != self.ESTADO_SELECCIONADA:
+    def reject_selected(self):
+        """Rejects a previous selection when another candidate is selected."""
+        if self.status != self.STATUS_SELECTED:
             raise ConflictError(
                 "Solo una postulación seleccionada puede rechazarse al elegir otro candidato"
             )
-        self.status = self.ESTADO_RECHAZADA
+        self.status = self.STATUS_REJECTED
         return self
 
-    def seleccionar(self):
-        """Selecciona la postulación si está pendiente."""
+    def select(self):
+        """Selects the job application if it is pending."""
         if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede seleccionarse")
 
-        self.status = self.ESTADO_SELECCIONADA
+        self.status = self.STATUS_SELECTED
         return self
 
-    def cancelar(self):
+    def cancel(self):
         if self.status != self.STATUS_PENDING:
             raise ConflictError("Solo una postulación pendiente puede retirarse")
-        self.status = self.ESTADO_CANCELADA
+        self.status = self.STATUS_CANCELLED
         return self
 
-    def reactivar(self):
-        if self.status != self.ESTADO_CANCELADA:
+    def reactivate(self):
+        if self.status != self.STATUS_CANCELLED:
             raise ConflictError("Solo una postulación retirada puede reactivarse")
         self.status = self.STATUS_PENDING
         return self
 
-    def reconsiderar(self):
+    def reconsider(self):
         if self.status not in (
-            self.ESTADO_SELECCIONADA,
-            self.ESTADO_RECHAZADA,
+            self.STATUS_SELECTED,
+            self.STATUS_REJECTED,
         ):
             raise ConflictError(
                 "Solo una postulación seleccionada o rechazada puede reconsiderarse"

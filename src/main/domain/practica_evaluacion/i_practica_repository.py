@@ -11,13 +11,13 @@ class IPracticaRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_practicante_id(self, intern_id):
+    def find_by_intern_id(self, intern_id):
         pass
 
     @abstractmethod
-    def find_by_postulacion_id(self, postulacion_id):
+    def find_by_job_application_id(self, job_application_id):
         pass
 
     @abstractmethod
-    def find_by_empresa_id(self, company_id):
+    def find_by_company_id(self, company_id):
         pass

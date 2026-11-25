@@ -36,17 +36,17 @@ class ConvocatoriaPage(BasePage):
 
     def fill_convocatoria(
         self,
-        titulo: str,
-        descripcion: str = "",
+        title: str,
+        description: str = "",
         skills: str = "",
-        beneficios: str = "",
+        benefits: str = "",
     ) -> "ConvocatoriaPage":
         """Completa los campos del formulario de convocatoria."""
         fields = (
-            (self.TITLE, titulo),
-            (self.DESCRIPTION, descripcion),
+            (self.TITLE, title),
+            (self.DESCRIPTION, description),
             (self.SKILLS, skills),
-            (self.BENEFITS, beneficios),
+            (self.BENEFITS, benefits),
         )
         for locator, value in fields:
             field = self.wait_until_visible(locator)
@@ -60,39 +60,39 @@ class ConvocatoriaPage(BasePage):
 
     def create_draft(
         self,
-        titulo: str,
-        descripcion: str = "",
+        title: str,
+        description: str = "",
         skills: str = "",
-        beneficios: str = "",
+        benefits: str = "",
     ) -> None:
         """Completa y guarda una nueva convocatoria como borrador."""
         self.start_new_convocatoria()
-        self.fill_convocatoria(titulo, descripcion, skills, beneficios)
+        self.fill_convocatoria(title, description, skills, benefits)
         self.save_draft()
         self.wait_for(
             lambda _driver: self.driver.find_element(*self.DIALOG).get_attribute(
                 "open"
             ) is None
         )
-        self.convocatoria_row(titulo)
+        self.convocatoria_row(title)
 
-    def convocatoria_row(self, titulo: str):
+    def convocatoria_row(self, title: str):
         """Devuelve la fila de la tabla que corresponde al título indicado."""
         return self.wait_until_visible(
             (
                 By.XPATH,
-                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]'
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{title}"]]'
             )
         )
 
-    def convocatoria_is_borrador(self, titulo: str) -> bool:
+    def convocatoria_is_borrador(self, title: str) -> bool:
         """Indica si la fila de la convocatoria muestra el estado borrador."""
-        return "borrador" in self.convocatoria_row(titulo).text.casefold()
+        return "borrador" in self.convocatoria_row(title).text.casefold()
 
-    def publish_convocatoria(self, titulo: str) -> None:
+    def publish_job_posting(self, title: str) -> None:
         """Publica el borrador identificado por su título y espera la actualización."""
         self._dismiss_toasts()
-        row = self.convocatoria_row(titulo)
+        row = self.convocatoria_row(title)
         publish_button = row.find_element(
             By.CSS_SELECTOR, "[data-publish-opening]"
         )
@@ -100,49 +100,49 @@ class ConvocatoriaPage(BasePage):
         self.wait_until_visible(
             (
                 By.XPATH,
-                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-publicada")]',
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{title}"]]//span[contains(@class, "status-publicada")]',
             )
         )
 
-    def convocatoria_is_publicada(self, titulo: str) -> bool:
+    def convocatoria_is_publicada(self, title: str) -> bool:
         """Indica si la tabla muestra la convocatoria como publicada."""
         return self.wait_until_visible(
             (
                 By.XPATH,
-                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-publicada")]',
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{title}"]]//span[contains(@class, "status-publicada")]',
             )
         ).is_displayed()
 
-    def can_publish_convocatoria(self, titulo: str) -> bool:
+    def can_publish_convocatoria(self, title: str) -> bool:
         """Indica si la fila de la convocatoria ofrece la acción Publicar."""
-        row = self.convocatoria_row(titulo)
+        row = self.convocatoria_row(title)
         return bool(row.find_elements(By.CSS_SELECTOR, "[data-publish-opening]"))
 
-    def close_convocatoria(self, titulo: str) -> None:
+    def close_job_posting(self, title: str) -> None:
         """Cierra una convocatoria publicada y espera el estado actualizado."""
         self._dismiss_toasts()
-        row = self.convocatoria_row(titulo)
+        row = self.convocatoria_row(title)
         close_button = row.find_element(By.CSS_SELECTOR, "[data-close-opening]")
         close_button.send_keys(Keys.ENTER)
         self.wait_until_visible(
             (
                 By.XPATH,
-                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-cerrada")]',
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{title}"]]//span[contains(@class, "status-cerrada")]',
             )
         )
 
-    def convocatoria_is_cerrada(self, titulo: str) -> bool:
+    def convocatoria_is_cerrada(self, title: str) -> bool:
         """Indica si la tabla muestra la convocatoria como cerrada."""
         return self.wait_until_visible(
             (
                 By.XPATH,
-                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{titulo}"]]//span[contains(@class, "status-cerrada")]',
+                f'//tbody[@id="openings-table"]//tr[.//strong[normalize-space()="{title}"]]//span[contains(@class, "status-cerrada")]',
             )
         ).is_displayed()
 
-    def open_candidates(self, titulo: str) -> None:
+    def open_candidates(self, title: str) -> None:
         """Abre la lista de candidatos de una convocatoria publicada o cerrada."""
-        row = self.convocatoria_row(titulo)
+        row = self.convocatoria_row(title)
         row.find_element(By.CSS_SELECTOR, "[data-candidates-opening]").click()
         self.wait_until_visible((By.ID, "candidates-dialog"))
         self.wait_for(

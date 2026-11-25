@@ -34,9 +34,9 @@ def _ensure_orm_stubs():
     class DummyPracticaModel:
         query = MagicMock()
 
-        def __init__(self, id=None, postulacion_id=None, intern_id=None, status=None):
+        def __init__(self, id=None, job_application_id=None, intern_id=None, status=None):
             self.id = id
-            self.postulacion_id = postulacion_id
+            self.job_application_id = job_application_id
             self.intern_id = intern_id
             self.status = status
             self.entregables = []
@@ -97,20 +97,20 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
         from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
         from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 
-        fecha = datetime(2026, 11, 20, 10, 0, tzinfo=timezone.utc)
-        entregable_keep = EntregableModel(archivo="keep.pdf", fecha_subida=fecha)
+        moment = datetime(2026, 11, 20, 10, 0, tzinfo=timezone.utc)
+        entregable_keep = EntregableModel(archivo="keep.pdf", fecha_subida=moment)
         entregable_keep.id = 10
-        entregable_drop = EntregableModel(archivo="drop.pdf", fecha_subida=fecha)
+        entregable_drop = EntregableModel(archivo="drop.pdf", fecha_subida=moment)
         entregable_drop.id = 11
 
-        eval_keep = EvaluacionModel(puntaje=80, fecha_evaluacion=fecha)
+        eval_keep = EvaluacionModel(puntaje=80, fecha_evaluacion=moment)
         eval_keep.id = 20
-        eval_drop = EvaluacionModel(puntaje=50, fecha_evaluacion=fecha)
+        eval_drop = EvaluacionModel(puntaje=50, fecha_evaluacion=moment)
         eval_drop.id = 21
 
         model = SimpleNamespace(
             id=5,
-            postulacion_id=1,
+            job_application_id=1,
             intern_id=2,
             status=Practica.ESTADO_EN_CURSO,
             entregables=[entregable_keep, entregable_drop],
@@ -119,16 +119,16 @@ class TestPracticaRepositorySyncCollection(unittest.TestCase):
 
         practica = Practica(
             id=5,
-            postulacion_id=1,
+            job_application_id=1,
             intern_id=2,
             status=Practica.ESTADO_FINALIZADA,
             entregables=[
-                Entregable(id=10, practica_id=5, archivo="keep.pdf", fecha_subida=fecha),
-                Entregable(id=None, practica_id=5, archivo="new.pdf", fecha_subida=fecha),
+                Entregable(id=10, practica_id=5, archivo="keep.pdf", fecha_subida=moment),
+                Entregable(id=None, practica_id=5, archivo="new.pdf", fecha_subida=moment),
             ],
             evaluaciones=[
-                Evaluacion(id=20, practica_id=5, puntaje=80, fecha_evaluacion=fecha),
-                Evaluacion(id=None, practica_id=5, puntaje=95, fecha_evaluacion=fecha),
+                Evaluacion(id=20, practica_id=5, puntaje=80, fecha_evaluacion=moment),
+                Evaluacion(id=None, practica_id=5, puntaje=95, fecha_evaluacion=moment),
             ],
         )
 

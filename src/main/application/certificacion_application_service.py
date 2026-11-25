@@ -4,12 +4,12 @@ from shared.errors import ForbiddenError, NotFoundError
 
 class CertificacionApplicationService:
     def __init__(self, certificado_repository=None, practica_repository=None,
-                 postulacion_repository=None, convocatoria_repository=None,
+                 job_application_repository=None, job_posting_repository=None,
                  profile_repository=None, notification_service=None):
         self.certificado_repository = certificado_repository
         self.practica_repository = practica_repository
-        self.postulacion_repository = postulacion_repository
-        self.convocatoria_repository = convocatoria_repository
+        self.job_application_repository = job_application_repository
+        self.job_posting_repository = job_posting_repository
         self.profile_repository = profile_repository
         self.notification_service = notification_service
 
@@ -20,14 +20,14 @@ class CertificacionApplicationService:
         if practica is None:
             raise NotFoundError("Práctica no encontrada")
 
-        postulacion = self.postulacion_repository.find_by_id(practica.postulacion_id)
-        if postulacion is None:
+        job_application = self.job_application_repository.find_by_id(practica.job_application_id)
+        if job_application is None:
             raise NotFoundError(JOB_APPLICATION_NOT_FOUND)
 
-        convocatoria = self.convocatoria_repository.find_by_id(postulacion.convocatoria_id)
-        if convocatoria is None:
+        job_posting = self.job_posting_repository.find_by_id(job_application.job_posting_id)
+        if job_posting is None:
             raise NotFoundError(JOB_POSTING_NOT_FOUND)
-        if convocatoria.company_id != company_id:
+        if job_posting.company_id != company_id:
             raise ForbiddenError("La práctica no pertenece a una convocatoria de esta empresa")
 
         intern = self.profile_repository.find_intern_by_id(practica.intern_id)
@@ -39,7 +39,7 @@ class CertificacionApplicationService:
             return existing, False
 
         certificado = CertificacionDominioServicio().generar_certificado(
-            practica, intern, convocatoria
+            practica, intern, job_posting
         )
         saved = self.certificado_repository.save(certificado)
         self._notificar_emision(intern, practica_id)
@@ -85,8 +85,8 @@ class CertificacionApplicationService:
             for repository in (
                 self.certificado_repository,
                 self.practica_repository,
-                self.postulacion_repository,
-                self.convocatoria_repository,
+                self.job_application_repository,
+                self.job_posting_repository,
                 self.profile_repository,
             )
         ):

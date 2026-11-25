@@ -15,13 +15,13 @@ class SqlAlchemyMatchingRepository(ISugerenciaRepository):
         if model is None:
             model = SugerenciaModel.query.filter_by(
                 intern_id=sugerencia.intern_id,
-                convocatoria_id=sugerencia.convocatoria_id,
+                job_posting_id=sugerencia.job_posting_id,
             ).first()
 
         if model is None:
             model = SugerenciaModel(
                 intern_id=sugerencia.intern_id,
-                convocatoria_id=sugerencia.convocatoria_id,
+                job_posting_id=sugerencia.job_posting_id,
             )
             db.session.add(model)
 
@@ -31,7 +31,7 @@ class SqlAlchemyMatchingRepository(ISugerenciaRepository):
         db.session.commit()
         return self._to_domain(model)
 
-    def find_by_practicante_id(self, intern_id):
+    def find_by_intern_id(self, intern_id):
         models = SugerenciaModel.query.filter_by(intern_id=intern_id).all()
         return [self._to_domain(model) for model in models]
 
@@ -42,7 +42,7 @@ class SqlAlchemyMatchingRepository(ISugerenciaRepository):
         return Sugerencia(
             id=model.id,
             intern_id=model.intern_id,
-            convocatoria_id=model.convocatoria_id,
+            job_posting_id=model.job_posting_id,
             puntaje_match=model.puntaje_match,
             habilidades_coincidentes=self._load_list(model.habilidades_coincidentes),
         )

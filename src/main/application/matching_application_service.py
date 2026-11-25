@@ -4,12 +4,12 @@ from shared.errors import ForbiddenError
 
 class MatchingApplicationService:
     def __init__(self, sugerencia_repository=None, profile_repository=None,
-                 convocatoria_repository=None, matching_servicio=None,
+                 job_posting_repository=None, matching_servicio=None,
                  intern_repository=None):
         self.sugerencia_repository = sugerencia_repository
         self.intern_repository = intern_repository or profile_repository
         self.profile_repository = self.intern_repository
-        self.convocatoria_repository = convocatoria_repository
+        self.job_posting_repository = job_posting_repository
         self.matching_servicio = matching_servicio or MatchingDominioServicio()
 
     def suggest_convocatorias(self, user_id, umbral=50.0):
@@ -19,8 +19,8 @@ class MatchingApplicationService:
         if intern is None:
             raise ForbiddenError("Practicante no encontrado")
 
-        convocatorias = self.convocatoria_repository.find_all()
-        return self.matching_servicio.filtrar_convocatorias(intern, convocatorias, umbral)
+        job_postings = self.job_posting_repository.find_all()
+        return self.matching_servicio.filtrar_convocatorias(intern, job_postings, umbral)
 
     def calculate_for_practicante(self, user_id):
         self._require_repositories()
@@ -29,18 +29,18 @@ class MatchingApplicationService:
         if intern is None:
             raise ForbiddenError("Practicante no encontrado")
 
-        convocatorias = self.convocatoria_repository.find_all()
-        resultados = self.matching_servicio.filtrar_convocatorias(intern, convocatorias)
+        job_postings = self.job_posting_repository.find_all()
+        results = self.matching_servicio.filtrar_convocatorias(intern, job_postings)
 
-        for result in resultados:
+        for result in results:
             self.sugerencia_repository.save(getattr(result, "sugerencia", result))
 
-        return resultados
+        return results
 
     def _require_repositories(self):
         if self.sugerencia_repository is None:
             raise RuntimeError("MatchingApplicationService requiere un repositorio de sugerencias")
         if self.profile_repository is None:
             raise RuntimeError("MatchingApplicationService requiere un repositorio de perfil")
-        if self.convocatoria_repository is None:
+        if self.job_posting_repository is None:
             raise RuntimeError("MatchingApplicationService requiere un repositorio de convocatorias")

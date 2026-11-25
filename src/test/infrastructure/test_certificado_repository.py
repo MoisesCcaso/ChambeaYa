@@ -7,9 +7,9 @@ from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
-from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
+from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
-from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
+from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from profiles.infrastructure.models.intern_model import InternModel
 from identity.infrastructure.models.user_model import UserModel
@@ -39,24 +39,24 @@ def practica_id(app_context):
         legal_name="Empresa Certificadora",
         ruc="20987654321",
     )
-    convocatoria = ConvocatoriaModel(
+    job_posting = JobPostingModel(
         company=company,
-        titulo="Prácticas certificadas",
+        title="Prácticas certificadas",
         status="publicada",
     )
-    db.session.add_all([intern, convocatoria])
+    db.session.add_all([intern, job_posting])
     db.session.flush()
 
-    postulacion = PostulacionModel(
-        convocatoria_id=convocatoria.id,
+    job_application = JobApplicationModel(
+        job_posting_id=job_posting.id,
         intern_id=intern.id,
         status="seleccionada",
     )
-    db.session.add(postulacion)
+    db.session.add(job_application)
     db.session.flush()
 
     practica = PracticaModel(
-        postulacion_id=postulacion.id,
+        job_application_id=job_application.id,
         intern_id=intern.id,
         status="FINALIZADA",
     )

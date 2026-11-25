@@ -5,8 +5,8 @@ class PracticaModel(db.Model):
     __tablename__ = "practicas"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    postulacion_id = db.Column(
-        db.Integer,
+    job_application_id = db.Column(
+        "postulacion_id", db.Integer,
         db.ForeignKey("postulaciones.id"),
         unique=True,
         nullable=False,

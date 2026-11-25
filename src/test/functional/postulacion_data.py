@@ -66,15 +66,15 @@ def login(base_url: str, email: str, password: str) -> ApiSession:
     return session
 
 
-def create_opening(base_url: str, titulo: str, publicar: bool = True,
-                   cerrar: bool = False) -> int:
+def create_opening(base_url: str, title: str, publish: bool = True,
+                   close: bool = False) -> int:
     """Crea una convocatoria de la empresa demo y devuelve su identificador."""
     company = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
     opening = company.expect(
         "POST",
         "/convocatorias",
         {
-            "titulo": titulo,
+            "titulo": title,
             "descripcion": "Convocatoria creada por las pruebas funcionales.",
             "habilidades_requeridas": ["Python"],
             "beneficios": ["Mentoría"],
@@ -82,9 +82,9 @@ def create_opening(base_url: str, titulo: str, publicar: bool = True,
         status=201,
     )
     opening_id = opening["id"]
-    if publicar or cerrar:
+    if publish or close:
         company.expect("POST", f"/convocatorias/{opening_id}/publicar")
-    if cerrar:
+    if close:
         company.expect("POST", f"/convocatorias/{opening_id}/cerrar")
     return opening_id
 
@@ -110,13 +110,13 @@ def create_issued_certificate(base_url: str) -> str:
     student = login(base_url, user["email"], user["password"])
     company = login(base_url, EMPRESA_EMAIL, EMPRESA_PASSWORD)
 
-    postulacion = student.expect(
+    job_application = student.expect(
         "POST", f"/postulaciones/convocatorias/{opening_id}", status=201
     )
-    postulacion_id = postulacion["id"]
-    company.expect("POST", f"/postulaciones/{postulacion_id}/seleccionar")
+    job_application_id = job_application["id"]
+    company.expect("POST", f"/postulaciones/{job_application_id}/seleccionar")
     practica = company.expect(
-        "POST", "/practicas", {"postulacion_id": postulacion_id}, status=201
+        "POST", "/practicas", {"postulacion_id": job_application_id}, status=201
     )
     practica_id = practica["id"]
     student.expect(

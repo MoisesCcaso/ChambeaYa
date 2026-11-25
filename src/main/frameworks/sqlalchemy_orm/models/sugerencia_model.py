@@ -14,6 +14,6 @@ class SugerenciaModel(TimestampMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     intern_id = db.Column("practicante_id", db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
-    convocatoria_id = db.Column(db.Integer, db.ForeignKey("convocatorias.id"), nullable=False)
+    job_posting_id = db.Column("convocatoria_id", db.Integer, db.ForeignKey("convocatorias.id"), nullable=False)
     puntaje_match = db.Column(db.Float, nullable=False, default=0.0)
     habilidades_coincidentes = db.Column(db.Text, nullable=True)
