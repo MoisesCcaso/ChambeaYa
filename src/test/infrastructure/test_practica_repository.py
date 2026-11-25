@@ -9,12 +9,12 @@ from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.practica import Practica
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.practicante_model import PracticanteModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_practica_repository import SqlAlchemyPracticaRepository
 

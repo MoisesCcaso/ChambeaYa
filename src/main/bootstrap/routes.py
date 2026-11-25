@@ -3,7 +3,7 @@ from frameworks.flask_mvc.routes.certificado_routes import certificado_bp
 from bootstrap.health_routes import health_bp
 from frameworks.flask_mvc.routes.matching_routes import matching_bp
 from notifications.presentation.notification_routes import notification_bp
-from frameworks.flask_mvc.routes.perfil_routes import perfil_bp
+from profiles.presentation.perfil_routes import perfil_bp
 from frameworks.flask_mvc.routes.practica_routes import practica_bp
 from frameworks.flask_mvc.routes.convocatoria_routes import convocatoria_bp
 from frameworks.flask_mvc.routes.postulacion_routes import postulacion_bp

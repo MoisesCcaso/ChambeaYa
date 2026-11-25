@@ -1,6 +1,6 @@
-from application.dtos import ActualizarPracticanteDTO, UNSET
+from profiles.application.dtos import ActualizarPracticanteDTO, UNSET
 from identity.api import User
-from domain.perfil.practicante import Practicante
+from profiles.domain.practicante import Practicante
 from shared.errors import ForbiddenError, NotFoundError
 
 

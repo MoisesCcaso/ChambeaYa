@@ -8,10 +8,10 @@ from domain.certificacion.codigo_qr import CodigoQR
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.certificado_model import CertificadoModel
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.practicante_model import PracticanteModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_certificado_repository import (
     SqlAlchemyCertificadoRepository,

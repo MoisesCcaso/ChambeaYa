@@ -8,12 +8,12 @@ import unittest
 
 import pytest
 
-from domain.perfil.empresa import Empresa
-from domain.perfil.practicante import Practicante
-from domain.perfil.ruc import RUC
+from profiles.domain.empresa import Empresa
+from profiles.domain.practicante import Practicante
+from profiles.domain.ruc import RUC
 from shared.database import db
 from identity.infrastructure.models.user_model import UserModel
-from infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
+from profiles.infrastructure.sqlalchemy_perfil_repository import SqlAlchemyPerfilRepository
 
 
 class TestPerfilRepository(unittest.TestCase):
@@ -192,9 +192,9 @@ class TestPerfilRepository(unittest.TestCase):
         self.assertEqual(self.repository._load_list('["Python", "SQL"]'), ["Python", "SQL"])
 
     def test_interfaz_segregada_implementa_ambos_contratos(self):
-        from domain.perfil.i_practicante_repository import IPracticanteRepository
-        from domain.perfil.i_empresa_repository import IEmpresaRepository
-        from domain.perfil.i_perfil_repository import IPerfilRepository
+        from profiles.domain.i_practicante_repository import IPracticanteRepository
+        from profiles.domain.i_empresa_repository import IEmpresaRepository
+        from profiles.domain.i_perfil_repository import IPerfilRepository
 
         self.assertIsInstance(self.repository, IPracticanteRepository)
         self.assertIsInstance(self.repository, IEmpresaRepository)

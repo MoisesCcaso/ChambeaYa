@@ -9,10 +9,10 @@ Código bajo prueba:
 
 import unittest
 
-from domain.perfil.empresa import Empresa
-from domain.perfil.nombre_completo import NombreCompleto
-from domain.perfil.practicante import Practicante
-from domain.perfil.ruc import RUC
+from profiles.domain.empresa import Empresa
+from profiles.domain.nombre_completo import NombreCompleto
+from profiles.domain.practicante import Practicante
+from profiles.domain.ruc import RUC
 
 
 class PracticanteTest(unittest.TestCase):

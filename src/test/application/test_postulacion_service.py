@@ -11,7 +11,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
-from domain.perfil.i_practicante_repository import IPracticanteRepository
+from profiles.domain.i_practicante_repository import IPracticanteRepository
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 

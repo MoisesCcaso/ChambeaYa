@@ -11,7 +11,7 @@ from domain.certificacion.certificado import Certificado
 from domain.certificacion.i_certificado_repository import ICertificadoRepository
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
-from domain.perfil.i_perfil_repository import IPerfilRepository
+from profiles.domain.i_perfil_repository import IPerfilRepository
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
 from domain.practica_evaluacion.practica import Practica

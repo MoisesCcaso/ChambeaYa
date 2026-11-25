@@ -1,7 +1,7 @@
-from application.dtos import ActualizarEmpresaDTO
+from profiles.application.dtos import ActualizarEmpresaDTO
 from identity.api import User
-from domain.perfil.empresa import Empresa
-from domain.perfil.ruc import RUC
+from profiles.domain.empresa import Empresa
+from profiles.domain.ruc import RUC
 from shared.errors import DomainError, ForbiddenError, NotFoundError
 
 

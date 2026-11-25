@@ -42,6 +42,7 @@ packages = [
     { include = "shared", from = "src/main" },           # shared kernel: database, mixins, messages
     { include = "notifications", from = "src/main" },    # bounded context: notifications
     { include = "identity", from = "src/main" },         # bounded context: identity and access
+    { include = "profiles", from = "src/main" },         # bounded context: intern and company profiles
     { include = "config.py", from = "src/main" },
     { include = "run.py", from = "src/main" },
 ]
@@ -62,7 +63,7 @@ python_files = ["test_*.py"]
 addopts = "-v"
 
 [tool.coverage.run]
-source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared", "notifications", "identity"]
+source = ["application", "domain", "frameworks", "infrastructure", "bootstrap", "shared", "notifications", "identity", "profiles"]
 omit = ["src/main/bootstrap/migrations/*", "*/__pycache__/*"]
 
 [tool.coverage.xml]

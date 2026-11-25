@@ -8,16 +8,16 @@ Código bajo prueba:
 import unittest
 from unittest.mock import create_autospec
 
-from application.empresa_application_service import EmpresaApplicationService
-from application.practicante_application_service import PracticanteApplicationService
+from profiles.application.empresa_application_service import EmpresaApplicationService
+from profiles.application.practicante_application_service import PracticanteApplicationService
 from identity.domain.i_user_repository import IUserRepository
 from identity.domain.user import User
-from domain.perfil.empresa import Empresa
-from domain.perfil.i_empresa_repository import IEmpresaRepository
-from domain.perfil.i_perfil_repository import IPerfilRepository
-from domain.perfil.i_practicante_repository import IPracticanteRepository
-from domain.perfil.practicante import Practicante
-from domain.perfil.ruc import RUC
+from profiles.domain.empresa import Empresa
+from profiles.domain.i_empresa_repository import IEmpresaRepository
+from profiles.domain.i_perfil_repository import IPerfilRepository
+from profiles.domain.i_practicante_repository import IPracticanteRepository
+from profiles.domain.practicante import Practicante
+from profiles.domain.ruc import RUC
 
 
 class TestPerfilService(unittest.TestCase):

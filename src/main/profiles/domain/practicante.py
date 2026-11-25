@@ -1,4 +1,4 @@
-from domain.perfil.nombre_completo import NombreCompleto
+from profiles.domain.nombre_completo import NombreCompleto
 from shared.errors import DomainError
 
 

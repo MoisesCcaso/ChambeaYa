@@ -14,7 +14,7 @@ import unittest
 from domain.convocatorias.convocatoria import Convocatoria
 from domain.matching.matching_dominio_servicio import MatchingDominioServicio
 from domain.matching.sugerencia import Sugerencia
-from domain.perfil.practicante import Practicante
+from profiles.domain.practicante import Practicante
 
 
 def crear_practicante(habilidades, id=1):

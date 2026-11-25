@@ -10,12 +10,12 @@ from werkzeug.security import generate_password_hash
 
 from shared.database import db
 from frameworks.sqlalchemy_orm.models.convocatoria_model import ConvocatoriaModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.empresa_model import EmpresaModel
 from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
 from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
 from notifications.infrastructure.models.notification_model import NotificationModel
 from frameworks.sqlalchemy_orm.models.postulacion_model import PostulacionModel
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.practicante_model import PracticanteModel
 from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
 from frameworks.sqlalchemy_orm.models.sugerencia_model import SugerenciaModel
 from identity.infrastructure.models.user_model import UserModel

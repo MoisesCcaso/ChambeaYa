@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from domain.convocatorias.convocatoria import Convocatoria
 from bootstrap.app import create_app
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.empresa_model import EmpresaModel
 from identity.infrastructure.models.user_model import UserModel
 from infrastructure.sqlalchemy_convocatoria_repository import SqlAlchemyConvocatoriaRepository
 

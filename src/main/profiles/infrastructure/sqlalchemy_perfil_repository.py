@@ -1,14 +1,14 @@
 import json
 
-from domain.perfil.i_empresa_repository import IEmpresaRepository
-from domain.perfil.i_perfil_repository import IPerfilRepository
-from domain.perfil.i_practicante_repository import IPracticanteRepository
-from domain.perfil.practicante import Practicante
-from domain.perfil.empresa import Empresa
-from domain.perfil.ruc import RUC
+from profiles.domain.i_empresa_repository import IEmpresaRepository
+from profiles.domain.i_perfil_repository import IPerfilRepository
+from profiles.domain.i_practicante_repository import IPracticanteRepository
+from profiles.domain.practicante import Practicante
+from profiles.domain.empresa import Empresa
+from profiles.domain.ruc import RUC
 from shared.database import db
-from frameworks.sqlalchemy_orm.models.practicante_model import PracticanteModel
-from frameworks.sqlalchemy_orm.models.empresa_model import EmpresaModel
+from profiles.infrastructure.models.practicante_model import PracticanteModel
+from profiles.infrastructure.models.empresa_model import EmpresaModel
 
 
 class SqlAlchemyPerfilRepository(IPerfilRepository, IPracticanteRepository, IEmpresaRepository):

@@ -10,7 +10,7 @@ from domain.convocatorias.convocatoria import Convocatoria
 from domain.convocatorias.i_convocatoria_repository import IConvocatoriaRepository
 from domain.convocatorias.i_postulacion_repository import IPostulacionRepository
 from domain.convocatorias.postulacion import Postulacion
-from domain.perfil.i_perfil_repository import IPerfilRepository
+from profiles.domain.i_perfil_repository import IPerfilRepository
 from domain.practica_evaluacion.entregable import Entregable
 from domain.practica_evaluacion.evaluacion import Evaluacion
 from domain.practica_evaluacion.i_practica_repository import IPracticaRepository
