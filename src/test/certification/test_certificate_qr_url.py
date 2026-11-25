@@ -1,7 +1,7 @@
 import unittest
 
 from bootstrap.app import create_app
-from certification.presentation.certificate_routes import build_verification_url
+from certification.controllers.certificate_routes import build_verification_url
 
 
 class CertificateQrUrlTest(unittest.TestCase):

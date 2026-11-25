@@ -410,7 +410,7 @@ La división principal es **por contexto**. Dentro de cada contexto se mantiene 
 ```
 src/main/<contexto>/
 ┌──────────────────────────────────────────────────────┐
-│  presentation   (Blueprint Flask: HTTP + JSON)        │
+│  controllers    (Blueprint Flask: HTTP + JSON)        │
 │  ┌──────────────────────────────────────────────────┐ │
 │  │  application  (servicios de caso de uso, DTOs)   │ │
 │  │  ┌──────────────────────────────────────────────┐ │ │
@@ -425,7 +425,7 @@ src/main/<contexto>/
    api.py → lo único que otros contextos pueden importar
 ```
 
-**Regla de dependencia:** las capas externas dependen de las internas, nunca al revés. `presentation` → `application` → `domain`, e `infrastructure` implementa las interfaces de `domain`. El dominio no importa Flask, SQLAlchemy ni Werkzeug.
+**Regla de dependencia:** las capas externas dependen de las internas, nunca al revés. `controllers` → `application` → `domain`, e `infrastructure` implementa las interfaces de `domain`. El dominio no importa Flask, SQLAlchemy ni Werkzeug.
 
 ---
 
@@ -452,7 +452,7 @@ flowchart TB
     end
     subgraph ctx["cada contexto"]
         direction TB
-        presentation["presentation"] --> application["application"] --> domain["domain"]
+        controllers["controllers"] --> application["application"] --> domain["domain"]
         infrastructure["infrastructure"] --> domain
         api["api.py"] --> domain
     end
@@ -495,7 +495,7 @@ ChambeaYa/
     │   ├── recruitment/           │   ├── domain/
     │   ├── matching/              │   ├── application/
     │   ├── internships/           │   ├── infrastructure/ (repos + models/)
-    │   ├── certification/         │   └── presentation/ (blueprints)
+    │   ├── certification/         │   └── controllers/ (blueprints)
     │   └── notifications/
     └── test/
         ├── conftest.py
@@ -514,7 +514,7 @@ ChambeaYa/
 | **`<contexto>/domain`** | Entidades, value objects, interfaces de repositorio, servicios de dominio | `shared` y, si hace falta, el `api.py` de otro contexto |
 | **`<contexto>/application`** | Casos de uso, orquestación y DTOs | Su `domain` |
 | **`<contexto>/infrastructure`** | Repositorios SQLAlchemy, modelos ORM, envío de correo | Su `domain` (implementa sus interfaces) y `shared` |
-| **`<contexto>/presentation`** | Blueprints Flask: HTTP, serialización JSON | Su `application`, `shared` y el contenedor de `bootstrap` |
+| **`<contexto>/controllers`** | Blueprints Flask: HTTP, serialización JSON | Su `application`, `shared` y el contenedor de `bootstrap` |
 | **`shared`** | Shared kernel: `db`, mixins, errores de negocio con su código HTTP, mensajes | Ningún contexto |
 | **`bootstrap`** | Composition root: crea la app, conecta repositorios y servicios, registra blueprints y errores | Todos los contextos |
 
@@ -566,8 +566,8 @@ Todos los contextos comparten una sola base de datos (monolito modular). Las cla
 `src/test/architecture/test_bounded_contexts.py` analiza cada módulo con `ast` y hace fallar la suite si:
 
 1. un contexto importa otro contexto sin pasar por su `api.py`;
-2. un contexto importa `bootstrap` (salvo `presentation` → `bootstrap.dependencies`);
-3. una capa `domain` depende de `application`, `infrastructure`, `presentation` o de un framework;
+2. un contexto importa `bootstrap` (salvo `controllers` → `bootstrap.dependencies`);
+3. una capa `domain` depende de `application`, `infrastructure`, `controllers` o de un framework;
 4. `shared` depende de un contexto o de `bootstrap`;
 5. a un contexto le falta alguna de sus 4 capas, o reaparecen los paquetes por capa técnica (`application/`, `domain/`, `infrastructure/`, `frameworks/`).
 
@@ -691,7 +691,7 @@ class InternModel(TimestampMixin, db.Model):
 Cada petición cruza tres capas estrictas. **Route** (framework) construye dependencias, recibe HTTP y serializa la respuesta JSON. **Application Service** orquesta usando servicios de dominio e interfaces de repositorio. **Domain Service** aplica las reglas de negocio. Cada capa solo conoce a la inmediata inferior.
 
 ```python
-# src/main/matching/presentation/matching_routes.py — Route
+# src/main/matching/controllers/matching_routes.py — Route
 @matching_bp.get("/sugerencias")
 def suggest_job_postings():
     """GET /matching/sugerencias — Suggested job postings for the intern."""
@@ -738,7 +738,7 @@ class MatchingDomainService:
 La API usa URLs semánticas con sustantivos en plural, verbos HTTP según su propósito (POST=crear 201, GET=consultar 200, PUT=actualizar 200, DELETE=eliminar 200) y un código de estado para cada resultado: 400 validación, 401 sin sesión, 403 sin permiso, 404 no encontrado y 409 conflicto. Las acciones que cambian el estado de un recurso (`/publicar`, `/cerrar`, `/seleccionar`, …) se modelan como subrecursos con `POST`.
 
 ```python
-# src/main/internships/presentation/internship_routes.py
+# src/main/internships/controllers/internship_routes.py
 @internship_bp.post("")
 def start_internship():
     user_id = get_authenticated_user_id()
@@ -855,7 +855,7 @@ def _load_list(self, value): ...
 ### Imports ordenados por capa arquitectónica
 
 ```python
-# src/main/certification/presentation/certificate_routes.py
+# src/main/certification/controllers/certificate_routes.py
 from io import BytesIO                                    # stdlib
 
 import qrcode                                             # terceros
@@ -895,7 +895,7 @@ def calculate_compatibility(self, intern_skills, required_skills):
 Cada función hace una sola cosa. `issue_certificado()` de la ruta solo atiende HTTP y delega; `serialize_certificado()` solo transforma a dict.
 
 ```python
-# src/main/certification/presentation/certificate_routes.py
+# src/main/certification/controllers/certificate_routes.py
 @certificate_bp.post("/<int:internship_id>/emitir")
 def issue_certificate_route(internship_id):
     user_id = get_authenticated_user_id()
@@ -939,7 +939,7 @@ def serialize_certificate(certificate):
 Los endpoints REST llevan docstring describiendo el método HTTP y la operación que realizan.
 
 ```python
-# src/main/matching/presentation/matching_routes.py
+# src/main/matching/controllers/matching_routes.py
 @matching_bp.get("/sugerencias")
 def suggest_job_postings():
     """GET /matching/sugerencias — Suggested job postings for the intern."""
@@ -956,7 +956,7 @@ def calculate_match():
 Los imports se organizan según la dependencia entre capas: framework → domain → application → infrastructure.
 
 ```python
-# src/main/recruitment/presentation/job_application_routes.py
+# src/main/recruitment/controllers/job_application_routes.py
 from flask import Blueprint, current_app, jsonify, session   # framework
 
 from bootstrap.dependencies import container                 # composition root (inyecta los servicios)
@@ -1084,7 +1084,7 @@ class Notification:
     def mark_as_read(self):
         self.is_read = True
 
-# src/main/notifications/presentation/notification_routes.py — Solo HTTP
+# src/main/notifications/controllers/notification_routes.py — Solo HTTP
 @notification_bp.get("")
 def list_notifications():
     user_id = get_authenticated_user_id()
@@ -1144,7 +1144,7 @@ class NotificationApplicationService:
         )
         return self.writer.save(notification)
 
-# Hook en recruitment/presentation/job_application_routes.py — extensión sin modificar el contexto notifications
+# Hook en recruitment/controllers/job_application_routes.py — extensión sin modificar el contexto notifications
 container.get_notification_service().create_notification(
     recipient_user_id=intern.user_id,
     notification_type="POSTULACION_RECHAZADA",
@@ -1168,7 +1168,7 @@ class SqlAlchemyNotificationRepository(INotificationWriter, INotificationReader)
 
     def count_unread(self, user_id): ...
 
-# src/main/notifications/presentation/notification_routes.py
+# src/main/notifications/controllers/notification_routes.py
 def build_notification_service():
     return container.get_notification_service()
 ```
@@ -1263,7 +1263,7 @@ class SqlAlchemyNotificationRepository(INotificationWriter, INotificationReader)
         db.session.commit()
         return self._to_domain(model)
 
-# src/main/notifications/presentation/notification_routes.py — Inyección
+# src/main/notifications/controllers/notification_routes.py — Inyección
 def build_notification_service():
     return container.get_notification_service()
 ```
@@ -1478,7 +1478,7 @@ class SqlAlchemyUserRepository(IUserRepository):
 Cada bounded context tiene cuatro capas con dependencias hacia adentro: el dominio no conoce infraestructura ni frameworks (ver [4.9](#49-arquitectura-en-capas-dentro-de-cada-contexto)).
 
 ```
-src/main/identity/presentation/    ← Blueprint Flask (HTTP + serialización JSON)
+src/main/identity/controllers/    ← Blueprint Flask (HTTP + serialización JSON)
 src/main/identity/application/     ← Application Services (orquestación de casos de uso)
 src/main/identity/infrastructure/  ← repositorios concretos, modelos ORM, email sender
 src/main/identity/domain/          ← entidades, VO, servicios de dominio, interfaces de repositorio
@@ -1488,7 +1488,7 @@ src/main/bootstrap/                ← composition root: crea la app y conecta l
 Flujo de ejemplo para registrar un usuario:
 
 ```
-POST /auth/register  (identity.presentation.auth_routes.register)
+POST /auth/register  (identity.controllers.auth_routes.register)
   → UserApplicationService.register_user(...)
     → AuthenticationDomainService.generate_password_hash(password)
     → User.register()
