@@ -7,8 +7,8 @@ class CodigoQR:
          self.hash_integridad = hash_integridad
 
     @staticmethod
-    def generar(practica_id, url_verificacion=None):
-        value = f"CERT-{practica_id}-{uuid4().hex[:8]}"
+    def generar(internship_id, url_verificacion=None):
+        value = f"CERT-{internship_id}-{uuid4().hex[:8]}"
         hash_integridad = hashlib.sha256(value.encode()).hexdigest()
         return CodigoQR(value=value, url_verificacion=url_verificacion, hash_integridad=hash_integridad)
 

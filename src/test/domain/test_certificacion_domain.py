@@ -13,16 +13,16 @@ from domain.certificacion.archivo_pdf import ArchivoPDF
 from domain.certificacion.certificacion_dominio_servicio import CertificacionDominioServicio
 from domain.certificacion.certificado import Certificado
 from domain.certificacion.codigo_qr import CodigoQR
-from domain.practica_evaluacion.evaluacion import Evaluacion
-from domain.practica_evaluacion.practica import Practica
+from internships.domain.evaluation import Evaluation
+from internships.domain.internship import Internship
 
 UUID4_PATH = "domain.certificacion.codigo_qr.uuid4"
 
 
-def _practica(status=Practica.ESTADO_FINALIZADA, puntajes=(80,), practica_id=7):
-    evaluaciones = [Evaluacion(practica_id=practica_id, score=p) for p in puntajes]
-    return Practica(id=practica_id, job_application_id=1, intern_id=2,
-                    status=status, evaluaciones=evaluaciones)
+def _practica(status=Internship.STATUS_FINISHED, puntajes=(80,), internship_id=7):
+    evaluations = [Evaluation(internship_id=internship_id, score=p) for p in puntajes]
+    return Internship(id=internship_id, job_application_id=1, intern_id=2,
+                    status=status, evaluations=evaluations)
 
 
 def _datos_certificado():
@@ -37,35 +37,35 @@ class TestCertificacionDominioServicio(unittest.TestCase):
         self.intern, self.job_posting = _datos_certificado()
 
     def test_genera_certificado_para_practica_finalizada_y_aprobada(self):
-        practica = _practica()
+        internship = _practica()
         certificado = self.service.generar_certificado(
-            practica, self.intern, self.job_posting
+            internship, self.intern, self.job_posting
         )
-        self.assertEqual(7, certificado.practica_id)
+        self.assertEqual(7, certificado.internship_id)
         self.assertIsNotNone(certificado.codigo_qr)
         self.assertIsNotNone(certificado.documento)
         self.assertIn("Ana Quispe", certificado.documento.contenido)
         self.assertIn("Practicas de Backend", certificado.documento.contenido)
 
     def test_rechaza_practica_en_curso(self):
-        practica = _practica(status=Practica.ESTADO_EN_CURSO)
+        internship = _practica(status=Internship.STATUS_IN_PROGRESS)
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.job_posting)
+            self.service.generar_certificado(internship, self.intern, self.job_posting)
 
     def test_rechaza_practica_finalizada_sin_evaluacion_aprobada(self):
-        practica = _practica(puntajes=(59.99,))
+        internship = _practica(puntajes=(59.99,))
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.job_posting)
+            self.service.generar_certificado(internship, self.intern, self.job_posting)
 
     def test_rechaza_practica_finalizada_sin_evaluaciones(self):
-        practica = _practica(puntajes=())
+        internship = _practica(puntajes=())
         with self.assertRaises(ValueError):
-            self.service.generar_certificado(practica, self.intern, self.job_posting)
+            self.service.generar_certificado(internship, self.intern, self.job_posting)
 
     def test_acepta_si_al_menos_una_evaluacion_aprueba(self):
-        practica = _practica(puntajes=(30, 60))
+        internship = _practica(puntajes=(30, 60))
         certificado = self.service.generar_certificado(
-            practica, self.intern, self.job_posting
+            internship, self.intern, self.job_posting
         )
         self.assertIsNotNone(certificado)
 
@@ -108,7 +108,7 @@ class TestCodigoQR(unittest.TestCase):
 
 class TestArchivoPDF(unittest.TestCase):
     def setUp(self):
-        self.pdf = ArchivoPDF.crear(3, "contenido original")
+        self.pdf = ArchivoPDF.create(3, "contenido original")
 
     def test_crear_calcula_hash_sin_acoplar_url_http(self):
         self.assertIsNone(self.pdf.url)
@@ -117,14 +117,14 @@ class TestArchivoPDF(unittest.TestCase):
         )
 
     def test_crear_acepta_url_inyectada(self):
-        pdf = ArchivoPDF.crear(3, "contenido original", url="https://cdn.chambeaya.pe/3.pdf")
+        pdf = ArchivoPDF.create(3, "contenido original", url="https://cdn.chambeaya.pe/3.pdf")
         self.assertEqual("https://cdn.chambeaya.pe/3.pdf", pdf.url)
 
     def test_crear_sin_contenido_lanza_error(self):
         with self.assertRaises(ValueError):
-            ArchivoPDF.crear(3, "")
+            ArchivoPDF.create(3, "")
         with self.assertRaises(ValueError):
-            ArchivoPDF.crear(3, None)
+            ArchivoPDF.create(3, None)
 
     def test_integridad_con_contenido_igual(self):
         self.assertTrue(self.pdf.verificar_integridad("contenido original"))
@@ -145,30 +145,30 @@ class TestArchivoPDF(unittest.TestCase):
 
 class TestCertificado(unittest.TestCase):
     def test_generar_pdf_asigna_documento_sin_ruta_http_acoplada(self):
-        certificado = Certificado(practica_id=4)
+        certificado = Certificado(internship_id=4)
         documento = certificado.generar_pdf("texto")
         self.assertIs(documento, certificado.documento)
         self.assertIsNone(documento.url)
 
     def test_verificar_integridad_sin_documento_devuelve_false(self):
-        self.assertFalse(Certificado(practica_id=4).verificar_integridad("texto"))
+        self.assertFalse(Certificado(internship_id=4).verificar_integridad("texto"))
 
     def test_verificar_integridad_delega_en_el_documento(self):
-        certificado = Certificado(practica_id=4)
+        certificado = Certificado(internship_id=4)
         certificado.generar_pdf("texto")
         self.assertTrue(certificado.verificar_integridad("texto"))
         self.assertFalse(certificado.verificar_integridad("otro"))
 
     def test_verificar_qr_con_valor_correcto(self):
-        certificado = Certificado(practica_id=4, codigo_qr=CodigoQR.generar(4))
+        certificado = Certificado(internship_id=4, codigo_qr=CodigoQR.generar(4))
         self.assertTrue(certificado.verificar_qr(certificado.codigo_qr.value))
 
     def test_verificar_qr_rechaza_valor_alterado(self):
-        certificado = Certificado(practica_id=4, codigo_qr=CodigoQR.generar(4))
+        certificado = Certificado(internship_id=4, codigo_qr=CodigoQR.generar(4))
         self.assertFalse(certificado.verificar_qr(certificado.codigo_qr.value + "x"))
 
     def test_verificar_qr_sin_qr_devuelve_false(self):
-        self.assertFalse(Certificado(practica_id=1).verificar_qr("X"))
+        self.assertFalse(Certificado(internship_id=1).verificar_qr("X"))
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ class TestDependencyContainer(unittest.TestCase):
         self.assertIsNotNone(self.container.get_profile_repository())
         self.assertIsNotNone(self.container.get_job_posting_repository())
         self.assertIsNotNone(self.container.get_job_application_repository())
-        self.assertIsNotNone(self.container.get_practica_repository())
+        self.assertIsNotNone(self.container.get_internship_repository())
         self.assertIsNotNone(self.container.get_certificado_repository())
         self.assertIsNotNone(self.container.get_notification_repository())
         self.assertIsNotNone(self.container.get_matching_repository())
@@ -21,7 +21,7 @@ class TestDependencyContainer(unittest.TestCase):
     def test_container_provides_services(self):
         self.assertIsNotNone(self.container.get_user_service())
         self.assertIsNotNone(self.container.get_job_posting_service())
-        self.assertIsNotNone(self.container.get_practica_service())
+        self.assertIsNotNone(self.container.get_internship_service())
         self.assertIsNotNone(self.container.get_job_application_service())
         self.assertIsNotNone(self.container.get_matching_service())
         self.assertIsNotNone(self.container.get_notification_service())
@@ -39,8 +39,8 @@ class TestDependencyContainer(unittest.TestCase):
 
     def test_container_allows_overriding_services(self):
         mock_service = MagicMock()
-        self.container.override_service("practica_service", mock_service)
-        self.assertIs(self.container.get_practica_service(), mock_service)
+        self.container.override_service("internship_service", mock_service)
+        self.assertIs(self.container.get_internship_service(), mock_service)
 
         self.container.reset()
-        self.assertIsNot(self.container.get_practica_service(), mock_service)
+        self.assertIsNot(self.container.get_internship_service(), mock_service)

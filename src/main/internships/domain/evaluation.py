@@ -1,18 +1,18 @@
 from datetime import datetime, timezone
 from shared.errors import DomainError
 
-PUNTAJE_APROBACION = 60.0
+PASSING_SCORE = 60.0
 
 
-class Evaluacion:
-    def __init__(self, id=None, practica_id=None, score=None, fecha_evaluacion=None):
+class Evaluation:
+    def __init__(self, id=None, internship_id=None, score=None, evaluated_at=None):
         self.id = id
-        self.practica_id = practica_id
+        self.internship_id = internship_id
         self.score = score
-        self.fecha_evaluacion = fecha_evaluacion
+        self.evaluated_at = evaluated_at
 
     @staticmethod
-    def crear(practica_id, score):
+    def create(internship_id, score):
         if score is None:
             raise DomainError("Debe indicarse un puntaje")
         try:
@@ -22,13 +22,13 @@ class Evaluacion:
         if score < 0 or score > 100:
             raise DomainError("El puntaje debe estar entre 0 y 100")
 
-        return Evaluacion(
-            practica_id=practica_id,
+        return Evaluation(
+            internship_id=internship_id,
             score=score,
-            fecha_evaluacion= datetime.now(timezone.utc),
+            evaluated_at= datetime.now(timezone.utc),
         )
 
-    def esta_aprobada(self):
+    def is_approved(self):
         if self.score is None:
             return False
-        return self.score >= PUNTAJE_APROBACION
+        return self.score >= PASSING_SCORE

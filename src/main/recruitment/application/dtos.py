@@ -38,4 +38,4 @@ class CandidateDTO(NamedTuple):
 
     job_application: JobApplication
     intern: Optional[object]
-    practica: Optional[object]
+    internship: Optional[object]

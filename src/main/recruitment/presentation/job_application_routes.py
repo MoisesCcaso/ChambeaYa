@@ -34,7 +34,7 @@ def serialize_job_application_with_posting(job_application, job_posting):
     return item
 
 
-def serialize_candidate(job_application, intern, practica):
+def serialize_candidate(job_application, intern, internship):
     item = serialize_job_application(job_application)
     item["practicante"] = (
         {
@@ -48,7 +48,7 @@ def serialize_candidate(job_application, intern, practica):
         if intern
         else None
     )
-    item["practica_iniciada"] = practica is not None
+    item["practica_iniciada"] = internship is not None
     return item
 
 
@@ -95,7 +95,7 @@ def list_job_posting_applications(job_posting_id):
         company.id, job_posting_id
     )
     return jsonify([
-        serialize_candidate(r.job_application, r.intern, r.practica)
+        serialize_candidate(r.job_application, r.intern, r.internship)
         for r in results
     ]), 200
 

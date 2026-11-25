@@ -1,7 +1,7 @@
 from shared.database import db
 
 
-class PracticaModel(db.Model):
+class InternshipModel(db.Model):
     __tablename__ = "practicas"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -14,9 +14,9 @@ class PracticaModel(db.Model):
     intern_id = db.Column("practicante_id", db.Integer, db.ForeignKey("practicantes.id"), nullable=False)
     status = db.Column("estado", db.String(20), nullable=False, default="EN_CURSO")
 
-    entregables = db.relationship(
-        "EntregableModel", backref="practica", cascade="all, delete-orphan", lazy="select"
+    deliverables = db.relationship(
+        "DeliverableModel", backref="practica", cascade="all, delete-orphan", lazy="select"
     )
-    evaluaciones = db.relationship(
-        "EvaluacionModel", backref="practica", cascade="all, delete-orphan", lazy="select"
+    evaluations = db.relationship(
+        "EvaluationModel", backref="practica", cascade="all, delete-orphan", lazy="select"
     )

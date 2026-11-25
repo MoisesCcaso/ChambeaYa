@@ -5,9 +5,9 @@ from notifications.infrastructure.models.notification_model import NotificationM
 from profiles.infrastructure.models.intern_model import InternModel
 from matching.infrastructure.models.suggestion_model import SuggestionModel
 from identity.infrastructure.models.user_model import UserModel
-from frameworks.sqlalchemy_orm.models.practica_model import PracticaModel
-from frameworks.sqlalchemy_orm.models.entregable_model import EntregableModel
-from frameworks.sqlalchemy_orm.models.evaluacion_model import EvaluacionModel
+from internships.infrastructure.models.internship_model import InternshipModel
+from internships.infrastructure.models.deliverable_model import DeliverableModel
+from internships.infrastructure.models.evaluation_model import EvaluationModel
 from recruitment.infrastructure.models.job_application_model import JobApplicationModel
 
 
@@ -19,8 +19,8 @@ __all__ = [
     "InternModel",
     "SuggestionModel",
     "UserModel",
-    "PracticaModel",
-    "EntregableModel",
-    "EvaluacionModel",
+    "InternshipModel",
+    "DeliverableModel",
+    "EvaluationModel",
     "JobApplicationModel",
 ]

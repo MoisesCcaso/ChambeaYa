@@ -15,5 +15,5 @@ class ICertificadoRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_practica_id(self, practica_id):
+    def find_by_practica_id(self, internship_id):
         pass
