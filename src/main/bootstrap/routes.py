@@ -7,11 +7,9 @@ from profiles.controllers.profile_routes import profile_bp
 from internships.controllers.internship_routes import internship_bp
 from recruitment.controllers.job_posting_routes import job_posting_bp
 from recruitment.controllers.job_application_routes import job_application_bp
-from bootstrap.web_routes import web_bp
 
 
 def register_routes(app):
-    app.register_blueprint(web_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(certificate_bp)
     app.register_blueprint(job_posting_bp)

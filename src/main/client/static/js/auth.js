@@ -6,6 +6,10 @@
     if (!box || !form) return;
 
     const mode = box.dataset.authMode;
+    if (mode === "login" || mode === "register") {
+        // With an open session there is nothing to do here: go to the app (the server used to redirect).
+        Chambea.api("/auth/me").then(() => window.location.assign("/app"), () => {});
+    }
     const feedback = document.getElementById("form-feedback");
     const query = new URLSearchParams(window.location.search);
     const activationToken = query.get("token");

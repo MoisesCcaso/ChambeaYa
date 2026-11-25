@@ -8,7 +8,7 @@ import unittest
 APP_HTML_PATH = (
     Path(__file__).resolve().parents[2]
     / "main"
-    / "bootstrap"
+    / "client"
     / "templates"
     / "app.html"
 )

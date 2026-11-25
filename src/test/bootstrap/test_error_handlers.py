@@ -75,11 +75,11 @@ def test_wrong_http_method_returns_json_405(client):
     assert response.get_json() == {"error": "Método no permitido para este recurso"}
 
 
-def test_browser_navigation_keeps_html_error_page(client):
+def test_browser_navigation_also_gets_json_because_the_api_has_no_views(client):
     response = client.get("/pagina-inexistente", headers={"Accept": "text/html"})
 
     assert response.status_code == 404
-    assert response.mimetype == "text/html"
+    assert response.get_json() == {"error": "Recurso no encontrado"}
 
 
 def test_certificate_pdf_requires_authentication(client):

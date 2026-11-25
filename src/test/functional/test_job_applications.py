@@ -28,12 +28,12 @@ def _login_intern(driver, base_url, email: str, password: str) -> None:
     assert login_page.role_label == "Practicante"
 
 
-def test_pos_01_lista_solo_convocatorias_publicadas(driver, base_url):
+def test_pos_01_lista_solo_convocatorias_publicadas(driver, base_url, api_url):
     """Opportunities shows published job postings and hides drafts."""
     published = _title("Practicante publicada")
     draft = _title("Practicante borrador")
-    job_application_data.create_opening(base_url, published)
-    job_application_data.create_opening(base_url, draft, publish=False)
+    job_application_data.create_opening(api_url, published)
+    job_application_data.create_opening(api_url, draft, publish=False)
 
     _login_intern(driver, base_url, *DEMO_INTERN)
     page = JobApplicationPage(driver, base_url).open_opportunities()
@@ -42,11 +42,11 @@ def test_pos_01_lista_solo_convocatorias_publicadas(driver, base_url):
     assert not page.opportunity_is_listed(draft)
 
 
-def test_pos_02_applies_to_published_job_posting(driver, base_url):
+def test_pos_02_applies_to_published_job_posting(driver, base_url, api_url):
     """An intern with a complete profile applies and sees the pending application."""
     title = _title("Practicante postulacion")
-    opening_id = job_application_data.create_opening(base_url, title)
-    user = job_application_data.create_student_with_profile(base_url)
+    opening_id = job_application_data.create_opening(api_url, title)
+    user = job_application_data.create_student_with_profile(api_url)
 
     _login_intern(driver, base_url, user["email"], user["password"])
     page = JobApplicationPage(driver, base_url).open_opportunities()
@@ -58,11 +58,11 @@ def test_pos_02_applies_to_published_job_posting(driver, base_url):
     assert page.application_has_status(title, "pendiente")
 
 
-def test_pos_03_does_not_allow_applying_twice(driver, base_url):
+def test_pos_03_does_not_allow_applying_twice(driver, base_url, api_url):
     """After applying, the UI removes the button and the server rejects the duplicate."""
     title = _title("Practicante duplicada")
-    opening_id = job_application_data.create_opening(base_url, title)
-    user = job_application_data.create_student_with_profile(base_url)
+    opening_id = job_application_data.create_opening(api_url, title)
+    user = job_application_data.create_student_with_profile(api_url)
 
     _login_intern(driver, base_url, user["email"], user["password"])
     page = JobApplicationPage(driver, base_url).open_opportunities()
@@ -74,31 +74,31 @@ def test_pos_03_does_not_allow_applying_twice(driver, base_url):
     page.open_applications()
     assert page.application_count(title) == 1
 
-    api = job_application_data.login(base_url, user["email"], user["password"])
+    api = job_application_data.login(api_url, user["email"], user["password"])
     code, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")
     assert code == 409
     assert "Ya existe una postulación" in cuerpo["error"]
 
 
-def test_pos_04_does_not_allow_applying_to_closed_job_posting(driver, base_url):
+def test_pos_04_does_not_allow_applying_to_closed_job_posting(driver, base_url, api_url):
     """A closed job posting is not offered and the server rejects applying."""
     title = _title("Practicante cerrada")
-    opening_id = job_application_data.create_opening(base_url, title, close=True)
-    user = job_application_data.create_student_with_profile(base_url)
+    opening_id = job_application_data.create_opening(api_url, title, close=True)
+    user = job_application_data.create_student_with_profile(api_url)
 
     _login_intern(driver, base_url, user["email"], user["password"])
     page = JobApplicationPage(driver, base_url).open_opportunities()
     assert not page.opportunity_is_listed(title)
 
-    api = job_application_data.login(base_url, user["email"], user["password"])
+    api = job_application_data.login(api_url, user["email"], user["password"])
     code, cuerpo = api.call("POST", f"/postulaciones/convocatorias/{opening_id}")
     assert code == 409
     assert "Solo se puede postular a convocatorias publicadas" in cuerpo["error"]
 
 
-def test_pos_05_verifies_certificate_with_valid_code(driver, base_url):
+def test_pos_05_verifies_certificate_with_valid_code(driver, base_url, api_url):
     """The public page recognizes an issued certificate by its real code."""
-    code = job_application_data.create_issued_certificate(base_url)
+    code = job_application_data.create_issued_certificate(api_url)
 
     page = VerifyCertificatePage(driver, base_url).open_verification()
     page.verify(code)

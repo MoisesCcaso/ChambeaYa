@@ -23,8 +23,8 @@ COMPANY_PASSWORD = "Demo1234"
 class ApiSession:
     """HTTP client with session cookies to call the ChambeaYa API."""
 
-    def __init__(self, base_url: str):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, api_url: str):
+        self.api_url = api_url.rstrip("/")
         self._opener = request.build_opener(
             request.HTTPCookieProcessor(CookieJar())
         )
@@ -34,9 +34,9 @@ class ApiSession:
         data = json.dumps(payload).encode("utf-8") if payload is not None else None
         headers = {"Content-Type": "application/json"}
         if method != "GET":
-            headers["X-CSRFToken"] = auth_data.csrf_token(self._opener, self.base_url)
+            headers["X-CSRFToken"] = auth_data.csrf_token(self._opener, self.api_url)
         req = request.Request(
-            f"{self.base_url}{path}",
+            f"{self.api_url}{path}",
             data=data,
             headers=headers,
             method=method,
@@ -59,17 +59,17 @@ class ApiSession:
         return body
 
 
-def login(base_url: str, email: str, password: str) -> ApiSession:
+def login(api_url: str, email: str, password: str) -> ApiSession:
     """Logs in through the API and returns the authenticated session."""
-    session = ApiSession(base_url)
+    session = ApiSession(api_url)
     session.expect("POST", "/auth/login", {"email": email, "password": password})
     return session
 
 
-def create_opening(base_url: str, title: str, publish: bool = True,
+def create_opening(api_url: str, title: str, publish: bool = True,
                    close: bool = False) -> int:
     """Creates a job posting for the demo company and returns its id."""
-    company = login(base_url, COMPANY_EMAIL, COMPANY_PASSWORD)
+    company = login(api_url, COMPANY_EMAIL, COMPANY_PASSWORD)
     opening = company.expect(
         "POST",
         "/convocatorias",
@@ -89,26 +89,26 @@ def create_opening(base_url: str, title: str, publish: bool = True,
     return opening_id
 
 
-def create_student_with_profile(base_url: str) -> dict:
+def create_student_with_profile(api_url: str) -> dict:
     """Creates and activates an intern with first and last names (required to apply)."""
-    user = auth_data.register_active_user(base_url)
-    student = login(base_url, user["email"], user["password"])
+    user = auth_data.register_active_user(api_url)
+    student = login(api_url, user["email"], user["password"])
     student.expect(
         "PUT", "/perfil/me", {"nombres": "Ana", "apellidos": "Prueba"}
     )
     return user
 
 
-def create_issued_certificate(base_url: str) -> str:
+def create_issued_certificate(api_url: str) -> str:
     """Walks the full flow and returns the code of an issued certificate.
 
     Published job posting -> application -> selection -> internship ->
     deliverable -> passed evaluation -> finish -> issuance.
     """
-    opening_id = create_opening(base_url, "Convocatoria para certificado")
-    user = create_student_with_profile(base_url)
-    student = login(base_url, user["email"], user["password"])
-    company = login(base_url, COMPANY_EMAIL, COMPANY_PASSWORD)
+    opening_id = create_opening(api_url, "Convocatoria para certificado")
+    user = create_student_with_profile(api_url)
+    student = login(api_url, user["email"], user["password"])
+    company = login(api_url, COMPANY_EMAIL, COMPANY_PASSWORD)
 
     job_application = student.expect(
         "POST", f"/postulaciones/convocatorias/{opening_id}", status=201

@@ -477,85 +477,14 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertIn("Correo de prueba enviado", result.output)
         send_test.assert_called_once_with("destino@example.com")
 
-    def test_web_views_and_app_access(self):
-        for path in (
-            "/",
-            "/ingresar",
-            "/registro",
-            "/activar",
-            "/recuperar",
-            "/restablecer",
-            "/verificar-certificado",
-        ):
-            response = self.request(self.intern, "get", path, 200)
-            self.assertEqual("text/html", response.mimetype)
-
-        anonymous_app = self.intern.get("/app")
-        self.assertEqual(302, anonymous_app.status_code)
-        self.assertTrue(anonymous_app.location.endswith("/ingresar"))
-
-        register_view = self.request(self.intern, "get", "/registro", 200)
-        self.assertIn(b'name="password_confirmation"', register_view.data)
-        self.assertIn(b'id="password-requirements"', register_view.data)
-        activate_view = self.request(self.intern, "get", "/activar", 200)
-        self.assertIn(b'id="activation-email-field"', activate_view.data)
-
-        registered = self.register_activate_login(
-            self.intern,
-            "vista@example.com",
-            "Vista1234",
-            "practicante",
-        )
-        self.assertIsNotNone(registered["id"])
-        app_view = self.request(self.intern, "get", "/app", 200)
-        self.assertIn(b'id="app-shell"', app_view.data)
-        self.assertIn(b'id="confirmation-dialog"', app_view.data)
-        self.assertIn(b'data-filter="cancelada"', app_view.data)
-
-        for asset in (
-            "/static/css/app.css",
-            "/static/js/common.js",
-            "/static/js/auth.js",
-            "/static/js/verify.js",
-            "/static/js/app.js",
-            "/static/icons.svg",
-            "/static/img/chambeaYa_icon.ico",
-            "/static/img/chambeaya-logo-horizontal.png",
-            "/static/img/chambeaya-logo-square.png",
-        ):
-            response = self.request(self.intern, "get", asset, 200)
-            self.assertGreater(len(response.data), 0)
-            response.close()
-
-        app_script = self.request(
-            self.intern,
-            "get",
-            "/static/js/app.js",
-            200,
-        )
-        for action in (
-            b"data-delete-opening",
-            b"data-duplicate-opening",
-            b"data-reopen-opening",
-            b"data-cancel-application",
-            b"data-reconsider-candidate",
-            b"data-delete-deliverable",
-            b"data-delete-evaluation",
-        ):
-            self.assertIn(action, app_script.data)
-        app_script.close()
-
     def test_demo_seed_requires_demo_password(self):
         self.app.config["DEMO_PASSWORD"] = None
         result = self.app.test_cli_runner().invoke(args=["seed-demo"])
         self.assertNotEqual(0, result.exit_code)
         self.assertIn("Define DEMO_PASSWORD", result.output)
 
-    def test_demo_seed_is_repeatable_and_covers_main_views(self):
-        self.app.config["DEMO_MODE"] = True
+    def test_demo_seed_is_repeatable_and_covers_main_flows(self):
         self.app.config["DEMO_PASSWORD"] = "Demo1234"
-        login_view = self.request(self.intern, "get", "/ingresar", 200)
-        self.assertIn(b"data-demo-login", login_view.data)
 
         runner = self.app.test_cli_runner()
         first_seed = runner.invoke(args=["seed-demo"])

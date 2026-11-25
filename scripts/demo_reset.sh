@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Equivalente Linux/macOS de demo.ps1: reinicia la BD demo y levanta la app.
+# Equivalente Linux/macOS de demo.ps1: reinicia la BD demo y levanta la API (:5000) y el cliente (:5001).
 # Uso: scripts/demo_reset.sh [--no-reset]
 set -euo pipefail
 
@@ -12,14 +12,19 @@ export FLASK_ENV=demo
 export SECRET_KEY=chambeaya-demo-local
 export DATABASE_URL=sqlite:///chambeaya-demo.db
 export PYTHONPATH="$root/src/main"
-app=(-m flask --app bootstrap.app:create_app)
+# mismo host para los dos: la cookie de sesión de la API viaja entre puertos (same-site)
+export API_URL=http://127.0.0.1:5000 APP_URL=http://127.0.0.1:5001 CLIENT_ORIGINS=http://127.0.0.1:5001
+api=(-m flask --app bootstrap.app:create_app)
 
 if [ "${1:-}" != "--no-reset" ]; then
     rm -f "$root/instance/chambeaya-demo.db"
     echo "Base de demostración reiniciada."
 fi
 
-"$python" "${app[@]}" db upgrade
-"$python" "${app[@]}" seed-demo
-echo "ChambeaYa en http://127.0.0.1:5000 (Ctrl+C para detener)"
-exec "$python" "${app[@]}" run --no-reload
+"$python" "${api[@]}" db upgrade
+"$python" "${api[@]}" seed-demo
+"$python" "${api[@]}" run --no-reload --port 5000 &
+api_pid=$!
+trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+echo "API REST en $API_URL · Cliente en $APP_URL (Ctrl+C para detener)"
+"$python" -m flask --app client.app:create_app run --no-reload --port 5001

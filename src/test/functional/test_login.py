@@ -54,6 +54,7 @@ def test_log_05_redirects_app_without_session(driver, base_url):
     page = LoginPage(driver, base_url)
     page.open("/app")
 
+    page.wait_for_path("/ingresar")
     assert page.current_path == "/ingresar"
 
 
@@ -69,4 +70,5 @@ def test_log_06_logout_invalida_acceso_a_app(driver, base_url):
     assert page.current_path == "/ingresar"
 
     page.open("/app")
+    page.wait_for_path("/ingresar")
     assert page.current_path == "/ingresar"

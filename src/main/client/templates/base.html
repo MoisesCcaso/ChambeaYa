@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#0062fc">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>window.CHAMBEAYA_API_URL = {{ config.API_URL | tojson }};</script>
     <title>{% block title %}ChambeaYa{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/chambeaYa_icon.ico') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/chambeaYa_icon.ico') }}">
