@@ -1,4 +1,4 @@
-from certification.infrastructure.models.certificado_model import CertificadoModel
+from certification.infrastructure.models.certificate_model import CertificateModel
 from recruitment.infrastructure.models.job_posting_model import JobPostingModel
 from profiles.infrastructure.models.company_model import CompanyModel
 from notifications.infrastructure.models.notification_model import NotificationModel
@@ -12,7 +12,7 @@ from recruitment.infrastructure.models.job_application_model import JobApplicati
 
 
 __all__ = [
-    "CertificadoModel",
+    "CertificateModel",
     "JobPostingModel",
     "CompanyModel",
     "NotificationModel",

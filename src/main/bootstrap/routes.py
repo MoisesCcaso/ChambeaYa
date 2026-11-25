@@ -1,5 +1,5 @@
 from identity.presentation.auth_routes import auth_bp
-from certification.presentation.certificado_routes import certificado_bp
+from certification.presentation.certificate_routes import certificate_bp
 from bootstrap.health_routes import health_bp
 from matching.presentation.matching_routes import matching_bp
 from notifications.presentation.notification_routes import notification_bp
@@ -13,7 +13,7 @@ from bootstrap.web_routes import web_bp
 def register_routes(app):
     app.register_blueprint(web_bp)
     app.register_blueprint(auth_bp)
-    app.register_blueprint(certificado_bp)
+    app.register_blueprint(certificate_bp)
     app.register_blueprint(job_posting_bp)
     app.register_blueprint(notification_bp)
     app.register_blueprint(job_application_bp)

@@ -1,12 +1,12 @@
-from certification.domain.certificacion_dominio_servicio import CertificacionDominioServicio
+from certification.domain.certification_domain_service import CertificationDomainService
 from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
 from shared.errors import ForbiddenError, NotFoundError
 
-class CertificacionApplicationService:
-    def __init__(self, certificado_repository=None, internship_repository=None,
+class CertificationApplicationService:
+    def __init__(self, certificate_repository=None, internship_repository=None,
                  job_application_repository=None, job_posting_repository=None,
                  profile_repository=None, notification_service=None):
-        self.certificado_repository = certificado_repository
+        self.certificate_repository = certificate_repository
         self.internship_repository = internship_repository
         self.job_application_repository = job_application_repository
         self.job_posting_repository = job_posting_repository
@@ -34,18 +34,18 @@ class CertificacionApplicationService:
         if intern is None:
             raise NotFoundError("Practicante no encontrado")
 
-        existing = self.certificado_repository.find_by_practica_id(internship_id)
+        existing = self.certificate_repository.find_by_internship_id(internship_id)
         if existing is not None:
             return existing, False
 
-        certificado = CertificacionDominioServicio().generar_certificado(
+        certificate = CertificationDomainService().generate_certificate(
             internship, intern, job_posting
         )
-        saved = self.certificado_repository.save(certificado)
-        self._notificar_emision(intern, internship_id)
+        saved = self.certificate_repository.save(certificate)
+        self._notify_issuance(intern, internship_id)
         return saved, True
 
-    def _notificar_emision(self, intern, internship_id):
+    def _notify_issuance(self, intern, internship_id):
         if self.notification_service is None:
             return
         user_id = getattr(intern, "user_id", None)
@@ -61,35 +61,35 @@ class CertificacionApplicationService:
         except Exception:
             pass
 
-    def verify_certificate(self, codigo_qr_valor):
+    def verify_certificate(self, qr_code_value):
         self._require_repositories()
 
-        certificado = self.certificado_repository.find_by_codigo(codigo_qr_valor)
-        if certificado is None:
+        certificate = self.certificate_repository.find_by_code(qr_code_value)
+        if certificate is None:
             raise NotFoundError("Certificado no encontrado")
 
-        qr_valido = certificado.verificar_qr(codigo_qr_valor)
-        documento_valido = (
-            certificado.documento is not None
-            and certificado.verificar_integridad(certificado.documento.contenido)
+        qr_valid = certificate.verify_qr(qr_code_value)
+        document_valid = (
+            certificate.document is not None
+            and certificate.verify_integrity(certificate.document.content)
         )
-        return qr_valido and documento_valido
+        return qr_valid and document_valid
 
-    def find_by_practica_id(self, internship_id):
+    def find_by_internship_id(self, internship_id):
         self._require_repositories()
-        return self.certificado_repository.find_by_practica_id(internship_id)
+        return self.certificate_repository.find_by_internship_id(internship_id)
 
     def _require_repositories(self):
         if any(
             repository is None
             for repository in (
-                self.certificado_repository,
+                self.certificate_repository,
                 self.internship_repository,
                 self.job_application_repository,
                 self.job_posting_repository,
                 self.profile_repository,
             )
         ):
-            raise RuntimeError("CertificacionApplicationService requiere todos sus repositorios")
+            raise RuntimeError("CertificationApplicationService requires all of its repositories")
 
 
