@@ -2079,9 +2079,9 @@ El `Jenkinsfile` de la raíz define el pipeline. Jenkins lo ejecuta automáticam
 | 2 | Pruebas unitarias | pytest sin funcionales, con cobertura y reporte JUnit | Se detiene |
 | 3 | Análisis SonarQube | `sonar-scanner` con `sonar-project.properties` | Se detiene |
 | 4 | Quality Gate | Espera el veredicto de SonarQube (máx. 5 min) | Se detiene |
-| 5 | Staging efímero | Instala el wheel en el workspace con BD nueva: API en `127.0.0.1:5001`, cliente en `127.0.0.1:5002` | Se detiene |
+| 5 | Staging efímero | Instala el wheel en el workspace con BD nueva: API en `127.0.0.1:5002`, cliente en `127.0.0.1:5003` | Se detiene |
 | 6 | Pruebas funcionales | Selenium contra el cliente de staging (`CHAMBEAYA_BASE_URL`), con los datos de prueba creados por la API (`CHAMBEAYA_API_URL`); luego se apaga staging | Se detiene |
-| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`: API en `127.0.0.1:5000`, cliente en `127.0.0.1:5003` | Rollback automático |
+| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`: API en `127.0.0.1:5000`, cliente en `127.0.0.1:5001` (los mismos puertos que en local) | Rollback automático |
 
 **Despliegue (`scripts/ci/deploy.sh`).** Lo usan staging y el despliegue final:
 
