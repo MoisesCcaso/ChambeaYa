@@ -13,7 +13,7 @@ from recruitment.domain.i_job_application_repository import IJobApplicationRepos
 from recruitment.domain.job_application import JobApplication
 from profiles.domain.i_intern_repository import IInternRepository
 from internships.domain.i_internship_repository import IInternshipRepository
-from shared.error_messages import JOB_POSTING_NOT_FOUND, JOB_APPLICATION_NOT_FOUND
+from shared.error_messages import JOB_POSTING_NOT_FOUND
 
 
 class TestJobApplicationService(unittest.TestCase):

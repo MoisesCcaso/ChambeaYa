@@ -1,4 +1,4 @@
-"""Configuración compartida para pruebas funcionales con Selenium."""
+"""Shared configuration for the Selenium functional tests."""
 
 import os
 
@@ -7,15 +7,15 @@ import pytest
 
 @pytest.fixture
 def base_url() -> str:
-    """URL de la aplicación; se puede sobrescribir con CHAMBEAYA_BASE_URL."""
+    """App URL; can be overridden with CHAMBEAYA_BASE_URL."""
     return os.getenv("CHAMBEAYA_BASE_URL", "http://127.0.0.1:5000").rstrip("/")
 
 
 @pytest.fixture
 def driver():
-    """Abre Chrome en modo headless y garantiza el cierre al terminar la prueba.
+    """Opens headless Chrome and makes sure it closes when the test ends.
 
-    Selenium Manager, integrado en Selenium 4, resuelve el driver automáticamente.
+    Selenium Manager, built into Selenium 4, resolves the driver automatically.
     """
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options

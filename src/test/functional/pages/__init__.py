@@ -1,1 +1,1 @@
-"""Page Objects de las vistas bajo prueba."""
+"""Page Objects for the views under test."""

@@ -1,4 +1,4 @@
-"""Pruebas unitarias de accesibilidad HTML para Web:S6853 en app.html (Issue #183)."""
+"""HTML accessibility unit tests for Web:S6853 in app.html (Issue #183)."""
 
 from html.parser import HTMLParser
 from pathlib import Path
@@ -29,7 +29,7 @@ class _LabelInputParser(HTMLParser):
 
 
 class TestAppHtmlLabelAssociationS6853(unittest.TestCase):
-    """Verifica que la etiqueta label.search-field esté explícitamente asociada con for='opportunity-search'."""
+    """Checks that the label.search-field tag is explicitly bound with for='opportunity-search'."""
 
     def test_search_field_label_tiene_atributo_for_asociado_al_input(self):
         parser = _LabelInputParser()

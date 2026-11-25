@@ -66,7 +66,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
         return registered
 
-    def prepare_users_and_convocatoria(self):
+    def prepare_users_and_job_posting(self):
         self.register_activate_login(
             self.company,
             "empresa@example.com",
@@ -120,7 +120,7 @@ class BackendIntegrationTest(unittest.TestCase):
         return job_posting
 
     def test_complete_business_flow(self):
-        job_posting = self.prepare_users_and_convocatoria()
+        job_posting = self.prepare_users_and_job_posting()
         job_posting_id = job_posting["id"]
 
         matches = self.request(
@@ -200,27 +200,27 @@ class BackendIntegrationTest(unittest.TestCase):
             201,
         ).get_json()
         code = certificate["codigo_qr"]["valor"]
-        certificado_consultado = self.request(
+        queried_certificate = self.request(
             self.intern,
             "get",
             f"/certificados/practica/{internship_id}",
             200,
         ).get_json()
-        self.assertEqual(certificate["id"], certificado_consultado["id"])
-        certificado_repetido = self.request(
+        self.assertEqual(certificate["id"], queried_certificate["id"])
+        repeated_certificate = self.request(
             self.company,
             "post",
             f"/certificados/{internship_id}/emitir",
             200,
         ).get_json()
-        self.assertEqual(certificate["id"], certificado_repetido["id"])
-        verificacion = self.request(
+        self.assertEqual(certificate["id"], repeated_certificate["id"])
+        verification = self.request(
             self.intern,
             "get",
             f"/certificados/verificar/{code}",
             200,
         ).get_json()
-        self.assertTrue(verificacion["valido"])
+        self.assertTrue(verification["valido"])
         self.assertEqual(
             "application/pdf",
             self.request(
@@ -241,7 +241,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
     def test_authorization_and_business_guards(self):
-        job_posting = self.prepare_users_and_convocatoria()
+        job_posting = self.prepare_users_and_job_posting()
         job_application = self.request(
             self.intern,
             "post",
@@ -268,19 +268,19 @@ class BackendIntegrationTest(unittest.TestCase):
             f"/practicas/{internship['id']}/finalizar",
             409,
         )
-        notificaciones = self.request(
+        notification_list = self.request(
             self.intern, "get", "/notificaciones", 200
         ).get_json()
         self.request(
             self.company,
             "put",
-            f"/notificaciones/{notificaciones[0]['id']}/leer",
+            f"/notificaciones/{notification_list[0]['id']}/leer",
             404,
         )
         self.request(
             self.intern,
             "put",
-            f"/notificaciones/{notificaciones[0]['id']}/leer",
+            f"/notificaciones/{notification_list[0]['id']}/leer",
             200,
         )
 
@@ -695,7 +695,7 @@ class BackendIntegrationTest(unittest.TestCase):
         self.assertFalse(updated["identidad_verificada"])
 
     def test_opening_management_actions(self):
-        opening = self.prepare_users_and_convocatoria()
+        opening = self.prepare_users_and_job_posting()
         opening_id = opening["id"]
 
         self.request(
@@ -744,7 +744,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
     def test_application_withdrawal_and_candidate_reconsideration(self):
-        opening = self.prepare_users_and_convocatoria()
+        opening = self.prepare_users_and_job_posting()
         opening_id = opening["id"]
         first = self.request(
             self.intern,
@@ -837,7 +837,7 @@ class BackendIntegrationTest(unittest.TestCase):
         )
 
     def test_deliverables_and_evaluations_can_be_deleted_in_progress(self):
-        opening = self.prepare_users_and_convocatoria()
+        opening = self.prepare_users_and_job_posting()
         application = self.request(
             self.intern,
             "post",

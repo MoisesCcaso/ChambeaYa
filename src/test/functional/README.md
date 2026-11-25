@@ -58,10 +58,10 @@ poetry run pytest src/test/functional \
   --html=reports/functional.html --self-contained-html
 
 # Un solo archivo
-poetry run pytest src/test/functional/test_registro.py
+poetry run pytest src/test/functional/test_registration.py
 
 # Un solo caso
-poetry run pytest "src/test/functional/test_registro.py::test_reg_05_confirmacion_distinta_de_la_contrasena"
+poetry run pytest "src/test/functional/test_registration.py::test_reg_05_confirmation_differs_from_password"
 ```
 
 Chrome se ejecuta en modo headless (sin ventana), según `conftest.py`.

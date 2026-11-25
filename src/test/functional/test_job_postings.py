@@ -1,27 +1,27 @@
-"""Pruebas funcionales de convocatorias asignadas a I5."""
+"""Job posting functional tests assigned to I5."""
 
 from uuid import uuid4
 
 from selenium.webdriver.common.by import By
 
 if __package__:
-    from .pages.convocatoria_page import ConvocatoriaPage
+    from .pages.job_posting_page import JobPostingPage
     from .pages.login_page import LoginPage
 else:
-    from pages.convocatoria_page import ConvocatoriaPage
+    from pages.job_posting_page import JobPostingPage
     from pages.login_page import LoginPage
 
 
-def test_con_01_crea_convocatoria_valida_como_borrador(driver, base_url):
-    """Una empresa puede crear una convocatoria válida en estado borrador."""
+def test_con_01_creates_valid_job_posting_as_draft(driver, base_url):
+    """A company can create a valid job posting as a draft."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
 
     title = f"Practicante QA funcional {uuid4().hex[:8]}"
     page.create_draft(
@@ -31,26 +31,26 @@ def test_con_01_crea_convocatoria_valida_como_borrador(driver, base_url):
         benefits="Mentoría, horario flexible",
     )
 
-    assert page.convocatoria_is_borrador(title)
+    assert page.job_posting_is_draft(title)
 
 
-def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
-    """El formulario impide guardar una convocatoria sin título."""
+def test_con_02_rejects_job_posting_without_title(driver, base_url):
+    """The form prevents saving a job posting without a title."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
-    page.start_new_convocatoria()
-    page.fill_convocatoria(
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
+    page.start_new_job_posting()
+    page.fill_job_posting(
         title="",
         description="Convocatoria de prueba sin título.",
         skills="Python",
     )
-    filas_antes = len(
+    rows_before = len(
         driver.find_element(*page.TABLE).find_elements(By.TAG_NAME, "tr")
     )
     page.save_draft()
@@ -60,20 +60,20 @@ def test_con_02_rechaza_convocatoria_sin_titulo(driver, base_url):
     assert driver.execute_script("return arguments[0].validationMessage;", title)
     assert (
         len(driver.find_element(*page.TABLE).find_elements(By.TAG_NAME, "tr"))
-        == filas_antes
+        == rows_before
     )
 
 
-def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
-    """Una empresa puede publicar una convocatoria que está en borrador."""
+def test_con_03_publishes_draft_job_posting(driver, base_url):
+    """A company can publish a draft job posting."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
     title = f"Practicante QA publicación {uuid4().hex[:8]}"
     page.create_draft(
         title=title,
@@ -81,22 +81,22 @@ def test_con_03_publica_convocatoria_en_borrador(driver, base_url):
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(title)
+    assert page.job_posting_is_draft(title)
     page.publish_job_posting(title)
 
-    assert page.convocatoria_is_publicada(title)
+    assert page.job_posting_is_published(title)
 
 
-def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
-    """Una convocatoria publicada deja de ofrecer la acción Publicar."""
+def test_con_04_does_not_offer_publishing_an_already_published_job_posting(driver, base_url):
+    """A published job posting no longer offers the Publish action."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
     title = f"Practicante QA publicación única {uuid4().hex[:8]}"
     page.create_draft(
         title=title,
@@ -104,23 +104,23 @@ def test_con_04_no_ofrece_publicar_convocatoria_ya_publicada(driver, base_url):
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(title)
+    assert page.job_posting_is_draft(title)
     page.publish_job_posting(title)
 
-    assert page.convocatoria_is_publicada(title)
-    assert not page.can_publish_convocatoria(title)
+    assert page.job_posting_is_published(title)
+    assert not page.can_publish_job_posting(title)
 
 
-def test_con_05_cierra_convocatoria_publicada(driver, base_url):
-    """Una empresa puede cerrar una convocatoria publicada."""
+def test_con_05_closes_published_job_posting(driver, base_url):
+    """A company can close a published job posting."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
     title = f"Practicante QA cierre {uuid4().hex[:8]}"
     page.create_draft(
         title=title,
@@ -128,25 +128,25 @@ def test_con_05_cierra_convocatoria_publicada(driver, base_url):
         skills="Python, Selenium",
     )
 
-    assert page.convocatoria_is_borrador(title)
+    assert page.job_posting_is_draft(title)
     page.publish_job_posting(title)
-    assert page.convocatoria_is_publicada(title)
+    assert page.job_posting_is_published(title)
 
     page.close_job_posting(title)
 
-    assert page.convocatoria_is_cerrada(title)
+    assert page.job_posting_is_closed(title)
 
 
-def test_con_06_muestra_candidatos_de_convocatoria(driver, base_url):
-    """La empresa puede ver al practicante postulado a una convocatoria demo."""
+def test_con_06_shows_job_posting_candidates(driver, base_url):
+    """The company can see the intern who applied to a demo job posting."""
     login_page = LoginPage(driver, base_url)
     login_page.open_login()
     login_page.login("empresa@demo.local", "Demo1234")
     login_page.wait_for_path("/app")
     assert login_page.role_label == "Empresa"
 
-    page = ConvocatoriaPage(driver, base_url)
-    page.open_convocatorias()
+    page = JobPostingPage(driver, base_url)
+    page.open_job_postings()
     page.open_candidates("Practicante de aseguramiento de calidad")
 
     assert page.candidate_is_listed("Andrea Quispe")

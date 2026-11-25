@@ -1,24 +1,24 @@
-"""Page Objects de oportunidades, postulaciones y verificación de certificados."""
+"""Page Objects for opportunities, job applications and certificate verification."""
 
 from selenium.webdriver.common.by import By
 
 from .base_page import BasePage
 
 
-class PostulacionPage(BasePage):
-    """Vistas Oportunidades y Mis postulaciones del practicante en `/app`."""
+class JobApplicationPage(BasePage):
+    """The intern's Opportunities and My applications views in `/app`."""
 
-    NAV_OPORTUNIDADES = (By.CSS_SELECTOR, '[data-view="oportunidades"]')
-    PANEL_OPORTUNIDADES = (By.CSS_SELECTOR, '[data-view-panel="oportunidades"]')
+    NAV_OPPORTUNITIES = (By.CSS_SELECTOR, '[data-view="oportunidades"]')
+    PANEL_OPPORTUNITIES = (By.CSS_SELECTOR, '[data-view-panel="oportunidades"]')
     OPPORTUNITY_TITLES = (By.CSS_SELECTOR, "#opportunity-list .result-item h3")
     OPPORTUNITY_DETAIL = (By.ID, "opportunity-detail")
     DETAIL_STATUS_BADGE = (By.CSS_SELECTOR, "#opportunity-detail .detail-actions .status-badge")
-    NAV_POSTULACIONES = (By.CSS_SELECTOR, '[data-view="postulaciones"]')
-    PANEL_POSTULACIONES = (By.CSS_SELECTOR, '[data-view-panel="postulaciones"]')
+    NAV_APPLICATIONS = (By.CSS_SELECTOR, '[data-view="postulaciones"]')
+    PANEL_APPLICATIONS = (By.CSS_SELECTOR, '[data-view-panel="postulaciones"]')
     TOAST = (By.CSS_SELECTOR, "#toast-region .toast")
 
     def _click(self, element) -> None:
-        """Hace scroll hasta el elemento y lo pulsa, con respaldo por JavaScript."""
+        """Scrolls to the element and clicks it, with a JavaScript fallback."""
         self.driver.execute_script(
             "arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});",
             element,
@@ -29,10 +29,10 @@ class PostulacionPage(BasePage):
             self.driver.execute_script("arguments[0].click();", element)
 
     # --- Oportunidades ---
-    def open_oportunidades(self) -> "PostulacionPage":
-        """Abre Oportunidades y espera a que cargue la lista o el estado vacío."""
-        self._click(self.wait_until_clickable(self.NAV_OPORTUNIDADES))
-        self.wait_until_visible(self.PANEL_OPORTUNIDADES)
+    def open_opportunities(self) -> "JobApplicationPage":
+        """Opens Opportunities and waits for the list or the empty state."""
+        self._click(self.wait_until_clickable(self.NAV_OPPORTUNITIES))
+        self.wait_until_visible(self.PANEL_OPPORTUNITIES)
         self.wait_for(
             lambda browser: browser.find_elements(
                 By.CSS_SELECTOR,
@@ -42,18 +42,18 @@ class PostulacionPage(BasePage):
         return self
 
     def opportunity_titles(self) -> list[str]:
-        """Títulos de las convocatorias que muestra la lista."""
+        """Titles of the job postings shown in the list."""
         return [
             heading.text.strip()
             for heading in self.driver.find_elements(*self.OPPORTUNITY_TITLES)
         ]
 
     def opportunity_is_listed(self, title: str) -> bool:
-        """Indica si la convocatoria aparece en la lista de oportunidades."""
+        """Whether the job posting appears in the opportunities list."""
         return title in self.opportunity_titles()
 
-    def select_opportunity(self, opening_id: int) -> "PostulacionPage":
-        """Selecciona una convocatoria de la lista para ver su detalle."""
+    def select_opportunity(self, opening_id: int) -> "JobApplicationPage":
+        """Selects a job posting from the list to see its detail."""
         item = self.wait_until_clickable(
             (By.CSS_SELECTOR, f'[data-select-opening="{opening_id}"]')
         )
@@ -64,7 +64,7 @@ class PostulacionPage(BasePage):
         return self
 
     def apply_button_is_present(self, opening_id: int) -> bool:
-        """Indica si el detalle ofrece el botón de postular a esa convocatoria."""
+        """Whether the detail offers the apply button for that job posting."""
         return bool(
             self.driver.find_elements(
                 By.CSS_SELECTOR, f'[data-apply-opening="{opening_id}"]'
@@ -72,7 +72,7 @@ class PostulacionPage(BasePage):
         )
 
     def apply(self, opening_id: int) -> str:
-        """Pulsa Postular y devuelve el texto del aviso que muestra la aplicación."""
+        """Clicks Apply and returns the text of the notice the app shows."""
         button = self.wait_until_clickable(
             (By.CSS_SELECTOR, f'[data-apply-opening="{opening_id}"]')
         )
@@ -80,14 +80,14 @@ class PostulacionPage(BasePage):
         return self.wait_until_visible(self.TOAST).text.strip()
 
     def detail_status_class(self) -> str:
-        """Clases CSS de la etiqueta de estado que reemplaza al botón de postular."""
+        """CSS classes of the status badge that replaces the apply button."""
         return self.wait_until_visible(self.DETAIL_STATUS_BADGE).get_attribute("class")
 
     # --- Mis postulaciones ---
-    def open_postulaciones(self) -> "PostulacionPage":
-        """Abre la vista Mis postulaciones."""
-        self._click(self.wait_until_clickable(self.NAV_POSTULACIONES))
-        self.wait_until_visible(self.PANEL_POSTULACIONES)
+    def open_applications(self) -> "JobApplicationPage":
+        """Opens the My applications view."""
+        self._click(self.wait_until_clickable(self.NAV_APPLICATIONS))
+        self.wait_until_visible(self.PANEL_APPLICATIONS)
         return self
 
     @staticmethod
@@ -98,7 +98,7 @@ class PostulacionPage(BasePage):
         )
 
     def application_count(self, title: str) -> int:
-        """Número de filas de la tabla que corresponden a la convocatoria."""
+        """Number of table rows for the job posting."""
         self.wait_for(
             lambda browser: browser.find_elements(
                 By.CSS_SELECTOR, "#applications-table tr"
@@ -107,7 +107,7 @@ class PostulacionPage(BasePage):
         return len(self.driver.find_elements(By.XPATH, self._row_xpath(title)))
 
     def application_has_status(self, title: str, status: str) -> bool:
-        """Indica si la postulación a la convocatoria muestra el estado indicado."""
+        """Whether the application to the job posting shows the given status."""
         return self.wait_until_visible(
             (
                 By.XPATH,
@@ -116,21 +116,21 @@ class PostulacionPage(BasePage):
         ).is_displayed()
 
 
-class VerificarCertificadoPage(BasePage):
-    """Vista pública `/verificar-certificado` (no requiere sesión)."""
+class VerifyCertificatePage(BasePage):
+    """Public `/verificar-certificado` view (no session required)."""
 
     CODE_INPUT = (By.CSS_SELECTOR, '#verify-form input[name="codigo"]')
     SUBMIT = (By.CSS_SELECTOR, '#verify-form button[type="submit"]')
     RESULT = (By.ID, "verification-result")
 
-    def open_verificacion(self) -> "VerificarCertificadoPage":
-        """Abre la página pública de verificación."""
+    def open_verification(self) -> "VerifyCertificatePage":
+        """Opens the public verification page."""
         self.open("/verificar-certificado")
         self.wait_until_visible(self.CODE_INPUT)
         return self
 
-    def verify(self, code: str) -> "VerificarCertificadoPage":
-        """Escribe el código, envía el formulario y espera el resultado."""
+    def verify(self, code: str) -> "VerifyCertificatePage":
+        """Types the code, submits the form and waits for the result."""
         field = self.wait_until_visible(self.CODE_INPUT)
         field.clear()
         field.send_keys(code)
@@ -140,11 +140,11 @@ class VerificarCertificadoPage(BasePage):
 
     @property
     def result_text(self) -> str:
-        """Texto del recuadro de resultado."""
+        """Text of the result box."""
         return self.driver.find_element(*self.RESULT).text.strip()
 
     @property
     def result_is_valid(self) -> bool:
-        """True si el resultado se pintó como válido (clase `valid`)."""
+        """True if the result was rendered as valid (`valid` class)."""
         classes = self.driver.find_element(*self.RESULT).get_attribute("class").split()
         return "valid" in classes

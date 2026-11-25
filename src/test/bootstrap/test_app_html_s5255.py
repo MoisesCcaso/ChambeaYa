@@ -1,4 +1,4 @@
-"""Pruebas unitarias de accesibilidad HTML para Web:S5255 en app.html (Issue #184)."""
+"""HTML accessibility unit tests for Web:S5255 in app.html (Issue #184)."""
 
 from html.parser import HTMLParser
 from pathlib import Path
@@ -26,9 +26,9 @@ class _AsideAriaParser(HTMLParser):
 
 
 class TestAppHtmlAsideAriaLabelsS5255(unittest.TestCase):
-    """Verifica que los 4 contenedores <aside> en app.html tengan atributos aria-label descriptivos."""
+    """Checks that the 4 <aside> containers in app.html have descriptive aria-label attributes."""
 
-    def test_todos_los_elementos_aside_tienen_aria_label(self):
+    def test_every_aside_element_has_an_aria_label(self):
         parser = _AsideAriaParser()
         parser.feed(APP_HTML_PATH.read_text(encoding="utf-8"))
 

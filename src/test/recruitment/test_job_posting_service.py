@@ -5,7 +5,6 @@ from unittest.mock import create_autospec
 
 from recruitment.application.job_posting_application_service import JobPostingApplicationService
 from recruitment.domain.job_posting import JobPosting
-from recruitment.domain.job_posting_factory import JobPostingFactory
 from recruitment.domain.i_job_posting_repository import IJobPostingRepository
 
 
