@@ -2080,8 +2080,11 @@ El `Jenkinsfile` de la raíz define el pipeline. Jenkins lo ejecuta automáticam
 | 3 | Análisis SonarQube | `sonar-scanner` con `sonar-project.properties` | Se detiene |
 | 4 | Quality Gate | Espera el veredicto de SonarQube (máx. 5 min) | Se detiene |
 | 5 | Staging efímero | Instala el wheel en el workspace con BD nueva: API en `127.0.0.1:5002`, cliente en `127.0.0.1:5003` | Se detiene |
-| 6 | Pruebas funcionales | Selenium contra el cliente de staging (`CHAMBEAYA_BASE_URL`), con los datos de prueba creados por la API (`CHAMBEAYA_API_URL`); luego se apaga staging | Se detiene |
-| 7 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`: API en `127.0.0.1:5000`, cliente en `127.0.0.1:5001` (los mismos puertos que en local) | Rollback automático |
+| 6 | Pruebas funcionales | Selenium contra el cliente de staging (`CHAMBEAYA_BASE_URL`), con los datos de prueba creados por la API (`CHAMBEAYA_API_URL`) | Se detiene |
+| 7 | OWASP ZAP Baseline | Escaneo pasivo del cliente (`:5003`) y `/health` de la API (`:5002/health`); archiva reportes HTML y JSON en Jenkins. Solo las alertas High bloquean el pipeline | Se detiene y no despliega |
+| 8 | Despliegue | Instala el mismo wheel en `$JENKINS_HOME/chambeaya`: API en `127.0.0.1:5000`, cliente en `127.0.0.1:5001` (los mismos puertos que en local) | Rollback automático |
+
+El agente Jenkins necesita Docker y debe ejecutarse en Linux: ZAP usa `--network host` para acceder a los puertos loopback del staging. Los reportes `zap-client.html`, `zap-client.json`, `zap-api.html` y `zap-api.json` se archivan incluso si el escaneo o el gate falla. El cliente se rastrea por sus páginas accesibles; la API solo se comprueba en `/health`, porque no hay una especificación OpenAPI configurada. El escaneo Baseline usa rastreo y reglas pasivas, sin pruebas activas.
 
 **Despliegue (`scripts/ci/deploy.sh`).** Lo usan staging y el despliegue final:
 
@@ -2093,7 +2096,7 @@ El `Jenkinsfile` de la raíz define el pipeline. Jenkins lo ejecuta automáticam
 
 **Configuración necesaria en Jenkins:**
 
-- Plugins: SonarQube Scanner, JUnit, Pipeline, Workspace Cleanup y Timestamper.
+- Plugins: SonarQube Scanner, JUnit, Pipeline, Workspace Cleanup y Timestamper. El agente Linux también necesita Docker disponible para el escaneo ZAP.
 - **Manage Jenkins → System → SonarQube servers:** un servidor llamado `SonarQube`, con la URL de SonarQube y una credencial *Secret text* `sonar-token`.
 - **Manage Jenkins → Tools:** un *SonarQube Scanner* llamado `sonar-scanner`.
 - **En SonarQube:** un webhook hacia `http://<jenkins>/sonarqube-webhook/`. Si Jenkins y SonarQube corren en la misma máquina, agrega `sonar.validateWebhooks=false` a `conf/sonar.properties`.
