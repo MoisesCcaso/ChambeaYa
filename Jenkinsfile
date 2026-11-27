@@ -61,7 +61,7 @@ pipeline {
         }
       }
     }
-    stage('OWASP ZAP Baseline y API Scan') {
+    stage('OWASP ZAP Client y API Scan') {
       steps {
         sh '''
           mkdir -p reports
@@ -73,7 +73,7 @@ pipeline {
           docker run --no-healthcheck --rm --network host \\
             -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
-            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 1 -j --client-spider \\
+            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 1 \\
             -d -r zap-client.html -J zap-client.json
           client_status=$?
           docker run --no-healthcheck --rm --network host \\
