@@ -74,7 +74,7 @@ pipeline {
           # comprueba por defecto el 8080; desactivar ese healthcheck evita falsos unhealthy.
           docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \\
-            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -j \\
+            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 3 \\
             -r zap-client.html -J zap-client.json
           client_status=$?
           docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
