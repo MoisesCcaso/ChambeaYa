@@ -72,14 +72,18 @@ pipeline {
           set +e
           # Los scripts empaquetados eligen un puerto ZAP efimero, pero la imagen
           # comprueba por defecto el 8080; desactivar ese healthcheck evita falsos unhealthy.
-          docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+          docker run --no-healthcheck --cpus=2 --memory=2g --memory-swap=2g --rm --network host \\
+            -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \\
             -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 3 \\
+            -z "-config scanner.maxScanDurationInMins=5 -config scanner.maxRuleDurationInMins=1 -config scanner.threadPerHost=2" \\
             -r zap-client.html -J zap-client.json
           client_status=$?
-          docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+          docker run --no-healthcheck --cpus=2 --memory=2g --memory-swap=2g --rm --network host \\
+            -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \\
             -t "http://127.0.0.1:$STAGING_PORT/openapi.json" -f openapi \\
+            -z "-config scanner.maxScanDurationInMins=5 -config scanner.maxRuleDurationInMins=1 -config scanner.threadPerHost=2" \\
             -r zap-api.html -J zap-api.json
           api_status=$?
           set -e
