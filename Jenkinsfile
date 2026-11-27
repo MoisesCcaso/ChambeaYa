@@ -65,6 +65,9 @@ pipeline {
       steps {
         sh '''
           mkdir -p reports
+          # El contenedor ZAP corre como UID 1000, distinto al usuario jenkins.
+          # reports/ es temporal del build y se monta en /zap/wrk para generar los artefactos.
+          chmod 0777 reports
           rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
           set +e
           docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
