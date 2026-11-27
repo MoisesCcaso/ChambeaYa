@@ -1,0 +1,57 @@
+---
+env:
+  contexts:
+    - name: ChambeaYa
+      urls:
+        - ${STAGING_CLIENT_URL}
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    continueOnFailure: true
+    progressToStdout: true
+
+jobs:
+  - type: spider
+    name: traditional-spider
+    parameters:
+      context: ChambeaYa
+      url: ${STAGING_CLIENT_URL}
+      maxDuration: 3
+
+  - type: spiderClient
+    name: client-spider
+    parameters:
+      context: ChambeaYa
+      url: ${STAGING_CLIENT_URL}
+      maxDuration: 3
+      browserId: chrome-headless
+
+  - type: passiveScan-wait
+    name: passive-scan-wait
+    parameters:
+      maxDuration: 3
+
+  - type: activeScan
+    name: dev-standard-active-scan
+    parameters:
+      context: ChambeaYa
+      url: ${STAGING_CLIENT_URL}
+      policy: Dev Standard
+      maxScanDurationInMins: 5
+      maxRuleDurationInMins: 1
+
+  - type: report
+    name: client-html-report
+    parameters:
+      template: traditional-html
+      reportDir: /zap/wrk
+      reportFile: zap-client
+      reportTitle: ChambeaYa Client Security Scan
+
+  - type: report
+    name: client-json-report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk
+      reportFile: zap-client
+      reportTitle: ChambeaYa Client Security Scan
