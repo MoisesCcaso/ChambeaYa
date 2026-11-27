@@ -58,14 +58,47 @@ pipeline {
         always {
           junit 'reports/functional.xml'
           archiveArtifacts artifacts: 'reports/functional.html', allowEmptyArchive: true
-          sh 'for f in app client; do kill "$(cat "$WORKSPACE/.staging/$f.pid")" 2>/dev/null || true; done'
         }
       }
+    }
+    stage('OWASP ZAP Baseline') {
+      steps {
+        sh '''
+          mkdir -p reports
+          rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
+          set +e
+          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
+            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 1 \\
+            -r zap-client.html -J zap-client.json
+          client_status=$?
+          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
+            -t "http://127.0.0.1:$STAGING_PORT/health" -m 1 \\
+            -r zap-api.html -J zap-api.json
+          api_status=$?
+          set -e
+
+          # ZAP devuelve 1 por FAIL y 2 por WARN; ambos se evalúan abajo por riesgo.
+          # 3 indica un error al ejecutar el escáner y debe bloquear el despliegue.
+          if [ "$client_status" -gt 2 ] || [ "$api_status" -gt 2 ]; then
+            echo "ZAP no pudo completar uno o más escaneos" >&2
+            exit 1
+          fi
+          python3 scripts/ci/check_zap_reports.py reports/zap-client.json reports/zap-api.json
+        '''
+      }
+      post { always { archiveArtifacts artifacts: 'reports/zap-client.html,reports/zap-client.json,reports/zap-api.html,reports/zap-api.json', allowEmptyArchive: true } }
     }
     stage('Despliegue') {
       // solo se llega aqui si todo lo anterior paso; fuera del workspace para sobrevivir a cleanWs
       steps { sh 'sh scripts/ci/deploy.sh "$JENKINS_HOME/chambeaya" "$APP_PORT" "$APP_CLIENT_PORT"' }
     }
   }
-  post { always { cleanWs() } }
+  post {
+    always {
+      sh 'for f in app client; do if [ -f "$WORKSPACE/.staging/$f.pid" ]; then kill "$(cat "$WORKSPACE/.staging/$f.pid")" 2>/dev/null || true; fi; done'
+      cleanWs()
+    }
+  }
 }
