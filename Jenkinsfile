@@ -61,7 +61,7 @@ pipeline {
         }
       }
     }
-    stage('OWASP ZAP Baseline') {
+    stage('OWASP ZAP Client y API Scan') {
       steps {
         sh '''
           mkdir -p reports
@@ -70,20 +70,22 @@ pipeline {
           chmod 0777 reports
           rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
           set +e
-          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+          docker run --no-healthcheck --rm --network host \\
+            -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
             -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 1 \\
-            -r zap-client.html -J zap-client.json
+            -d -r zap-client.html -J zap-client.json
           client_status=$?
-          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
-            -t "http://127.0.0.1:$STAGING_PORT/health" -m 1 \\
-            -r zap-api.html -J zap-api.json
+          docker run --no-healthcheck --rm --network host \\
+            -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+            ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \\
+            -t "http://127.0.0.1:$STAGING_PORT/openapi.json" -f openapi \\
+            -z "-config scanner.maxScanDurationInMins=5 -config scanner.maxRuleDurationInMins=1" \\
+            -d -r zap-api.html -J zap-api.json
           api_status=$?
           set -e
 
-          # ZAP devuelve 1 por FAIL y 2 por WARN; ambos se evalúan abajo por riesgo.
-          # 3 indica un error al ejecutar el escáner y debe bloquear el despliegue.
+          # Los scans empaquetados devuelven 1/2 por FAIL/WARN; 3 indica un error.
           if [ "$client_status" -gt 2 ] || [ "$api_status" -gt 2 ]; then
             echo "ZAP no pudo completar uno o más escaneos" >&2
             exit 1
