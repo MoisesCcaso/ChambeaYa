@@ -61,7 +61,7 @@ pipeline {
         }
       }
     }
-    stage('OWASP ZAP Baseline') {
+    stage('OWASP ZAP Full Scan') {
       steps {
         sh '''
           mkdir -p reports
@@ -71,13 +71,13 @@ pipeline {
           rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
           set +e
           docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
-            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 1 \\
+            ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \\
+            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -j \\
             -r zap-client.html -J zap-client.json
           client_status=$?
           docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
-            -t "http://127.0.0.1:$STAGING_PORT/health" -m 1 \\
+            ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \\
+            -t "http://127.0.0.1:$STAGING_PORT/openapi.json" -f openapi \\
             -r zap-api.html -J zap-api.json
           api_status=$?
           set -e
