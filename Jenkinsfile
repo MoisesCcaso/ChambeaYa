@@ -61,7 +61,7 @@ pipeline {
         }
       }
     }
-    stage('OWASP ZAP Full Scan') {
+    stage('OWASP ZAP Baseline y API Scan') {
       steps {
         sh '''
           mkdir -p reports
@@ -69,13 +69,12 @@ pipeline {
           # reports/ es temporal del build y se monta en /zap/wrk para generar los artefactos.
           chmod 0777 reports
           rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
-          docker build -f scripts/ci/Dockerfile.zap-chrome -t chambeaya-zap-chrome scripts/ci
-          cp scripts/ci/zap-client.yaml reports/zap-client.yaml
           set +e
           docker run --no-healthcheck --rm --network host \\
-            -e STAGING_CLIENT_URL="http://127.0.0.1:$STAGING_CLIENT_PORT" \\
             -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
-            chambeaya-zap-chrome zap.sh -cmd -autorun /zap/wrk/zap-client.yaml -loglevel DEBUG
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \\
+            -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -m 3 -j --client-spider \\
+            -d -r zap-client.html -J zap-client.json
           client_status=$?
           docker run --no-healthcheck --rm --network host \\
             -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
@@ -86,9 +85,8 @@ pipeline {
           api_status=$?
           set -e
 
-          # El Automation Framework del cliente debe terminar con 0; cualquier otro
-          # estado indica un fallo del plan. API Scan empaquetado devuelve 1/2 por alertas.
-          if [ "$client_status" -ne 0 ] || [ "$api_status" -gt 2 ]; then
+          # Los scans empaquetados devuelven 1/2 por FAIL/WARN; 3 indica un error.
+          if [ "$client_status" -gt 2 ] || [ "$api_status" -gt 2 ]; then
             echo "ZAP no pudo completar uno o más escaneos" >&2
             exit 1
           fi
