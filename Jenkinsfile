@@ -70,12 +70,14 @@ pipeline {
           chmod 0777 reports
           rm -f reports/zap-client.html reports/zap-client.json reports/zap-api.html reports/zap-api.json
           set +e
-          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+          # Los scripts empaquetados eligen un puerto ZAP efimero, pero la imagen
+          # comprueba por defecto el 8080; desactivar ese healthcheck evita falsos unhealthy.
+          docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \\
             -t "http://127.0.0.1:$STAGING_CLIENT_PORT" -j \\
             -r zap-client.html -J zap-client.json
           client_status=$?
-          docker run --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
+          docker run --no-healthcheck --rm --network host -v "$WORKSPACE/reports:/zap/wrk/:rw" \\
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \\
             -t "http://127.0.0.1:$STAGING_PORT/openapi.json" -f openapi \\
             -r zap-api.html -J zap-api.json
