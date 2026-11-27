@@ -7,6 +7,7 @@ from profiles.controllers.profile_routes import profile_bp
 from internships.controllers.internship_routes import internship_bp
 from recruitment.controllers.job_posting_routes import job_posting_bp
 from recruitment.controllers.job_application_routes import job_application_bp
+from bootstrap.openapi import openapi_json
 
 
 def register_routes(app):
@@ -19,3 +20,9 @@ def register_routes(app):
     app.register_blueprint(matching_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(internship_bp)
+    app.add_url_rule(
+        "/openapi.json",
+        endpoint="openapi_json",
+        view_func=openapi_json,
+        methods=["GET"],
+    )
